@@ -1,7 +1,13 @@
 package org.cytoscape.fx.internal;
 
+import static org.cytoscape.work.ServiceProperties.ID;
+import static org.cytoscape.work.ServiceProperties.MENU_GRAVITY;
+import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
+import static org.cytoscape.work.ServiceProperties.TITLE;
+
 import java.util.Properties;
 
+import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.fx.internal.task.HeadlessTaskMonitor;
@@ -40,8 +46,6 @@ import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.cytoscape.work.ServiceProperties.*;
-
 
 public class CyActivator extends AbstractCyActivator {
 
@@ -63,6 +67,7 @@ public class CyActivator extends AbstractCyActivator {
 		final CyNetworkViewManager netViewMan = getService(bc, CyNetworkViewManager.class);
 		final VisualMappingManager visMan = getService(bc, VisualMappingManager.class);
 		final CyApplicationManager applicationManager = getService(bc, CyApplicationManager.class);
+		final CyApplicationConfiguration appConfig = getService(bc, CyApplicationConfiguration.class);
 		final CyLayoutAlgorithmManager layoutManager = getService(bc, CyLayoutAlgorithmManager.class);
 		final VisualStyleFactory vsFactory = getService(bc, VisualStyleFactory.class);
 		final CyGroupFactory groupFactory = getService(bc, CyGroupFactory.class);
@@ -99,11 +104,11 @@ public class CyActivator extends AbstractCyActivator {
 		final CySwingApplication cySwingApplicationServiceRef = getService(bc,CySwingApplication.class);
 		final CyServiceRegistrar registrar = getService(bc, CyServiceRegistrar.class);
 		
-		final ShowMessageTaskFactory showMessageTaskFactory = new ShowMessageTaskFactory(registrar, cySwingApplicationServiceRef, fitContent);
+		final ShowMessageTaskFactory showMessageTaskFactory = new ShowMessageTaskFactory(registrar, cySwingApplicationServiceRef, appConfig);
 		Properties showMessageTaskFactoryProps = new Properties();
 		showMessageTaskFactoryProps.setProperty(ID,"showMessageTaskFactory");
 		showMessageTaskFactoryProps.setProperty(PREFERRED_MENU,"Tools");
-		showMessageTaskFactoryProps.setProperty(TITLE,"Show FX Component...");
+		showMessageTaskFactoryProps.setProperty(TITLE,"Start NDEx Valet");
 		showMessageTaskFactoryProps.setProperty(MENU_GRAVITY,"1.0");
 		registerService(bc, showMessageTaskFactory, TaskFactory.class, showMessageTaskFactoryProps);
 		

@@ -12,7 +12,7 @@
 		<jersey.version>2.21</jersey.version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<cytoscape.api.version>3.3.0-SNAPSHOT</cytoscape.api.version>
+		<cytoscape.api.version>3.3.0</cytoscape.api.version>
 	</properties>
 
 	<groupId>org.cytoscape</groupId>

@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+	<script type='text/javascript' 
+		src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'>
+	</script>
+    <script src="react-with-addons.min.js"></script>
+    <script src="react-dom.min.js"></script>
+    <script src="CyFramework.js"></script>
+    <script src="CyComponent.js"></script>
+  </head>
+  <body>
+    <div id="sample"></div>
+    <script>
+      console.log(CyComponent)
+      var cyto = CyFramework.config([CyComponent], {})
+      cyto.render(CyComponent, document.getElementById('sample'))
+    </script>
+  </body>
+</html>
