@@ -87,6 +87,31 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+	if (typeof Object.assign != 'function') {
+	  (function () {
+	    Object.assign = function (target) {
+	      'use strict';
+
+	      if (target === undefined || target === null) {
+	        throw new TypeError('Cannot convert undefined or null to object');
+	      }
+
+	      var output = Object(target);
+	      for (var index = 1; index < arguments.length; index++) {
+	        var source = arguments[index];
+	        if (source !== undefined && source !== null) {
+	          for (var nextKey in source) {
+	            if (Object.prototype.hasOwnProperty.call(source, nextKey)) {
+	              output[nextKey] = source[nextKey];
+	            }
+	          }
+	        }
+	      }
+	      return output;
+	    };
+	  })();
+	}
+
 	var CyFramework = function () {
 	  function CyFramework() {
 	    var modules = arguments.length <= 0 || arguments[0] === undefined ? [{ stores: { empty: _empty2.default } }] : arguments[0];
