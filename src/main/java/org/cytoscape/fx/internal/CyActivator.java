@@ -34,6 +34,7 @@ import org.cytoscape.task.read.OpenSessionTaskFactory;
 import org.cytoscape.task.select.SelectFirstNeighborsTaskFactory;
 import org.cytoscape.task.write.ExportNetworkViewTaskFactory;
 import org.cytoscape.task.write.SaveSessionAsTaskFactory;
+import org.cytoscape.util.swing.OpenBrowser;
 import org.cytoscape.view.layout.CyLayoutAlgorithmManager;
 import org.cytoscape.view.model.CyNetworkViewFactory;
 import org.cytoscape.view.model.CyNetworkViewManager;
@@ -81,6 +82,8 @@ public class CyActivator extends AbstractCyActivator {
 		final NewSessionTaskFactory newSessionTaskFactory = getService(bc, NewSessionTaskFactory.class);
 		final CySwingApplication desktop = getService(bc, CySwingApplication.class);
 		final ExportNetworkViewTaskFactory exportNetworkViewTaskFactory = getService(bc, ExportNetworkViewTaskFactory.class);
+		
+		final OpenBrowser browser = getService(bc, OpenBrowser.class);
 
 		// Task factories
 		final NewNetworkSelectedNodesAndEdgesTaskFactory networkSelectedNodesAndEdgesTaskFactory = getService(bc,
@@ -104,11 +107,11 @@ public class CyActivator extends AbstractCyActivator {
 		final CySwingApplication cySwingApplicationServiceRef = getService(bc,CySwingApplication.class);
 		final CyServiceRegistrar registrar = getService(bc, CyServiceRegistrar.class);
 		
-		final ShowMessageTaskFactory showMessageTaskFactory = new ShowMessageTaskFactory(registrar, cySwingApplicationServiceRef, appConfig);
+		final ShowMessageTaskFactory showMessageTaskFactory = new ShowMessageTaskFactory(registrar, cySwingApplicationServiceRef, appConfig, browser);
 		Properties showMessageTaskFactoryProps = new Properties();
 		showMessageTaskFactoryProps.setProperty(ID,"showMessageTaskFactory");
 		showMessageTaskFactoryProps.setProperty(PREFERRED_MENU,"Tools");
-		showMessageTaskFactoryProps.setProperty(TITLE,"Start NDEx Valet");
+		showMessageTaskFactoryProps.setProperty(TITLE,"Open NDEx Valet...");
 		showMessageTaskFactoryProps.setProperty(MENU_GRAVITY,"1.0");
 		registerService(bc, showMessageTaskFactory, TaskFactory.class, showMessageTaskFactoryProps);
 		
