@@ -11,7 +11,7 @@ import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.fx.internal.task.HeadlessTaskMonitor;
-import org.cytoscape.fx.internal.task.ShowMessageTaskFactory;
+import org.cytoscape.fx.internal.task.ShowPanelTaskFactory;
 import org.cytoscape.group.CyGroupFactory;
 import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.io.read.InputStreamTaskFactory;
@@ -107,7 +107,7 @@ public class CyActivator extends AbstractCyActivator {
 		final CySwingApplication cySwingApplicationServiceRef = getService(bc,CySwingApplication.class);
 		final CyServiceRegistrar registrar = getService(bc, CyServiceRegistrar.class);
 		
-		final ShowMessageTaskFactory showMessageTaskFactory = new ShowMessageTaskFactory(registrar, cySwingApplicationServiceRef, appConfig, browser);
+		final ShowPanelTaskFactory showMessageTaskFactory = new ShowPanelTaskFactory(registrar, cySwingApplicationServiceRef, appConfig, browser);
 		Properties showMessageTaskFactoryProps = new Properties();
 		showMessageTaskFactoryProps.setProperty(ID,"showMessageTaskFactory");
 		showMessageTaskFactoryProps.setProperty(PREFERRED_MENU,"Tools");

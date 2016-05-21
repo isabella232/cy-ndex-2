@@ -7,14 +7,14 @@ import org.cytoscape.util.swing.OpenBrowser;
 import org.cytoscape.work.AbstractTaskFactory;
 import org.cytoscape.work.TaskIterator;
 
-public class ShowMessageTaskFactory extends AbstractTaskFactory {
+public class ShowPanelTaskFactory extends AbstractTaskFactory {
 
 	private final CySwingApplication cySwingApplicationServiceRef;
 	private final CyServiceRegistrar registrar;
 	private final CyApplicationConfiguration appConfig;
 	private final OpenBrowser browser;
 
-	public ShowMessageTaskFactory(final CyServiceRegistrar registrar,
+	public ShowPanelTaskFactory(final CyServiceRegistrar registrar,
 			final CySwingApplication cySwingApplicationServiceRef, 
 			final CyApplicationConfiguration appConfig,
 			final OpenBrowser browser) {
@@ -26,7 +26,7 @@ public class ShowMessageTaskFactory extends AbstractTaskFactory {
 
 	@Override
 	public TaskIterator createTaskIterator() {
-		return new TaskIterator(new OpenNdexValet(appConfig, browser));
-//		return new TaskIterator(new ShowMessageTask(registrar, cySwingApplicationServiceRef, appConfig));
+//		return new TaskIterator(new OpenNdexValet(appConfig, browser));
+		return new TaskIterator(new ShowPanelTask(registrar, cySwingApplicationServiceRef, appConfig));
 	}
 }

@@ -217,6 +217,12 @@
 			<scope>provided</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>com.dukescript.presenters</groupId>
+			<artifactId>webkit</artifactId>
+			<version>1.0</version>
+		</dependency>
+
 		<!-- Testing -->
 		<dependency>
 			<groupId>junit</groupId>

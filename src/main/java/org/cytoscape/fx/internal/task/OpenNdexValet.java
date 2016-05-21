@@ -30,8 +30,8 @@ public class OpenNdexValet extends AbstractTask {
 	public void run(TaskMonitor taskMonitor) throws Exception {
 
 		final String targetIndexFile = "file://" + this.location + "/index.html";
-		System.out.println(targetIndexFile);
-		this.browser.openURL(targetIndexFile);
+		System.out.println("Targeti2: " + targetIndexFile);
+//		this.browser.openURL(targetIndexFile);
 	}
 
 }
