@@ -14,6 +14,7 @@ import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.application.swing.CytoPanelState;
 import org.cytoscape.fx.internal.task.HeadlessTaskMonitor;
 import org.cytoscape.fx.internal.ui.NdexMainPanel;
+import org.cytoscape.fx.internal.ws.WSServer;
 import org.cytoscape.group.CyGroupFactory;
 import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.io.read.InputStreamTaskFactory;
@@ -139,7 +140,17 @@ public class CyActivator extends AbstractCyActivator {
 		Container splitpane = parent.getThisComponent().getParent();
 		System.out.println(splitpane);
 		((JSplitPane) splitpane).setDividerLocation(0.8);
-
+		
+		// Start server
+		final WSServer server = new WSServer();
+		registerAllServices(bc, server, new Properties());
+		try {
+			server.start();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
 	@Override
