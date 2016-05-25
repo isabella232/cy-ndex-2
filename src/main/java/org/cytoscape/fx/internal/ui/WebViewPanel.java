@@ -7,10 +7,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import javax.swing.Icon;
-import javax.swing.JPanel;
-import javax.swing.JSplitPane;
 
-import org.cytoscape.application.swing.CytoPanel;
 import org.cytoscape.application.swing.CytoPanelComponent2;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.application.swing.events.CytoPanelComponentSelectedEvent;
@@ -22,14 +19,19 @@ import javafx.scene.Scene;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
-public class WebViewPanel extends JPanel implements CytoPanelComponent2, CytoPanelComponentSelectedListener {
+public class WebViewPanel extends JFXPanel implements CytoPanelComponent2, CytoPanelComponentSelectedListener {
 
 	private static final long serialVersionUID = -6270382855252926155L;
 
-	// JavaFX panel compatible with Swing
-	private final JFXPanel fxPanel;
+	private static final Integer DEF_WIDTH = 1200;
 
+	// JavaFX panel compatible with Swing
 	private final String indexPageUrl;
+
+	private Integer width = DEF_WIDTH;
+	private Dimension dimension;
+	private WebView view;
+	private Scene scene;
 
 	public WebViewPanel(final String indexPageLocation) {
 
@@ -45,27 +47,23 @@ public class WebViewPanel extends JPanel implements CytoPanelComponent2, CytoPan
 
 		this.indexPageUrl = indexPageLocation;
 
+		dimension = new Dimension(width, 600);
 		this.setLayout(new BorderLayout());
-		this.fxPanel = new JFXPanel();
-		this.add(fxPanel, BorderLayout.CENTER);
-		fxPanel.setPreferredSize(new Dimension(1200, 400));
-		fxPanel.setSize(new Dimension(1200, 400));
-
-		this.setPreferredSize(new Dimension(1200, 400));
-		this.setSize(new Dimension(1200, 400));
-	}
-
-	public void loadPage() {
+		this.setPreferredSize(dimension);
+		
 		Platform.runLater(() -> load());
 	}
 
-	private final void load() {
-		WebView view = new WebView();
-		WebEngine engine = view.getEngine();
-		System.out.println("Engine Version: " + engine.getUserAgent());
-
+	public final void load() {
+		System.out.println("============== Calling load");
+		this.view = new WebView();
+		System.out.println("============== load2");
+		final WebEngine engine = view.getEngine();
+		System.out.println("WebView Engine Version: " + engine.getUserAgent());
 		engine.load(this.indexPageUrl);
-		fxPanel.setScene(new Scene(view));
+		this.scene = new Scene(view);
+		this.setScene(scene);
+		System.out.println("============== load finished ==============");
 	}
 
 	@Override
@@ -95,19 +93,29 @@ public class WebViewPanel extends JPanel implements CytoPanelComponent2, CytoPan
 
 	@Override
 	public void handleEvent(CytoPanelComponentSelectedEvent evt) {
-		// TODO Auto-generated method stub
-		final CytoPanel panel = evt.getCytoPanel();
-		final Component selected = panel.getSelectedComponent();
-
-		if (selected == this) {
-			System.out.println("selected!!!!!!!!!");
-			// Find split pane
-			final JSplitPane pane = (JSplitPane) panel.getThisComponent().getParent();
-			pane.setDividerLocation(0.7d);
-		} else {
-			System.out.println("NOT!!!!!!!!!: ");
-
-		}
-
+//		// TODO Auto-generated method stub
+//		final CytoPanel panel = evt.getCytoPanel();
+//		final Component selected = panel.getSelectedComponent();
+//
+//		if (selected == this) {
+//			System.out.println("selected!!!!!!!!!: " + panel.getThisComponent());
+//
+//			// Find split pane
+//			final Component parent = panel.getThisComponent().getParent();
+//
+//			if (parent instanceof JSplitPane) {
+//				final JSplitPane pane = (JSplitPane) parent;
+//				pane.setDividerLocation(0.65d);
+//			}
+//
+//			System.out.println(this.fxPanel.getSize());
+//			System.out.println(this.view.getHeight());
+//			System.out.println("Panel state: ");
+//
+//		} else {
+//			System.out.println("NOT!!!!!!!!!: ");
+//
+//		}
+//
 	}
 }

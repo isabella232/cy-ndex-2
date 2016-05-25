@@ -1,17 +1,19 @@
 package org.cytoscape.fx.internal;
 
-import static org.cytoscape.work.ServiceProperties.ID;
-import static org.cytoscape.work.ServiceProperties.MENU_GRAVITY;
-import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
-import static org.cytoscape.work.ServiceProperties.TITLE;
-
+import java.awt.Container;
+import java.awt.Dimension;
 import java.util.Properties;
+
+import javax.swing.JSplitPane;
 
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
+import org.cytoscape.application.swing.CytoPanel;
+import org.cytoscape.application.swing.CytoPanelName;
+import org.cytoscape.application.swing.CytoPanelState;
 import org.cytoscape.fx.internal.task.HeadlessTaskMonitor;
-import org.cytoscape.fx.internal.task.ShowPanelTaskFactory;
+import org.cytoscape.fx.internal.ui.NdexMainPanel;
 import org.cytoscape.group.CyGroupFactory;
 import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.io.read.InputStreamTaskFactory;
@@ -41,12 +43,10 @@ import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.presentation.RenderingEngineManager;
 import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.view.vizmap.VisualStyleFactory;
-import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskMonitor;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 public class CyActivator extends AbstractCyActivator {
 
@@ -76,13 +76,14 @@ public class CyActivator extends AbstractCyActivator {
 		final CyTableManager tableManager = getService(bc, CyTableManager.class);
 		final CyTableFactory tableFactory = getService(bc, CyTableFactory.class);
 		final StreamUtil streamUtil = getService(bc, StreamUtil.class);
-		final CySessionManager sessionManager = getService(bc, CySessionManager.class); 
+		final CySessionManager sessionManager = getService(bc, CySessionManager.class);
 		final SaveSessionAsTaskFactory saveSessionAsTaskFactory = getService(bc, SaveSessionAsTaskFactory.class);
 		final OpenSessionTaskFactory openSessionTaskFactory = getService(bc, OpenSessionTaskFactory.class);
 		final NewSessionTaskFactory newSessionTaskFactory = getService(bc, NewSessionTaskFactory.class);
 		final CySwingApplication desktop = getService(bc, CySwingApplication.class);
-		final ExportNetworkViewTaskFactory exportNetworkViewTaskFactory = getService(bc, ExportNetworkViewTaskFactory.class);
-		
+		final ExportNetworkViewTaskFactory exportNetworkViewTaskFactory = getService(bc,
+				ExportNetworkViewTaskFactory.class);
+
 		final OpenBrowser browser = getService(bc, OpenBrowser.class);
 
 		// Task factories
@@ -92,33 +93,57 @@ public class CyActivator extends AbstractCyActivator {
 				"(id=cytoscapejsNetworkWriterFactory)");
 		final InputStreamTaskFactory cytoscapeJsReaderFactory = getService(bc, InputStreamTaskFactory.class,
 				"(id=cytoscapejsNetworkReaderFactory)");
-		
+
 		final LoadNetworkURLTaskFactory loadNetworkURLTaskFactory = getService(bc, LoadNetworkURLTaskFactory.class);
-		final SelectFirstNeighborsTaskFactory selectFirstNeighborsTaskFactory = getService(bc, SelectFirstNeighborsTaskFactory.class);
-		
+		final SelectFirstNeighborsTaskFactory selectFirstNeighborsTaskFactory = getService(bc,
+				SelectFirstNeighborsTaskFactory.class);
+
 		final NetworkTaskFactory fitContent = getService(bc, NetworkTaskFactory.class, "(title=Fit Content)");
 		final NetworkTaskFactory edgeBundler = getService(bc, NetworkTaskFactory.class, "(title=All Nodes and Edges)");
-		final NetworkTaskFactory showDetailsTaskFactory = getService(bc, NetworkTaskFactory.class, 
+		final NetworkTaskFactory showDetailsTaskFactory = getService(bc, NetworkTaskFactory.class,
 				"(title=Show/Hide Graphics Details)");
 
-		final RenderingEngineManager renderingEngineManager = getService(bc,RenderingEngineManager.class);
-		
-		
-		final CySwingApplication cySwingApplicationServiceRef = getService(bc,CySwingApplication.class);
+		final RenderingEngineManager renderingEngineManager = getService(bc, RenderingEngineManager.class);
+
+		final CySwingApplication cySwingApplicationServiceRef = getService(bc, CySwingApplication.class);
 		final CyServiceRegistrar registrar = getService(bc, CyServiceRegistrar.class);
-		
-		final ShowPanelTaskFactory showMessageTaskFactory = new ShowPanelTaskFactory(registrar, cySwingApplicationServiceRef, appConfig, browser);
-		Properties showMessageTaskFactoryProps = new Properties();
-		showMessageTaskFactoryProps.setProperty(ID,"showMessageTaskFactory");
-		showMessageTaskFactoryProps.setProperty(PREFERRED_MENU,"Tools");
-		showMessageTaskFactoryProps.setProperty(TITLE,"Open NDEx Valet...");
-		showMessageTaskFactoryProps.setProperty(MENU_GRAVITY,"1.0");
-		registerService(bc, showMessageTaskFactory, TaskFactory.class, showMessageTaskFactoryProps);
-		
+
+		// final ShowPanelTaskFactory showMessageTaskFactory = new
+		// ShowPanelTaskFactory(registrar,
+		// cySwingApplicationServiceRef, appConfig, browser);
+		// Properties showMessageTaskFactoryProps = new Properties();
+		// showMessageTaskFactoryProps.setProperty(ID,
+		// "showMessageTaskFactory");
+		// showMessageTaskFactoryProps.setProperty(PREFERRED_MENU, "Tools");
+		// showMessageTaskFactoryProps.setProperty(TITLE, "Open NDEx Valet...");
+		// showMessageTaskFactoryProps.setProperty(MENU_GRAVITY, "1.0");
+		// registerService(bc, showMessageTaskFactory, TaskFactory.class,
+		// showMessageTaskFactoryProps);
+
+		// PanelStatusManager panelStatusManager = new
+		// PanelStatusManager(showMessageTaskFactory,
+		// cySwingApplicationServiceRef, registrar);
+		// registerService(bc, panelStatusManager,
+		// CytoPanelStateChangedListener.class, new Properties());
+
+		// This is a singleton
+		final NdexMainPanel panel = new NdexMainPanel(cySwingApplicationServiceRef);
+		registerAllServices(bc, panel, new Properties());
+		CytoPanel parent = cySwingApplicationServiceRef.getCytoPanel(CytoPanelName.SOUTH_WEST);
+		panel.setPreferredSize(new Dimension(600, 1000));
+		panel.setMinimumSize(new Dimension(400, 600));
+		panel.setSize(new Dimension(600, 1000));
+
+		parent.setState(CytoPanelState.DOCK);
+		parent.setSelectedIndex(parent.indexOfComponent(panel));
+		Container splitpane = parent.getThisComponent().getParent();
+		System.out.println(splitpane);
+		((JSplitPane) splitpane).setDividerLocation(0.8);
+
 	}
 
 	@Override
 	public void shutDown() {
-		logger.info("Shutting down REST server...");
+		logger.info("Shutting down NDEx Valet...");
 	}
 }
