@@ -14,6 +14,7 @@ import org.cytoscape.application.swing.CytoPanel;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.application.swing.CytoPanelState;
 import org.cytoscape.fx.internal.ui.NdexMainPanel;
+import org.cytoscape.fx.internal.ws.ProcessManager;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
@@ -25,16 +26,17 @@ public class ShowPanelTask extends AbstractTask {
 	private static final Logger logger = LoggerFactory.getLogger(ShowPanelTask.class);
 
 	private final CySwingApplication cySwingApplicationServiceRef;
-
 	private final CyServiceRegistrar registrar;
+	private final ProcessManager pm;
 
 	private final String location;
 
 	public ShowPanelTask(final CyServiceRegistrar registrar, final CySwingApplication cySwingApplicationServiceRef,
-			final CyApplicationConfiguration appConfig) {
+			final CyApplicationConfiguration appConfig, final ProcessManager pm) {
 
 		this.cySwingApplicationServiceRef = cySwingApplicationServiceRef;
 		this.registrar = registrar;
+		this.pm = pm;
 
 		final UIResourceGenerator resourceGenerator = new UIResourceGenerator(appConfig);
 
@@ -84,7 +86,7 @@ public class ShowPanelTask extends AbstractTask {
 
 			@Override
 			public void run() {
-				final NdexMainPanel panel = new NdexMainPanel(cySwingApplicationServiceRef);
+				final NdexMainPanel panel = new NdexMainPanel(cySwingApplicationServiceRef, pm);
 				panel.setPreferredSize(new Dimension(600, 1000));
 				registrar.registerAllServices(panel, new Properties());
 				System.out.println("---------- Finished loading ------------");

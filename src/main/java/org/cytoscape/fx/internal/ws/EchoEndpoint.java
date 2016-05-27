@@ -1,5 +1,6 @@
 package org.cytoscape.fx.internal.ws;
 
+import javax.websocket.CloseReason;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
@@ -9,8 +10,14 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.cytoscape.fx.internal.ws.message.InterAppMessage;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+
+/**
+ * Basic endpoint for passing messages between the two apps.
+ * 
+ */
 @ServerEndpoint(value = "/echo")
 public class EchoEndpoint {
 	
@@ -23,11 +30,16 @@ public class EchoEndpoint {
 	@OnMessage
 	public void onMessage(String message, Session session) {
 		try {
-			System.out.println(message);
+			System.out.println("On Message: " + message);
 			
 			final InterAppMessage val = mapper.readValue(message, InterAppMessage.class);
+			final String from = val.getFrom();
 			final String type = val.getType();
-			if(type.equals(InterAppMessage.CY3)) {
+			
+			// Deligate
+			if(from.equals(InterAppMessage.FROM_CY3)) {
+				broadcast(message, session);
+			} else if(type.equals("connected")) {				
 				broadcast(message, session);
 			}
 		} catch(Exception e) {
@@ -46,7 +58,7 @@ public class EchoEndpoint {
 
 	@OnOpen
 	public void onOpen(Session session) {
-		System.out.println("Total sessions: " + session.getOpenSessions().size());
+		System.out.println("* Connected: " + session.getProtocolVersion());
 	}
 
 
@@ -56,7 +68,19 @@ public class EchoEndpoint {
 	}
 
 	@OnClose
-	public void onClose(Session session) {
-		System.out.println("onClose");
+	public void onClose(CloseReason reason, Session session) {
+		System.out.println("* Disconnected: " + session.getProtocolVersion());
+		// Client disconnected:
+		final InterAppMessage msg = new InterAppMessage();
+		msg.setFrom(InterAppMessage.FROM_CY3);
+		msg.setType(InterAppMessage.TYPE_CLOSED);
+		
+		try {
+			broadcast(mapper.writeValueAsString(msg), session);
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 }

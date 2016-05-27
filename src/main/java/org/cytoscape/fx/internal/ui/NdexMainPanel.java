@@ -10,7 +10,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -19,7 +18,6 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
@@ -30,6 +28,7 @@ import org.cytoscape.application.events.CyShutdownListener;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.CytoPanelComponent2;
 import org.cytoscape.application.swing.CytoPanelName;
+import org.cytoscape.fx.internal.ws.ProcessManager;
 import org.cytoscape.fx.internal.ws.WSClient;
 import org.cytoscape.fx.internal.ws.message.InterAppMessage;
 
@@ -51,17 +50,20 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 	private final CySwingApplication cySwingApplicationServiceRef;
 
 	// For child process management
-	private Process electron;
+	private final ProcessManager pm;
 
 	// WS Client
 	private final WSClient client;
+	private final ObjectMapper mapper = new ObjectMapper();
 
 	// States
 	private Boolean searchBoxClicked = false;
 
-	public NdexMainPanel(final CySwingApplication cySwingApplicationServiceRef) {
+	public NdexMainPanel(final CySwingApplication cySwingApplicationServiceRef, final ProcessManager pm) {
 		this.cySwingApplicationServiceRef = cySwingApplicationServiceRef;
-		this.client = new WSClient(cySwingApplicationServiceRef);
+		this.pm = pm;
+
+		this.client = new WSClient(cySwingApplicationServiceRef, pm);
 		init();
 	}
 
@@ -81,12 +83,12 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new GridLayout(1, 2));
-		
+
 		JPanel clearPanel = new JPanel();
 		clearPanel.setBackground(Color.decode("#F3FFE2"));
 		JPanel searchPanel = new JPanel();
 		searchPanel.setBackground(Color.decode("#EB7F00"));
-		
+
 		final JButton clearButton = getClearButton();
 		clearButton.addMouseListener(new MouseAdapter() {
 			@Override
@@ -96,7 +98,7 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 		});
 		clearPanel.add(clearButton);
 		buttonPanel.add(clearPanel);
-		
+
 		final JButton searchButton = getButton();
 		searchButton.setSize(buttonPanel.getSize());
 		searchButton.addActionListener(new ActionListener() {
@@ -109,11 +111,23 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 				}
 			}
 		});
+//		searchButton.setEnabled(false);
 		searchPanel.add(searchButton);
 		buttonPanel.add(searchPanel);
 		
+		searchBox.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (!searchBoxClicked) {
+					searchBox.setText("");
+					searchBoxClicked = true;
+//					searchButton.setEnabled(true);
+				}
+			}
+		});
+
 		this.add(buttonPanel, BorderLayout.SOUTH);
-		
+
 		this.setBackground(Color.WHITE);
 	}
 
@@ -127,15 +141,6 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 
 		searchBox.setText("Enter search terms here...");
 
-		searchBox.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (!searchBoxClicked) {
-					searchBox.setText("");
-					searchBoxClicked = true;
-				}
-			}
-		});
 		return searchBox;
 	}
 
@@ -151,7 +156,7 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 
 		return clearButton;
 	}
-	
+
 	private final JButton getButton() {
 		final JButton searchButton = new JButton("Search NDEx");
 		searchButton.addMouseListener(new MouseAdapter() {
@@ -165,6 +170,7 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 				panel.setBackground(original);
 				button.setFont(buttonFont);
 			}
+
 			@Override
 			public void mouseEntered(MouseEvent e) {
 				JButton button = (JButton) e.getComponent();
@@ -190,61 +196,31 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 
 	private final void search(final String query) throws Exception {
 
+		pm.setQuery(query);
+		
 		if (this.client.getSocket() == null || this.client.isStopped()) {
 			final String dest = "ws://localhost:8025/ws/echo";
 			client.start(dest);
 		}
 
-		String cmd = "/Users/kono/prog/git/electron-quick-start/NDEx-darwin-x64/NDEx.app/Contents/MacOS/NDEx";
+		String cmd = "/Users/kono/CytoscapeConfiguration/native/NDEx.app/Contents/MacOS/NDEx";
 
-		if (electron != null) {
-			System.out.println("RUNNING!!!!!!!! ------------");
+		if (pm.isActive()) {
+			final InterAppMessage focus = new InterAppMessage();
+			focus.setFrom(InterAppMessage.FROM_CY3);
+			focus.setType(InterAppMessage.TYPE_FOCUS);
+			this.client.getSocket().sendMessage(mapper.writeValueAsString(focus));
 			return;
 		}
 
-		ObjectMapper mapper = new ObjectMapper();
-		InterAppMessage q = new InterAppMessage();
-		q.setType("cy3");
-		q.setMessage(query);
-
-		this.client.getSocket().sendMessage(mapper.writeValueAsString(q));
-
 		final ExecutorService executor = Executors.newSingleThreadExecutor();
 		executor.submit(() -> {
-			String threadName = Thread.currentThread().getName();
-			System.out.println("Hello " + threadName);
 			try {
-				electron = Runtime.getRuntime().exec(cmd);
+				pm.setProcess(Runtime.getRuntime().exec(cmd));
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			System.out.println("Map alive? " + electron.isAlive());
-			while (electron.isAlive()) {
-				try {
-					Thread.sleep(2000);
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				System.out.println("---------- Map Not finished yet: " + electron.isAlive());
-			}
-
-			// Bring it back to front
-			final JFrame desktop = cySwingApplicationServiceRef.getJFrame();
-			desktop.setAlwaysOnTop(true);
-			// desktop.toFront();
-			desktop.requestFocus();
-			try {
-				Thread.sleep(200);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			desktop.setAlwaysOnTop(false);
-
-			this.electron = null;
-			System.out.println("---------- Map finished: " + electron.isAlive());
+			System.out.println("---------- Electron is running");
 		});
 
 	}
@@ -277,9 +253,6 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 	@Override
 	public void handleEvent(CyShutdownEvent evt) {
 		// Force to kill Ndex Valet process
-		if (electron != null) {
-			electron.destroyForcibly();
-		}
-
+		pm.kill();
 	}
 }

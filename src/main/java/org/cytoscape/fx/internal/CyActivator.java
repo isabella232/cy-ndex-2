@@ -18,6 +18,7 @@ import org.cytoscape.application.swing.CytoPanelState;
 import org.cytoscape.fx.internal.task.HeadlessTaskMonitor;
 import org.cytoscape.fx.internal.ui.NdexMainPanel;
 import org.cytoscape.fx.internal.ws.JClient;
+import org.cytoscape.fx.internal.ws.ProcessManager;
 import org.cytoscape.fx.internal.ws.WSServer;
 import org.cytoscape.group.CyGroupFactory;
 import org.cytoscape.group.CyGroupManager;
@@ -133,8 +134,10 @@ public class CyActivator extends AbstractCyActivator {
 		// registerService(bc, panelStatusManager,
 		// CytoPanelStateChangedListener.class, new Properties());
 
+		final ProcessManager pm = new ProcessManager();
+		
 		// This is a singleton
-		final NdexMainPanel panel = new NdexMainPanel(cySwingApplicationServiceRef);
+		final NdexMainPanel panel = new NdexMainPanel(cySwingApplicationServiceRef, pm);
 		registerAllServices(bc, panel, new Properties());
 		CytoPanel parent = cySwingApplicationServiceRef.getCytoPanel(CytoPanelName.SOUTH_WEST);
 		panel.setPreferredSize(new Dimension(600, 1000));
@@ -161,17 +164,6 @@ public class CyActivator extends AbstractCyActivator {
 			}
 			System.out.println("Server started ");
 		});
-
-		System.out.println("********** Server is OK.  Starting client...");
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
-
 	}
 
 	@Override

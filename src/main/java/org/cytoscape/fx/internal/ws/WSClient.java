@@ -12,9 +12,11 @@ public class WSClient {
 	private WebSocketClient client;
 
 	private final CySwingApplication app;
+	private final ProcessManager pm;
 	
-	public WSClient(final CySwingApplication app) {
+	public WSClient(final CySwingApplication app, ProcessManager pm) {
 		this.app = app;
+		this.pm = pm;
 	}
 	
 	public void start(String dest) throws Exception {
@@ -22,7 +24,7 @@ public class WSClient {
 		client = new WebSocketClient();
 		System.out.println("Creating client*************");
 		
-		socket = new JClient(app);
+		socket = new JClient(app, pm);
 		client.start();
 		System.out.println("Client is OK*************");
 		URI echoUri = new URI(dest);
