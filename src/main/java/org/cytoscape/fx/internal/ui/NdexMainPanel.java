@@ -5,11 +5,12 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -29,30 +30,42 @@ import org.cytoscape.application.events.CyShutdownListener;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.CytoPanelComponent2;
 import org.cytoscape.application.swing.CytoPanelName;
+import org.cytoscape.fx.internal.ws.WSClient;
+import org.cytoscape.fx.internal.ws.message.InterAppMessage;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShutdownListener {
+
+	private static final long serialVersionUID = 384761556830950601L;
 
 	// Logo Icon
 	private static final Icon NDEX_LOGO = new ImageIcon(
 			NdexMainPanel.class.getClassLoader().getResource("images/ndex.png"));
 
 	// Fonts used in UI
-	private static final Font defFont = new Font("helvatica", Font.PLAIN, 12);
-	private static final Font buttonFont = new Font("helvatica", Font.PLAIN, 14);
-	private static final Font buttonFont2 = new Font("helvatica", Font.BOLD, 14);
+	private static final Font defFont = new Font("helvatica", Font.PLAIN, 14);
+	private static final Font buttonFont = new Font("helvatica", Font.PLAIN, 16);
+	private static final Font buttonFont2 = new Font("helvatica", Font.BOLD, 16);
 
 	private final CySwingApplication cySwingApplicationServiceRef;
 
 	// For child process management
 	private Process electron;
 
+	// WS Client
+	private final WSClient client;
+
+	// States
+	private Boolean searchBoxClicked = false;
+
 	public NdexMainPanel(final CySwingApplication cySwingApplicationServiceRef) {
 		this.cySwingApplicationServiceRef = cySwingApplicationServiceRef;
+		this.client = new WSClient(cySwingApplicationServiceRef);
 		init();
 	}
 
 	private final void init() {
-
 		this.setLayout(new BorderLayout());
 		final JLabel logo = new JLabel();
 		logo.setIcon(NDEX_LOGO);
@@ -62,56 +75,88 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 		logo.setBorder(paddingBorder);
 		this.add(logo, BorderLayout.NORTH);
 
-		JPanel buttonPanel = new JPanel();
-		buttonPanel.setBackground(Color.decode("#EB7F00"));
-		final JButton searchButton = getButton();
-		searchButton.setSize(buttonPanel.getSize());
-		buttonPanel.add(searchButton, BorderLayout.CENTER);
-		this.add(buttonPanel, BorderLayout.SOUTH);
-
-		JEditorPane searchBox = new JEditorPane();
-		searchBox.setFont(defFont);
-
-		searchBox.setBackground(Color.decode("#1695A3"));
-		searchBox.setForeground(Color.decode("#EEEEEE"));
-		final Border paddingBorder3 = BorderFactory.createEmptyBorder(7, 7, 7, 7);
-		searchBox.setBorder(paddingBorder3);
-
-		searchBox.setText("Enter search terms here...");
+		// Search query
+		final JEditorPane searchBox = getSearchBox();
 		this.add(searchBox, BorderLayout.CENTER);
 
-		this.setBackground(Color.WHITE);
-	}
-
-	private final JButton getButton() {
-		final JButton searchButton = new JButton("Search NDEx");
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.setLayout(new GridLayout(1, 2));
+		
+		JPanel clearPanel = new JPanel();
+		clearPanel.setBackground(Color.decode("#F3FFE2"));
+		JPanel searchPanel = new JPanel();
+		searchPanel.setBackground(Color.decode("#EB7F00"));
+		
+		final JButton clearButton = getClearButton();
+		clearButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				searchBox.setText("");
+			}
+		});
+		clearPanel.add(clearButton);
+		buttonPanel.add(clearPanel);
+		
+		final JButton searchButton = getButton();
+		searchButton.setSize(buttonPanel.getSize());
 		searchButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					search();
-				} catch (IOException | InterruptedException e1) {
-					// TODO Auto-generated catch block
+					search(searchBox.getText());
+				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
 			}
 		});
+		searchPanel.add(searchButton);
+		buttonPanel.add(searchPanel);
+		
+		this.add(buttonPanel, BorderLayout.SOUTH);
+		
+		this.setBackground(Color.WHITE);
+	}
 
-		searchButton.addMouseListener(new MouseListener() {
+	private final JEditorPane getSearchBox() {
+		JEditorPane searchBox = new JEditorPane();
+		searchBox.setFont(defFont);
+		searchBox.setBackground(Color.decode("#FFFFFF"));
+		searchBox.setForeground(Color.decode("#666666"));
+		final Border paddingBorder3 = BorderFactory.createEmptyBorder(7, 7, 7, 7);
+		searchBox.setBorder(paddingBorder3);
+
+		searchBox.setText("Enter search terms here...");
+
+		searchBox.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (!searchBoxClicked) {
+					searchBox.setText("");
+					searchBoxClicked = true;
+				}
+			}
+		});
+		return searchBox;
+	}
+
+	private final JButton getClearButton() {
+		final JButton clearButton = new JButton("Clear");
+		clearButton.setOpaque(false);
+		clearButton.setForeground(Color.decode("#777777"));
+		clearButton.setHorizontalAlignment(SwingConstants.CENTER);
+		clearButton.setHorizontalTextPosition(SwingConstants.CENTER);
+		clearButton.setFont(buttonFont);
+		final Border paddingBorder2 = BorderFactory.createEmptyBorder(10, 0, 10, 0);
+		clearButton.setBorder(paddingBorder2);
+
+		return clearButton;
+	}
+	
+	private final JButton getButton() {
+		final JButton searchButton = new JButton("Search NDEx");
+		searchButton.addMouseListener(new MouseAdapter() {
 
 			private Color original;
-
-			@Override
-			public void mouseReleased(MouseEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-				// TODO Auto-generated method stub
-
-			}
 
 			@Override
 			public void mouseExited(MouseEvent e) {
@@ -119,9 +164,7 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 				Container panel = button.getParent();
 				panel.setBackground(original);
 				button.setFont(buttonFont);
-
 			}
-
 			@Override
 			public void mouseEntered(MouseEvent e) {
 				JButton button = (JButton) e.getComponent();
@@ -130,12 +173,6 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 				final Color brighter = original.brighter();
 				panel.setBackground(brighter);
 				button.setFont(buttonFont2);
-			}
-
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				// TODO Auto-generated method stub
-
 			}
 		});
 
@@ -151,16 +188,26 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 		return searchButton;
 	}
 
-	private final void search() throws IOException, InterruptedException {
+	private final void search(final String query) throws Exception {
 
-		System.out.println("---------- Opening loading ------------");
+		if (this.client.getSocket() == null || this.client.isStopped()) {
+			final String dest = "ws://localhost:8025/ws/echo";
+			client.start(dest);
+		}
+
 		String cmd = "/Users/kono/prog/git/electron-quick-start/NDEx-darwin-x64/NDEx.app/Contents/MacOS/NDEx";
-		System.out.println("---------- Map opened ------------");
 
 		if (electron != null) {
 			System.out.println("RUNNING!!!!!!!! ------------");
 			return;
 		}
+
+		ObjectMapper mapper = new ObjectMapper();
+		InterAppMessage q = new InterAppMessage();
+		q.setType("cy3");
+		q.setMessage(query);
+
+		this.client.getSocket().sendMessage(mapper.writeValueAsString(q));
 
 		final ExecutorService executor = Executors.newSingleThreadExecutor();
 		executor.submit(() -> {
@@ -230,9 +277,9 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 	@Override
 	public void handleEvent(CyShutdownEvent evt) {
 		// Force to kill Ndex Valet process
-		if(electron != null) {
+		if (electron != null) {
 			electron.destroyForcibly();
 		}
-		
+
 	}
 }

@@ -1,6 +1,5 @@
 package org.cytoscape.fx.internal.ws;
 
-import javax.servlet.ServletException;
 import javax.websocket.server.ServerContainer;
 
 import org.cytoscape.application.events.CyShutdownEvent;
@@ -43,9 +42,10 @@ public class WSServer implements CyShutdownListener {
 
 		System.out.println("Starting WS...");
 		server.start();
-		
+		final String url = "ws://" + DEF_IP + ":" + DEF_PORT + DEF_ENDPOINT;
 		System.out.println("Listening on " + "ws://" + DEF_IP + ":" + DEF_PORT + DEF_ENDPOINT);
 		server.join();
+		
 	}
 
 	@Override

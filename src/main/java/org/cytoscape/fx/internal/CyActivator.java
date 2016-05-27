@@ -2,7 +2,10 @@ package org.cytoscape.fx.internal;
 
 import java.awt.Container;
 import java.awt.Dimension;
+import java.net.URI;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.swing.JSplitPane;
 
@@ -14,6 +17,7 @@ import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.application.swing.CytoPanelState;
 import org.cytoscape.fx.internal.task.HeadlessTaskMonitor;
 import org.cytoscape.fx.internal.ui.NdexMainPanel;
+import org.cytoscape.fx.internal.ws.JClient;
 import org.cytoscape.fx.internal.ws.WSServer;
 import org.cytoscape.group.CyGroupFactory;
 import org.cytoscape.group.CyGroupManager;
@@ -45,6 +49,8 @@ import org.cytoscape.view.presentation.RenderingEngineManager;
 import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.view.vizmap.VisualStyleFactory;
 import org.cytoscape.work.TaskMonitor;
+import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
+import org.eclipse.jetty.websocket.client.WebSocketClient;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,17 +146,32 @@ public class CyActivator extends AbstractCyActivator {
 		Container splitpane = parent.getThisComponent().getParent();
 		System.out.println(splitpane);
 		((JSplitPane) splitpane).setDividerLocation(0.8);
-		
+
 		// Start server
 		final WSServer server = new WSServer();
 		registerAllServices(bc, server, new Properties());
+
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		executor.submit(() -> {
+			try {
+				server.start();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			System.out.println("Server started ");
+		});
+
+		System.out.println("********** Server is OK.  Starting client...");
 		try {
-			server.start();
-		} catch (Exception e) {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
+		
+
 	}
 
 	@Override

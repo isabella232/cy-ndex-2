@@ -1,8 +1,5 @@
 package org.cytoscape.fx.internal.ui;
 
-import java.awt.Component;
-import java.awt.Panel;
-
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.CytoPanel;
 import org.cytoscape.application.swing.CytoPanelName;

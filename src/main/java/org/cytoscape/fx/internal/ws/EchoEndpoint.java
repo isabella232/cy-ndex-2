@@ -7,23 +7,48 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
+import org.cytoscape.fx.internal.ws.message.InterAppMessage;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @ServerEndpoint(value = "/echo")
 public class EchoEndpoint {
+	
+	private final ObjectMapper mapper;
+	
+	public EchoEndpoint() {
+		this.mapper = new ObjectMapper();
+	}
+	
 	@OnMessage
-	public String onMessage(String message, Session session) {
-		return message;
+	public void onMessage(String message, Session session) {
+		try {
+			System.out.println(message);
+			
+			final InterAppMessage val = mapper.readValue(message, InterAppMessage.class);
+			final String type = val.getType();
+			if(type.equals(InterAppMessage.CY3)) {
+				broadcast(message, session);
+			}
+		} catch(Exception e) {
+			System.out.println("Invalid msg: " + message);
+		}
+	}
+	
+	private final void broadcast(String msg, Session session) {
+		session.getOpenSessions().forEach(s->{
+			try {
+				s.getBasicRemote().sendText(msg);
+			} catch (Exception e) {
+			}
+		});
 	}
 
 	@OnOpen
 	public void onOpen(Session session) {
-		System.out.println("onOpen");
+		System.out.println("Total sessions: " + session.getOpenSessions().size());
 	}
 
-	@OnMessage
-	public String onMessage(String message) {
-		System.out.println("onMessage " + message);
-		return "You said \"" + message + "\".";
-	}
 
 	@OnError
 	public void onError(Throwable t) {
