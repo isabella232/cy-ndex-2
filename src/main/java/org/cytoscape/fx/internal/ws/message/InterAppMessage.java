@@ -1,5 +1,11 @@
 package org.cytoscape.fx.internal.ws.message;
 
+
+/**
+ * 
+ * Message exchanged between two applications: Cytoscape and Electron
+ * 
+ */
 public class InterAppMessage {
 	
 	public static final String FROM_CY3 = "cy3";
@@ -8,6 +14,7 @@ public class InterAppMessage {
 	public static final String TYPE_FOCUS = "focus";
 	public static final String TYPE_QUERY = "query";
 	public static final String TYPE_CLOSED = "closed";
+	public static final String TYPE_CONNECTED = "connected";
 
 	private String from;
 	private String type;

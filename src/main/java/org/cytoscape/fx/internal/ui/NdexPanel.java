@@ -28,19 +28,19 @@ import org.cytoscape.application.events.CyShutdownListener;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.CytoPanelComponent2;
 import org.cytoscape.application.swing.CytoPanelName;
-import org.cytoscape.fx.internal.ws.ProcessManager;
+import org.cytoscape.fx.internal.ws.ExternalAppManager;
 import org.cytoscape.fx.internal.ws.WSClient;
 import org.cytoscape.fx.internal.ws.message.InterAppMessage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShutdownListener {
+public class NdexPanel extends JPanel implements CytoPanelComponent2, CyShutdownListener {
 
 	private static final long serialVersionUID = 384761556830950601L;
 
 	// Logo Icon
 	private static final Icon NDEX_LOGO = new ImageIcon(
-			NdexMainPanel.class.getClassLoader().getResource("images/ndex.png"));
+			NdexPanel.class.getClassLoader().getResource("images/ndex.png"));
 
 	// Fonts used in UI
 	private static final Font defFont = new Font("helvatica", Font.PLAIN, 14);
@@ -50,7 +50,7 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 	private final CySwingApplication cySwingApplicationServiceRef;
 
 	// For child process management
-	private final ProcessManager pm;
+	private final ExternalAppManager pm;
 
 	// WS Client
 	private final WSClient client;
@@ -59,7 +59,7 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 	// States
 	private Boolean searchBoxClicked = false;
 
-	public NdexMainPanel(final CySwingApplication cySwingApplicationServiceRef, final ProcessManager pm) {
+	public NdexPanel(final CySwingApplication cySwingApplicationServiceRef, final ExternalAppManager pm) {
 		this.cySwingApplicationServiceRef = cySwingApplicationServiceRef;
 		this.pm = pm;
 
@@ -105,6 +105,7 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+					searchBox.setEnabled(false);
 					search(searchBox.getText());
 				} catch (Exception e1) {
 					e1.printStackTrace();

@@ -2,6 +2,8 @@ package org.cytoscape.fx.internal.ws;
 
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
@@ -19,20 +21,19 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebSocket
-public class JClient {
+public class ClientSocket {
 
 	private Session session;
 	private final CySwingApplication app;
 	private final ObjectMapper mapper;
-	private final ProcessManager pm;
+	private final ExternalAppManager pm;
 
-	public JClient(final CySwingApplication app, ProcessManager pm) {
+	public ClientSocket(final CySwingApplication app, ExternalAppManager pm) {
 		this.app = app;
 		this.pm = pm;
 		this.mapper = new ObjectMapper();
 		System.out.println("$$ Setting listener...");
 		addListener();
-		System.out.println("$$ DONE@@@@@@@@@");
 	}
 
 	private void addListener() {
@@ -40,13 +41,11 @@ public class JClient {
 		
 		desktop.addFocusListener(new FocusListener() {
 			@Override
-			public void focusLost(FocusEvent e) {
-				System.out.println("**** Focusd lost *****");
-			}
+			public void focusLost(FocusEvent e) {}
 
 			@Override
 			public void focusGained(FocusEvent e) {
-				System.out.println("**** Focusd *****");
+				System.out.println("**** Focusd: " + e);
 				final InterAppMessage msg = new InterAppMessage();
 				msg.setType(InterAppMessage.TYPE_FOCUS);
 				msg.setFrom(InterAppMessage.FROM_CY3);
@@ -73,12 +72,12 @@ public class JClient {
 			app.getJFrame().setAlwaysOnTop(true);
 			app.getJFrame().requestFocus();
 			try {
-				Thread.sleep(200);
+				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			app.getJFrame().setAlwaysOnTop(false);
-		} else if (msg.getType().equals("connected")) {
+		} else if (msg.getType().equals(InterAppMessage.TYPE_CONNECTED)) {
 			System.out.println("**** Sending query *****");
 			final InterAppMessage reply = new InterAppMessage();
 			reply.setType(InterAppMessage.TYPE_QUERY);

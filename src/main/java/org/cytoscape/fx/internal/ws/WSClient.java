@@ -8,13 +8,13 @@ import org.eclipse.jetty.websocket.client.WebSocketClient;
 
 public class WSClient {
 
-	private JClient socket;
+	private ClientSocket socket;
 	private WebSocketClient client;
 
 	private final CySwingApplication app;
-	private final ProcessManager pm;
+	private final ExternalAppManager pm;
 	
-	public WSClient(final CySwingApplication app, ProcessManager pm) {
+	public WSClient(final CySwingApplication app, final ExternalAppManager pm) {
 		this.app = app;
 		this.pm = pm;
 	}
@@ -24,7 +24,7 @@ public class WSClient {
 		client = new WebSocketClient();
 		System.out.println("Creating client*************");
 		
-		socket = new JClient(app, pm);
+		socket = new ClientSocket(app, pm);
 		client.start();
 		System.out.println("Client is OK*************");
 		URI echoUri = new URI(dest);
@@ -37,7 +37,7 @@ public class WSClient {
 		return client.isStopped(); 
 	}
 	
-	public JClient getSocket() {
+	public ClientSocket getSocket() {
 		return socket;
 	}
 

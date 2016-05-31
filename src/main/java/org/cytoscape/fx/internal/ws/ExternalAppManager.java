@@ -1,6 +1,6 @@
 package org.cytoscape.fx.internal.ws;
 
-public class ProcessManager {
+public class ExternalAppManager {
 
 	private Process currentProcess;
 
