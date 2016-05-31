@@ -39,7 +39,7 @@ public class EchoEndpoint {
 			// Deligate
 			if(from.equals(InterAppMessage.FROM_CY3)) {
 				broadcast(message, session);
-			} else if(type.equals("connected")) {				
+			} else if(type.equals("connected") || type.equals(InterAppMessage.TYPE_FOCUS)) {
 				broadcast(message, session);
 			}
 		} catch(Exception e) {

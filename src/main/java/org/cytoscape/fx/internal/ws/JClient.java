@@ -30,14 +30,18 @@ public class JClient {
 		this.app = app;
 		this.pm = pm;
 		this.mapper = new ObjectMapper();
+		System.out.println("$$ Setting listener...");
 		addListener();
+		System.out.println("$$ DONE@@@@@@@@@");
 	}
 
-	private final void addListener() {
+	private void addListener() {
 		final JFrame desktop = app.getJFrame();
+		
 		desktop.addFocusListener(new FocusListener() {
 			@Override
 			public void focusLost(FocusEvent e) {
+				System.out.println("**** Focusd lost *****");
 			}
 
 			@Override
@@ -86,6 +90,10 @@ public class JClient {
 				e1.printStackTrace();
 			}
 
+		} else if(msg.getType().equals(InterAppMessage.TYPE_FOCUS) && msg.getFrom().equals(InterAppMessage.FROM_NDEX)){
+			System.out.println("**** Focus from NDEX: " + app.getJFrame().isAutoRequestFocus());
+			app.getJFrame().requestFocus();
+			app.getJFrame().toFront();
 		}
 	}
 

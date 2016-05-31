@@ -85,9 +85,9 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 		buttonPanel.setLayout(new GridLayout(1, 2));
 
 		JPanel clearPanel = new JPanel();
-		clearPanel.setBackground(Color.decode("#F3FFE2"));
+		clearPanel.setBackground(Color.decode("#FAFFEA"));
 		JPanel searchPanel = new JPanel();
-		searchPanel.setBackground(Color.decode("#EB7F00"));
+		searchPanel.setBackground(Color.decode("#FF4081"));
 
 		final JButton clearButton = getClearButton();
 		clearButton.addMouseListener(new MouseAdapter() {
@@ -145,7 +145,7 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 	}
 
 	private final JButton getClearButton() {
-		final JButton clearButton = new JButton("Clear");
+		final JButton clearButton = new JButton("CLEAR");
 		clearButton.setOpaque(false);
 		clearButton.setForeground(Color.decode("#777777"));
 		clearButton.setHorizontalAlignment(SwingConstants.CENTER);
@@ -158,7 +158,7 @@ public class NdexMainPanel extends JPanel implements CytoPanelComponent2, CyShut
 	}
 
 	private final JButton getButton() {
-		final JButton searchButton = new JButton("Search NDEx");
+		final JButton searchButton = new JButton("SEARCH");
 		searchButton.addMouseListener(new MouseAdapter() {
 
 			private Color original;
