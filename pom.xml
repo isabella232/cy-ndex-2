@@ -213,11 +213,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-servlet</artifactId>
-			<version>${jetty.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>org.eclipse.jetty.websocket</groupId>
 			<artifactId>javax-websocket-server-impl</artifactId>
 			<version>${jetty.version}</version>
@@ -279,38 +274,6 @@
 			<artifactId>event-api</artifactId>
 			<version>${cytoscape.api.version}</version>
 			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.cytoscape</groupId>
-			<artifactId>viewmodel-impl</artifactId>
-			<version>${cytoscape.api.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.cytoscape</groupId>
-			<artifactId>viewmodel-impl</artifactId>
-			<version>${cytoscape.api.version}</version>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.cytoscape</groupId>
-			<artifactId>vizmap-impl</artifactId>
-			<version>${cytoscape.api.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.cytoscape</groupId>
-			<artifactId>ding-presentation-impl</artifactId>
-			<version>${cytoscape.api.version}</version>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.cytoscape</groupId>
-			<artifactId>ding-presentation-impl</artifactId>
-			<version>${cytoscape.api.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
