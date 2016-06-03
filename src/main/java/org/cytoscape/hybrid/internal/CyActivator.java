@@ -1,17 +1,21 @@
-package org.cytoscape.fx.internal;
+package org.cytoscape.hybrid.internal;
 
 import java.awt.Dimension;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.CytoPanel;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.application.swing.CytoPanelState;
-import org.cytoscape.fx.internal.ui.NdexPanel;
-import org.cytoscape.fx.internal.ws.ExternalAppManager;
-import org.cytoscape.fx.internal.ws.WSServer;
+import org.cytoscape.event.CyEventHelper;
+import org.cytoscape.hybrid.events.WebSocketEventListener;
+import org.cytoscape.hybrid.internal.ui.NdexPanel;
+import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
+import org.cytoscape.hybrid.internal.ws.WSClient;
+import org.cytoscape.hybrid.internal.ws.WSServer;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
@@ -26,14 +30,20 @@ public class CyActivator extends AbstractCyActivator {
 	}
 
 	public void start(BundleContext bc) {
-		final CySwingApplication cySwingApplicationServiceRef = getService(bc, CySwingApplication.class);
+		// Importing Service
+		final CySwingApplication desktop = getService(bc, CySwingApplication.class);
+		final CyApplicationConfiguration config = getService(bc, CyApplicationConfiguration.class);
+		final CyEventHelper eventHelper = getService(bc, CyEventHelper.class);
+
+		// Local components
 		final ExternalAppManager pm = new ExternalAppManager();
+		final WSClient client = new WSClient(desktop, pm, eventHelper);
 
 		// This is a singleton
-		final NdexPanel panel = new NdexPanel(cySwingApplicationServiceRef, pm);
+		final NdexPanel panel = new NdexPanel(config, pm, client);
 		registerAllServices(bc, panel, new Properties());
 
-		final CytoPanel parent = cySwingApplicationServiceRef.getCytoPanel(CytoPanelName.SOUTH_WEST);
+		final CytoPanel parent = desktop.getCytoPanel(CytoPanelName.SOUTH_WEST);
 		panel.setMinimumSize(new Dimension(600, 600));
 		panel.setPreferredSize(new Dimension(600, 1000));
 		panel.setSize(new Dimension(600, 1000));
@@ -48,7 +58,6 @@ public class CyActivator extends AbstractCyActivator {
 			try {
 				server.start();
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			System.out.println("Server started ");

@@ -3,24 +3,26 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<properties>
-		<bundle.symbolicName>org.cytoscape.fx.ui</bundle.symbolicName>
-		<bundle.namespace>org.cytoscape.fx</bundle.namespace>
-		<maven-compiler-plugin.version>3.3</maven-compiler-plugin.version>
-		<maven-bundle-plugin.version>2.5.4</maven-bundle-plugin.version>
-		<osgi.api.version>4.2.0</osgi.api.version>
+		<bundle.symbolicName>org.cytoscape.hybrid.ndex</bundle.symbolicName>
+		<bundle.namespace>org.cytoscape.hybrid</bundle.namespace>
+
+		<maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
+		<maven-bundle-plugin.version>3.0.1</maven-bundle-plugin.version>
+
 		<junit.version>4.12</junit.version>
-		<jersey.version>2.21</jersey.version>
 		<jetty.version>9.3.9.v20160517</jetty.version>
 
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<cytoscape.api.version>3.3.0</cytoscape.api.version>
+		<osgi.api.version>4.2.0</osgi.api.version>
+
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<groupId>org.cytoscape</groupId>
-	<artifactId>fx-ui</artifactId>
-	<version>0.1.0</version>
+	<artifactId>ndex-valet</artifactId>
+	<version>1.0.0</version>
 	<packaging>bundle</packaging>
-	<name>fx-ui</name>
+	<name>NDEx Valet (Electron hybrid app)</name>
 
 	<repositories>
 		<repository>
@@ -45,7 +47,6 @@
 			<name>Cytoscape Snapshots</name>
 			<url>http://code.cytoscape.org/nexus/content/repositories/snapshots/</url>
 		</repository>
-
 	</repositories>
 
 	<distributionManagement>
@@ -60,7 +61,6 @@
 			<url>http://code.cytoscape.org/nexus/content/repositories/snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
-
 
 	<build>
 		<plugins>
@@ -91,7 +91,7 @@
 					<instructions>
 						<Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
 						<Bundle-Version>${project.version}</Bundle-Version>
-						<Private-Package>org.cytoscape.io.internal.*,${bundle.namespace}.internal.*</Private-Package>
+						<Private-Package>${bundle.namespace}.internal.*</Private-Package>
 						<Bundle-Activator>${bundle.namespace}.internal.CyActivator</Bundle-Activator>
 						<Embed-Dependency>*;scope=!provided|test;groupId=!org.cytoscape</Embed-Dependency>
 						<Embed-Transitive>true</Embed-Transitive>
@@ -206,9 +206,6 @@
 		</dependency>
 
 		<!-- Web Socket Server -->
-		<!-- <dependency> <groupId>javax.websocket</groupId> <artifactId>javax.websocket-api</artifactId> 
-			<version>1.1</version> </dependency> -->
-		<!--Jetty dependencies start here -->
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
@@ -220,61 +217,36 @@
 			<artifactId>jetty-servlet</artifactId>
 			<version>${jetty.version}</version>
 		</dependency>
-		<!--Jetty dependencies end here -->
-
-		<!--Jetty Websocket server side dependencies start here -->
-
-
-
-		<!--Jetty JSR-356 Websocket server side dependency -->
 		<dependency>
 			<groupId>org.eclipse.jetty.websocket</groupId>
 			<artifactId>javax-websocket-server-impl</artifactId>
 			<version>${jetty.version}</version>
 		</dependency>
 
-		<!--Jetty Websocket API server side dependency -->
 		<dependency>
 			<groupId>org.eclipse.jetty.websocket</groupId>
 			<artifactId>websocket-server</artifactId>
 			<version>${jetty.version}</version>
 		</dependency>
 
-
-		<!--Jetty Websocket server dependencies end here -->
-
-		<!--Jetty Websocket client side dependencies start here -->
-
-
-
-		<!--JSR-356 Websocket client side depencency -->
 		<dependency>
 			<groupId>org.eclipse.jetty.websocket</groupId>
 			<artifactId>javax-websocket-client-impl</artifactId>
 			<version>${jetty.version}</version>
 		</dependency>
 
-		<!--Jetty Websocket API client side dependency -->
 		<dependency>
 			<groupId>org.eclipse.jetty.websocket</groupId>
 			<artifactId>websocket-client</artifactId>
 			<version>${jetty.version}</version>
 		</dependency>
-		<!--Jetty Websocket client side dependencies end here -->
 
-
-		<!-- http://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 			<version>2.7.4</version>
 		</dependency>
 
-
-		<!-- <dependency> <groupId>org.eclipse.jetty.websocket</groupId> <artifactId>javax-websocket-server-impl</artifactId> 
-			<version>${jetty.version}</version> </dependency> <dependency> <groupId>org.eclipse.jetty.websocket</groupId> 
-			<artifactId>websocket-client</artifactId> <version>${jetty.version}</version> 
-			</dependency> -->
 		<!-- Testing -->
 		<dependency>
 			<groupId>junit</groupId>

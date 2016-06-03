@@ -1,4 +1,4 @@
-package org.cytoscape.fx.internal.ws;
+package org.cytoscape.hybrid.internal.ws;
 
 public class ExternalAppManager {
 

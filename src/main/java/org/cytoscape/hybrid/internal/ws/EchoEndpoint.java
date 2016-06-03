@@ -1,4 +1,4 @@
-package org.cytoscape.fx.internal.ws;
+package org.cytoscape.hybrid.internal.ws;
 
 import javax.websocket.CloseReason;
 import javax.websocket.OnClose;
@@ -8,7 +8,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.cytoscape.fx.internal.ws.message.InterAppMessage;
+import org.cytoscape.hybrid.events.InterAppMessage;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

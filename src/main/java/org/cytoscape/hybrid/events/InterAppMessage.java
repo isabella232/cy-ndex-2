@@ -1,4 +1,4 @@
-package org.cytoscape.fx.internal.ws.message;
+package org.cytoscape.hybrid.events;
 
 
 /**
@@ -6,7 +6,7 @@ package org.cytoscape.fx.internal.ws.message;
  * Message exchanged between two applications: Cytoscape and Electron
  * 
  */
-public class InterAppMessage {
+public final class InterAppMessage {
 	
 	public static final String FROM_CY3 = "cy3";
 	public static final String FROM_NDEX = "ndex";
@@ -24,20 +24,23 @@ public class InterAppMessage {
 	public String getFrom() {
 		return from;
 	}
-	public void setFrom(String from) {
+	public InterAppMessage setFrom(String from) {
 		this.from = from;
+		return this;
 	}
 	public String getType() {
 		return type;
 	}
-	public void setType(String type) {
+	public InterAppMessage setType(String type) {
 		this.type = type;
+		return this;
 	}
 	public String getBody() {
 		return body;
 	}
-	public void setBody(String body) {
+	public InterAppMessage setBody(String body) {
 		this.body = body;
+		return this;
 	}
 
 }
