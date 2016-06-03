@@ -2,8 +2,6 @@ package org.cytoscape.hybrid.internal.ws;
 
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
@@ -38,7 +36,6 @@ public class ClientSocket {
 		this.eventHelper = eventHelper;
 		
 		this.mapper = new ObjectMapper();
-		System.out.println("$$ Setting listener...");
 		addListener();
 	}
 

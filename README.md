@@ -1,3 +1,17 @@
-# Cytoscape-JavaFX Proof-of-concept
+# NDEx Valet
+
+## Build
+
+```bash
+mvn clean install
+```
+## Install
+(TBD)
+
+## License
+
+MIT
+
+
 
 

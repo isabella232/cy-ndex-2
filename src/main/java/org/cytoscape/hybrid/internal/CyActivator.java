@@ -11,7 +11,6 @@ import org.cytoscape.application.swing.CytoPanel;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.application.swing.CytoPanelState;
 import org.cytoscape.event.CyEventHelper;
-import org.cytoscape.hybrid.events.WebSocketEventListener;
 import org.cytoscape.hybrid.internal.ui.NdexPanel;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
 import org.cytoscape.hybrid.internal.ws.WSClient;

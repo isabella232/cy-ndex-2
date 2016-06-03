@@ -93,6 +93,8 @@ public class NdexPanel extends JPanel implements CytoPanelComponent2, CyShutdown
 		} else if (os.contains("win")) {
 			// Windows
 			f = new File(configLocation, "NDEx.app/Contents/MacOS/NDEx");
+		} else {
+			// Linux
 		}
 
 		System.out.println("\n\nNDEx Command: " + f.getAbsolutePath());
