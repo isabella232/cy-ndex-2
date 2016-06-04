@@ -60,10 +60,10 @@ public class NdexPanel extends JPanel
 		File f = null;
 		if (os.contains("mac")) {
 			// Mac OS X
-			f = new File(configLocation, "NDEx.app/Contents/MacOS/NDEx");
+			f = new File(configLocation, "NDEx-Valet.app/Contents/MacOS/NDEx-Valet");
 		} else if (os.contains("win")) {
 			// Windows
-			f = new File(configLocation, "NDEx.app/Contents/MacOS/NDEx");
+			f = new File(configLocation, "NDEx-Valet.app/Contents/MacOS/NDEx");
 		} else {
 			// Linux
 		}

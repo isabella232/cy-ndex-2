@@ -48,10 +48,8 @@ public class ClientSocket {
 
 			@Override
 			public void focusGained(FocusEvent e) {
-				System.out.println("**** Focusd: " + e);
 				final InterAppMessage msg = new InterAppMessage();
-				msg.setType(InterAppMessage.TYPE_FOCUS);
-				msg.setFrom(InterAppMessage.FROM_CY3);
+				msg.setType(InterAppMessage.TYPE_FOCUS).setFrom(InterAppMessage.FROM_CY3);
 				try {
 					sendMessage(mapper.writeValueAsString(msg));
 				} catch (JsonProcessingException e1) {
@@ -75,6 +73,11 @@ public class ClientSocket {
 			pm.kill();
 			final JFrame desktop = app.getJFrame();
 			desktop.setAlwaysOnTop(true);
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 			desktop.toFront();
 			desktop.requestFocus();
 			desktop.setAlwaysOnTop(false);
