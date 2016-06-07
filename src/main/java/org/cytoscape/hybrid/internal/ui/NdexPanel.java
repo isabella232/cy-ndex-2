@@ -20,7 +20,7 @@ import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.hybrid.events.InterAppMessage;
 import org.cytoscape.hybrid.events.WebSocketEvent;
 import org.cytoscape.hybrid.events.WebSocketEventListener;
-import org.cytoscape.hybrid.internal.electron.InstallNativeApps;
+import org.cytoscape.hybrid.internal.electron.NativeAppInstaller;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
 import org.cytoscape.hybrid.internal.ws.WSClient;
 
@@ -38,7 +38,7 @@ public class NdexPanel extends JPanel
 	private final ExternalAppManager pm;
 
 
-	public NdexPanel(final InstallNativeApps installer, final ExternalAppManager pm, final WSClient client) {
+	public NdexPanel(final NativeAppInstaller installer, final ExternalAppManager pm, final WSClient client) {
 		this.pm = pm;
 		
 		init(client, pm, installer.getCommand());

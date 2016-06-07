@@ -11,7 +11,7 @@ import org.cytoscape.application.swing.CytoPanel;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.application.swing.CytoPanelState;
 import org.cytoscape.event.CyEventHelper;
-import org.cytoscape.hybrid.internal.electron.InstallNativeApps;
+import org.cytoscape.hybrid.internal.electron.NativeAppInstaller;
 import org.cytoscape.hybrid.internal.ui.NdexPanel;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
 import org.cytoscape.hybrid.internal.ws.WSClient;
@@ -38,7 +38,7 @@ public class CyActivator extends AbstractCyActivator {
 		// Local components
 		final ExternalAppManager pm = new ExternalAppManager();
 		final WSClient client = new WSClient(desktop, pm, eventHelper);
-		final InstallNativeApps installer = new InstallNativeApps(config);
+		final NativeAppInstaller installer = new NativeAppInstaller(config);
 
 		// This is a singleton
 		final NdexPanel panel = new NdexPanel(installer, pm, client);

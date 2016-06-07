@@ -20,7 +20,7 @@ import java.util.zip.ZipInputStream;
 
 import org.cytoscape.application.CyApplicationConfiguration;
 
-public class InstallNativeApps {
+public class NativeAppInstaller {
 
 	private static final String VERSION = "1.0.0";
 
@@ -60,7 +60,7 @@ public class InstallNativeApps {
 	// Type of the platform (Mac, Windows, or Linux)
 	private final String platform;
 
-	public InstallNativeApps(final CyApplicationConfiguration appConfig) {
+	public NativeAppInstaller(final CyApplicationConfiguration appConfig) {
 		this.appConfig = appConfig;
 		this.platform = detectPlatform();
 
