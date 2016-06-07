@@ -48,6 +48,11 @@ public class WSServer implements CyShutdownListener {
 		
 		server.join();
 	}
+	
+	
+	public Server getServer() {
+		return this.server;
+	}
 
 	@Override
 	public void handleEvent(CyShutdownEvent evt) {

@@ -20,6 +20,7 @@ import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.hybrid.events.InterAppMessage;
 import org.cytoscape.hybrid.events.WebSocketEvent;
 import org.cytoscape.hybrid.events.WebSocketEventListener;
+import org.cytoscape.hybrid.internal.electron.InstallNativeApps;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
 import org.cytoscape.hybrid.internal.ws.WSClient;
 
@@ -27,11 +28,6 @@ public class NdexPanel extends JPanel
 		implements CytoPanelComponent2, CyShutdownListener, WebSocketEventListener {
 
 	private static final long serialVersionUID = 384761556830950601L;
-
-	private static final String NATIVE_APP_LOCATION = "native";
-
-	private final CyApplicationConfiguration appConfig;
-
 
 	// Panels in this component
 	private JPanel logoPanel;
@@ -42,35 +38,12 @@ public class NdexPanel extends JPanel
 	private final ExternalAppManager pm;
 
 
-	public NdexPanel(final CyApplicationConfiguration appConfig, final ExternalAppManager pm, final WSClient client) {
-		this.appConfig = appConfig;
-
+	public NdexPanel(final InstallNativeApps installer, final ExternalAppManager pm, final WSClient client) {
 		this.pm = pm;
-
-		final File configLocation = this.appConfig.getConfigurationDirectoryLocation();
-		final File electronAppDirectory = new File(configLocation, NATIVE_APP_LOCATION);
-		final String command = createPlatformDependentCommand(electronAppDirectory);
-
-		init(client, pm, command);
+		
+		init(client, pm, installer.getCommand());
 	}
 
-	private final String createPlatformDependentCommand(final File configLocation) {
-		final String os = System.getProperty("os.name").toLowerCase();
-
-		File f = null;
-		if (os.contains("mac")) {
-			// Mac OS X
-			f = new File(configLocation, "NDEx-Valet.app/Contents/MacOS/NDEx-Valet");
-		} else if (os.contains("win")) {
-			// Windows
-			f = new File(configLocation, "NDEx-Valet.app/Contents/MacOS/NDEx");
-		} else {
-			// Linux
-		}
-
-		System.out.println("\n\nNDEx Command: " + f.getAbsolutePath());
-		return f.getAbsolutePath();
-	}
 
 	private final void init(WSClient client, ExternalAppManager pm, String command) {
 		// Basic setup
