@@ -9,7 +9,6 @@ import java.net.URL;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
@@ -36,7 +35,6 @@ public class NativeAppInstaller {
 
 	private static final String NATIVE_APP_LOCATION = "native";
 	private static final String TEMPLATE_NAME = "ndex";
-	private static final String VERSION_NAME = "version.txt";
 
 	private static final Map<String, String> COMMANDS = new HashMap<>();
 	private static final Map<String, String> ARCHIVE = new HashMap<>();
@@ -76,7 +74,11 @@ public class NativeAppInstaller {
 		
 		electronAppDirectory.mkdir();
 
-		extractNativeApp(electronAppDirectory);
+		try {
+			extractNativeApp(electronAppDirectory);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 		this.command = getPlatformDependentCommand(electronAppDirectory);
 	}
@@ -92,7 +94,7 @@ public class NativeAppInstaller {
 		}
 	}
 
-	private final void extractNativeApp(final File electronAppDir) {
+	private final void extractNativeApp(final File electronAppDir) throws IOException {
 		final File archiveFile = new File(electronAppDir, ARCHIVE.get(platform));
 
 		switch (platform) {
@@ -105,7 +107,8 @@ public class NativeAppInstaller {
 			}
 			break;
 		case PLATFORM_WIN:
-
+			final URL source = this.getClass().getClassLoader().getResource(TEMPLATE_NAME + "/" + ARCHIVE_WIN);
+			extractPreviewTemplate(source, electronAppDir);
 			break;
 		case PLATFORM_LINUX:
 
@@ -168,29 +171,11 @@ public class NativeAppInstaller {
 		}
 	}
 
-	public final void extractPreviewTemplate(File destination) throws IOException {
-		// Get the location of web preview template
-		final URL source = this.getClass().getClassLoader().getResource(TEMPLATE_NAME);
-		final File configLocation = this.appConfig.getConfigurationDirectoryLocation();
-		// Unzip resource to this directory in CytoscapeConfig
+	public final void extractPreviewTemplate(final URL source, final File destination) throws IOException {
 		if (!destination.exists() || !destination.isDirectory()) {
 			unzipTemplate(source, destination);
-		} else if (destination.exists()) {
-			// Maybe there is an old version
-			final File versionFile = new File(destination, VERSION_NAME);
-			if (!versionFile.exists()) {
-				deleteAll(destination);
-				unzipTemplate(source, destination);
-			} else {
-				// Check version number
-				final String contents = Files.lines(Paths.get(versionFile.toURI())).reduce((t, u) -> t + u).get();
-
-				if (!contents.equals(VERSION)) {
-					deleteAll(destination);
-					unzipTemplate(source, destination);
-				} else {
-				}
-			}
+		} else {
+			unzipTemplate(source, destination);
 		}
 	}
 
@@ -233,21 +218,9 @@ public class NativeAppInstaller {
 	}
 
 	private final String getPlatformDependentCommand(final File configLocation) {
-		final String os = System.getProperty("os.name").toLowerCase();
-
-		File f = null;
-		if (os.contains("mac")) {
-			// Mac OS X
-			f = new File(configLocation, "NDEx-Valet.app/Contents/MacOS/NDEx-Valet");
-		} else if (os.contains("win")) {
-			// Windows
-			f = new File(configLocation, "NDEx-Valet.app/Contents/MacOS/NDEx");
-		} else {
-			// Linux
-		}
-
-		System.out.println("\n\nNDEx Command: " + f.getAbsolutePath());
-		return f.getAbsolutePath();
+		final File executable = new File(configLocation, COMMANDS.get(platform));
+		System.out.println("\n\nNDEx Command: " + executable.getAbsolutePath());
+		return executable.getAbsolutePath();
 	}
 
 	public void getInstallDirectory() {

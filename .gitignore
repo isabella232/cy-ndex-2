@@ -3,3 +3,6 @@ target
 .DS_Store
 .classpath
 .settings
+
+src/main/resources/ndex/*.zip
+src/main/resources/ndex/*.gz
