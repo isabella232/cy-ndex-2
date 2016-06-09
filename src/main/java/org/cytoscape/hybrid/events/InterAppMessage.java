@@ -12,6 +12,7 @@ public final class InterAppMessage {
 	public static final String FROM_NDEX = "ndex";
 	
 	public static final String TYPE_FOCUS = "focus";
+	public static final String TYPE_FOCUS_SUCCESS = "focus-success";
 	public static final String TYPE_QUERY = "query";
 	public static final String TYPE_CLOSED = "closed";
 	public static final String TYPE_CONNECTED = "connected";

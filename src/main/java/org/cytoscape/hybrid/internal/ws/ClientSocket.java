@@ -2,6 +2,8 @@ package org.cytoscape.hybrid.internal.ws;
 
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
@@ -41,20 +43,23 @@ public class ClientSocket {
 
 	private void addListener() {
 		final JFrame desktop = app.getJFrame();
-		
-		desktop.addFocusListener(new FocusListener() {
-			@Override
-			public void focusLost(FocusEvent e) {}
+		desktop.addWindowFocusListener(new WindowAdapter() {
 
 			@Override
-			public void focusGained(FocusEvent e) {
+			public void windowGainedFocus(WindowEvent e) {
+				System.out.println("=========== Active: " + e);
 				final InterAppMessage msg = new InterAppMessage();
-				msg.setType(InterAppMessage.TYPE_FOCUS).setFrom(InterAppMessage.FROM_CY3);
+				msg.setType(InterAppMessage.TYPE_FOCUS_SUCCESS).setFrom(InterAppMessage.FROM_CY3);
 				try {
 					sendMessage(mapper.writeValueAsString(msg));
 				} catch (JsonProcessingException e1) {
 					e1.printStackTrace();
 				}
+			}
+			
+			@Override
+			public void windowLostFocus(WindowEvent e) {
+				System.out.println("$$$LOST: ============");
 			}
 		});
 	}
@@ -78,8 +83,9 @@ public class ClientSocket {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			desktop.toFront();
 			desktop.requestFocus();
+			desktop.toFront();
+			desktop.repaint();
 			desktop.setAlwaysOnTop(false);
 			
 			eventHelper.fireEvent(new WebSocketEvent(this, msg));
@@ -99,11 +105,21 @@ public class ClientSocket {
 
 		} else if(msg.getType().equals(InterAppMessage.TYPE_FOCUS) && msg.getFrom().equals(InterAppMessage.FROM_NDEX)){
 			System.out.println("**** Focus from NDEX: " + app.getJFrame().isAutoRequestFocus());
+			app.getJFrame().setAlwaysOnTop(true);
 			app.getJFrame().requestFocus();
 			app.getJFrame().toFront();
+			app.getJFrame().setAlwaysOnTop(false);
+			final InterAppMessage reply = new InterAppMessage();
+			reply.setType(InterAppMessage.TYPE_FOCUS_SUCCESS)
+				.setBody(pm.getQuery())
+				.setFrom(InterAppMessage.FROM_CY3);
+			try {
+				sendMessage(mapper.writeValueAsString(reply));
+			} catch (JsonProcessingException e1) {
+				e1.printStackTrace();
+			}
 		}
 	}
-	
 	
 
 	@OnWebSocketConnect
@@ -122,6 +138,7 @@ public class ClientSocket {
 		try {
 			session.getRemote().sendString(str);
 		} catch (IOException e) {
+			pm.kill();
 			e.printStackTrace();
 		}
 	}
