@@ -73,10 +73,8 @@ public class SearchPane extends JEditorPane implements PropertyChangeListener {
 
 		pm.setQuery(query);
 
-		if (this.client.getSocket() == null || this.client.isStopped()) {
-			final String dest = "ws://localhost:8025/ws/echo";
-			client.start(dest);
-		}
+		final String dest = "ws://localhost:8025/ws/echo";
+		client.start(dest);
 
 		if (pm.isActive()) {
 			final InterAppMessage focus = new InterAppMessage();

@@ -26,7 +26,6 @@ public class WSClient {
 	public void start(String dest) throws Exception {
 		client = new WebSocketClient();
 		System.out.println("Creating client*************");
-		client.getPolicy().setIdleTimeout(100000000);
 		socket = new ClientSocket(app, pm, eventHelper);
 		client.start();
 		URI echoUri = new URI(dest);

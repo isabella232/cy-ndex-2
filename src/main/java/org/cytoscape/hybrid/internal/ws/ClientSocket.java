@@ -1,7 +1,5 @@
 package org.cytoscape.hybrid.internal.ws;
 
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
@@ -47,9 +45,9 @@ public class ClientSocket {
 
 			@Override
 			public void windowGainedFocus(WindowEvent e) {
-				System.out.println("=========== Active: " + e);
+				System.out.println("=========== manual Active from Cytoscape: " + e);
 				final InterAppMessage msg = new InterAppMessage();
-				msg.setType(InterAppMessage.TYPE_FOCUS_SUCCESS).setFrom(InterAppMessage.FROM_CY3);
+				msg.setType(InterAppMessage.TYPE_FOCUS).setFrom(InterAppMessage.FROM_CY3);
 				try {
 					sendMessage(mapper.writeValueAsString(msg));
 				} catch (JsonProcessingException e1) {
@@ -60,6 +58,13 @@ public class ClientSocket {
 			@Override
 			public void windowLostFocus(WindowEvent e) {
 				System.out.println("$$$LOST: ============");
+//				final InterAppMessage msg = new InterAppMessage();
+//				msg.setType(InterAppMessage.TYPE_FOCUS_LOST).setFrom(InterAppMessage.FROM_CY3);
+//				try {
+//					sendMessage(mapper.writeValueAsString(msg));
+//				} catch (JsonProcessingException e1) {
+//					e1.printStackTrace();
+//				}
 			}
 		});
 	}
