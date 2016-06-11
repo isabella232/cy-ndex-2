@@ -31,17 +31,13 @@ public class EchoEndpoint {
 	public void onMessage(String message, Session session) {
 		try {
 			System.out.println("On Message: " + message);
+			System.out.println("On Message: Sesseion = " + session.getId());
 			
 			final InterAppMessage val = mapper.readValue(message, InterAppMessage.class);
 			final String from = val.getFrom();
 			final String type = val.getType();
 			
-			// Deligate
-			if(from.equals(InterAppMessage.FROM_CY3)) {
-				broadcast(message, session);
-			} else if(type.equals("connected") || type.equals(InterAppMessage.TYPE_FOCUS)) {
-				broadcast(message, session);
-			}
+			broadcast(message, session);
 		} catch(Exception e) {
 			System.out.println("Invalid msg: " + message);
 		}
@@ -58,7 +54,7 @@ public class EchoEndpoint {
 
 	@OnOpen
 	public void onOpen(Session session) {
-		System.out.println("* Connected: " + session.getProtocolVersion());
+		System.out.println("* Client Connected: " + session.getId());
 	}
 
 
@@ -69,7 +65,7 @@ public class EchoEndpoint {
 
 	@OnClose
 	public void onClose(CloseReason reason, Session session) {
-		System.out.println("* Disconnected: " + session.getProtocolVersion());
+		System.out.println("* Disconnected: " + session.getId());
 		// Client disconnected:
 		final InterAppMessage msg = new InterAppMessage();
 		msg.setFrom(InterAppMessage.FROM_CY3);
