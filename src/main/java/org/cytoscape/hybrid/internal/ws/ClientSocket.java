@@ -1,16 +1,11 @@
 package org.cytoscape.hybrid.internal.ws;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
 import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
 
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.event.CyEventHelper;
@@ -59,6 +54,7 @@ public class ClientSocket {
 					final InterAppMessage msg = new InterAppMessage();
 					msg.setType(InterAppMessage.TYPE_FOCUS).setFrom(InterAppMessage.FROM_CY3);
 					try {
+						
 						sendMessage(mapper.writeValueAsString(msg));
 					} catch (JsonProcessingException e1) {
 						e1.printStackTrace();
@@ -140,6 +136,7 @@ public class ClientSocket {
 	public void onConnect(Session session) {
 		System.out.println("Connected to server");
 		this.session = session;
+		this.session.setIdleTimeout(1000000000);
 		latch.countDown();
 	}
 
@@ -164,5 +161,9 @@ public class ClientSocket {
 
 	public CountDownLatch getLatch() {
 		return latch;
+	}
+
+	public boolean isOpen() {
+		return session.isOpen();
 	}
 }

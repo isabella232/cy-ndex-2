@@ -1,6 +1,8 @@
 package org.cytoscape.hybrid.internal.ws;
 
 import java.net.URI;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.event.CyEventHelper;
@@ -15,6 +17,7 @@ public class WSClient {
 	private final CySwingApplication app;
 	private final ExternalAppManager pm;
 	private final CyEventHelper eventHelper;
+	private String dest;
 	
 	
 	public WSClient(final CySwingApplication app, final ExternalAppManager pm, CyEventHelper eventHelper) {
@@ -29,9 +32,12 @@ public class WSClient {
 		socket = new ClientSocket(app, pm, eventHelper);
 		client.start();
 		URI echoUri = new URI(dest);
+		this.dest = dest;
+		
 		ClientUpgradeRequest request = new ClientUpgradeRequest();
 		client.connect(socket, echoUri, request);
-		socket.getLatch().await();
+		client.setMaxIdleTimeout(1000000000);
+		socket.getLatch().await(10000, TimeUnit.SECONDS);
 	}
 	
 	public Boolean isStopped() {
@@ -39,6 +45,14 @@ public class WSClient {
 	}
 	
 	public ClientSocket getSocket() {
+		if(!socket.isOpen()) {
+			try {
+				start(dest);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		return socket;
 	}
 
