@@ -107,11 +107,14 @@ public class ClientSocket {
 			if (from.equals(InterAppMessage.FROM_CY3)) {
 				return;
 			}
-			System.out.println("**** Focus from NDEX: " + app.getJFrame().isAutoRequestFocus());
+			System.out.println("**** Electron app focused 2++++++++++++ ");
+			focusFlag = false;
 			app.getJFrame().setAlwaysOnTop(true);
-			app.getJFrame().requestFocus();
-			app.getJFrame().toFront();
+			app.getJFrame().setVisible(true);
+			app.getJFrame().repaint();
 			app.getJFrame().setAlwaysOnTop(false);
+			
+			// Send success message:
 			final InterAppMessage reply = new InterAppMessage();
 			reply.setType(InterAppMessage.TYPE_FOCUS_SUCCESS).setBody(pm.getQuery()).setFrom(InterAppMessage.FROM_CY3);
 			try {
@@ -142,12 +145,11 @@ public class ClientSocket {
 
 	@OnWebSocketClose
 	public void onClose(int statusCode, String reason) {
-		System.out.println("***Cy3 DisConnected from server: " + reason + ", " + statusCode);
+		System.out.println("***Cy3 Client disconnected from server: " + reason + ", " + statusCode);
 
-		// final InterAppMessage msg = new InterAppMessage();
-		// msg.setFrom(InterAppMessage.FROM_CY3);
-		// msg.setType(InterAppMessage.TYPE_CLOSED);
-		// eventHelper.fireEvent(new WebSocketEvent(this, msg));
+		final InterAppMessage msg = new InterAppMessage();
+		msg.setFrom(InterAppMessage.FROM_CY3).setType(InterAppMessage.TYPE_CLOSED);
+		eventHelper.fireEvent(new WebSocketEvent(this, msg));
 	}
 
 	public void sendMessage(String str) {
