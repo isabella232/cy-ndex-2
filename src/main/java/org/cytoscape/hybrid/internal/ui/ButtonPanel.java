@@ -39,7 +39,6 @@ public class ButtonPanel extends JPanel {
 
 	private final PropertyChangeSupport pcs;
 
-
 	public ButtonPanel() {
 		this.pcs = new SwingPropertyChangeSupport(this);
 		init();
@@ -60,8 +59,11 @@ public class ButtonPanel extends JPanel {
 		clearButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				PropertyChangeEvent event = new PropertyChangeEvent(this, SearchPane.ACTION_CLEAR, null, null);
-				pcs.firePropertyChange(event);
+				System.out.println("Button Click clear $$$$$$$$$$$$$$$$$: " + clearButton.isEnabled());
+				if (clearButton.isEnabled()) {
+					PropertyChangeEvent event = new PropertyChangeEvent(this, SearchPane.ACTION_CLEAR, null, null);
+					pcs.firePropertyChange(event);
+				}
 			}
 		});
 		clearPanel.add(clearButton);
@@ -72,7 +74,11 @@ public class ButtonPanel extends JPanel {
 		searchButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				pcs.firePropertyChange(SearchPane.ACTION_SEARCH, null, null);
+
+				System.out.println("Button Click search $$$$$$$$$$$$$$$$$: " + searchButton.isEnabled());
+				if (searchButton.isEnabled()) {
+					pcs.firePropertyChange(SearchPane.ACTION_SEARCH, null, null);
+				}
 			}
 		});
 
@@ -118,6 +124,8 @@ public class ButtonPanel extends JPanel {
 
 		this.clearPanel.setEnabled(flag);
 		this.searchPanel.setEnabled(flag);
+		this.clearButton.setEnabled(flag);
+		this.searchButton.setEnabled(flag);
 
 		if (flag) {
 			this.clearPanel.setBackground(CLEAR_COLOR);
@@ -138,14 +146,19 @@ public class ButtonPanel extends JPanel {
 
 		@Override
 		public void mouseExited(MouseEvent e) {
+
 			final Component button = e.getComponent();
-			button.setFont(BUTTON_FONT1);
+			if (button.isEnabled()) {
+				button.setFont(BUTTON_FONT1);
+			}
 		}
 
 		@Override
 		public void mouseEntered(MouseEvent e) {
 			Component button = e.getComponent();
-			button.setFont(BUTTON_FONT2);
+			if (button.isEnabled()) {
+				button.setFont(BUTTON_FONT2);
+			}
 		}
 	}
 

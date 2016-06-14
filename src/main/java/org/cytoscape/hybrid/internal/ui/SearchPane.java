@@ -18,6 +18,7 @@ import org.cytoscape.hybrid.events.InterAppMessage;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
 import org.cytoscape.hybrid.internal.ws.WSClient;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class SearchPane extends JEditorPane implements PropertyChangeListener {
@@ -59,6 +60,12 @@ public class SearchPane extends JEditorPane implements PropertyChangeListener {
 		addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
+				
+				if(!isEnabled()) {
+					MessageUtil.reauestExternalAppFocus(client);
+					return;
+				}
+				
 				if (!searchBoxClicked) {
 					setText("");
 					

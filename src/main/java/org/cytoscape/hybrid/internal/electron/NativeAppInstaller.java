@@ -29,9 +29,9 @@ public class NativeAppInstaller {
 	private static final String PLATFORM_LINUX = "linux";
 
 	// Archive file names
-	private static final String ARCHIVE_MAC = "NDEx-Valet.app.tar.gz";
-	private static final String ARCHIVE_LINUX = "NDEx-Valet.tar.gz";
-	private static final String ARCHIVE_WIN = "NDEx-Valet.zip";
+	private static final String ARCHIVE_MAC = "NDEx-Valet-mac.tar.gz";
+	private static final String ARCHIVE_LINUX = "NDEx-Valet-linux.tar.gz";
+	private static final String ARCHIVE_WIN = "NDEx-Valet-win64.zip";
 
 	private static final String NATIVE_APP_LOCATION = "native";
 	private static final String TEMPLATE_NAME = "ndex";
@@ -42,7 +42,7 @@ public class NativeAppInstaller {
 	static {
 		// Commands to execute native Electron App
 		COMMANDS.put(PLATFORM_MAC, "NDEx-Valet.app/Contents/MacOS/NDEx-Valet");
-		COMMANDS.put(PLATFORM_WIN, "NDEx-Valet/NDEx-Valet.exe");
+		COMMANDS.put(PLATFORM_WIN, "NDEx-Valet-win64/NDEx-Valet.exe");
 		COMMANDS.put(PLATFORM_LINUX, "NDEx-Valet/NDEx-Valet");
 
 		ARCHIVE.put(PLATFORM_MAC, ARCHIVE_MAC);
@@ -64,20 +64,15 @@ public class NativeAppInstaller {
 
 		final File configLocation = this.appConfig.getConfigurationDirectoryLocation();
 		final File electronAppDirectory = new File(configLocation, NATIVE_APP_LOCATION);
+	
+		if(!electronAppDirectory.exists()) {
+			electronAppDirectory.mkdir();
 		
-		// Delete it
-		try {
-			deleteDirectory(electronAppDirectory.toPath());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		electronAppDirectory.mkdir();
-
-		try {
-			extractNativeApp(electronAppDirectory);
-		} catch (IOException e) {
-			e.printStackTrace();
+			try {
+				extractNativeApp(electronAppDirectory);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 
 		this.command = getPlatformDependentCommand(electronAppDirectory);
@@ -223,9 +218,6 @@ public class NativeAppInstaller {
 		return executable.getAbsolutePath();
 	}
 
-	public void getInstallDirectory() {
-
-	}
 
 	public String getCommand() {
 		return this.command;

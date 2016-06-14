@@ -36,10 +36,13 @@ public class NdexPanel extends JPanel
 	private SearchPane searchPane;
 	
 	private final ExternalAppManager pm;
+	private final WSClient client;
 
 
 	public NdexPanel(final NativeAppInstaller installer, final ExternalAppManager pm, final WSClient client) {
 		this.pm = pm;
+		
+		this.client = client;
 		
 		init(client, pm, installer.getCommand());
 	}
@@ -101,7 +104,7 @@ public class NdexPanel extends JPanel
 	@Override
 	public void handleEvent(WebSocketEvent e) {
 		final InterAppMessage msg = e.getMessage();
-		System.out.println("** WS Event: " + msg);
+		System.out.println("** WS Event: " + msg.getFrom());
 
 		if (msg.getType().equals(InterAppMessage.TYPE_CONNECTED)) {
 			this.searchPane.setEnabled(false);
@@ -113,6 +116,9 @@ public class NdexPanel extends JPanel
 			this.searchPane.setBackground(COLOR_ENABLED);
 			this.logoPanel.setBackground(COLOR_ENABLED);
 			this.buttonPanel.setButtonsEnabled(true);
+//			client.close();
+			pm.kill();
+			System.out.println("** WS Event: CLOSED");
 		}
 	}
 

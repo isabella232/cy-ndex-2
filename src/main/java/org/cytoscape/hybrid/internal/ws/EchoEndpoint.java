@@ -1,5 +1,7 @@
 package org.cytoscape.hybrid.internal.ws;
 
+import java.io.IOException;
+
 import javax.websocket.CloseReason;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -30,13 +32,7 @@ public class EchoEndpoint {
 	@OnMessage
 	public void onMessage(String message, Session session) {
 		try {
-			System.out.println("On Message: " + message);
-			System.out.println("On Message: Sesseion = " + session.getId());
-			
-			final InterAppMessage val = mapper.readValue(message, InterAppMessage.class);
-			final String from = val.getFrom();
-			final String type = val.getType();
-			
+//			System.out.println("On Message: " + message);
 			broadcast(message, session);
 		} catch(Exception e) {
 			System.out.println("Invalid msg: " + message);
@@ -45,10 +41,13 @@ public class EchoEndpoint {
 	
 	private final void broadcast(String msg, Session session) {
 		session.getOpenSessions().forEach(s->{
-			try {
-				s.getBasicRemote().sendText(msg);
-			} catch (Exception e) {
-			}
+				if(session != s && s.isOpen()) {
+					try {
+						s.getBasicRemote().sendText(msg);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
 		});
 	}
 
@@ -65,11 +64,11 @@ public class EchoEndpoint {
 
 	@OnClose
 	public void onClose(CloseReason reason, Session session) {
-		System.out.println("* Disconnected: " + session.getId());
-		// Client disconnected:
+		System.out.println("* Client Disconnected: " + session.getId());
+		
 		final InterAppMessage msg = new InterAppMessage();
-		msg.setFrom(InterAppMessage.FROM_CY3);
-		msg.setType(InterAppMessage.TYPE_CLOSED);
+		msg.setFrom(InterAppMessage.FROM_CY3)
+			.setType(InterAppMessage.TYPE_CLOSED);
 		
 		try {
 			broadcast(mapper.writeValueAsString(msg), session);
@@ -77,6 +76,10 @@ public class EchoEndpoint {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+		try {
+			session.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

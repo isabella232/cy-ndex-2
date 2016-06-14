@@ -23,15 +23,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @WebSocket
 public class ClientSocket {
 
-	private Session session;
+	private Session currentSession;
+	
 	private final CySwingApplication app;
 	private final ObjectMapper mapper;
 	private final ExternalAppManager pm;
 
 	private final CyEventHelper eventHelper;
 
-	private Boolean focusFlag = false;
-
+//	private Boolean ignore = false;
+	private final CountDownLatch latch = new CountDownLatch(1);
+	
+	
 	public ClientSocket(final CySwingApplication app, ExternalAppManager pm, final CyEventHelper eventHelper) {
 		this.app = app;
 		this.pm = pm;
@@ -47,33 +50,37 @@ public class ClientSocket {
 
 			@Override
 			public void windowActivated(WindowEvent e) {
-				System.out.println("=Acttive Cytoscape: " + e);
+//				if(ignore) {
+//					return;
+//				}
+				
+				System.out.println("* Cy3 Window Activated manually: " + e);
 
-				if (!focusFlag) {
-					focusFlag = true;
-					final InterAppMessage msg = new InterAppMessage();
-					msg.setType(InterAppMessage.TYPE_FOCUS).setFrom(InterAppMessage.FROM_CY3);
-					try {
-						
-						sendMessage(mapper.writeValueAsString(msg));
-					} catch (JsonProcessingException e1) {
-						e1.printStackTrace();
-					}
+				final InterAppMessage msg = new InterAppMessage();
+				msg.setType(InterAppMessage.TYPE_FOCUS).setFrom(InterAppMessage.FROM_CY3);
+				try {
+					sendMessage(mapper.writeValueAsString(msg));
+				} catch (JsonProcessingException e1) {
+					e1.printStackTrace();
 				}
 			}
 		});
 	}
 
-	private CountDownLatch latch = new CountDownLatch(1);
 
 	@OnWebSocketMessage
 	public void onText(Session session, String message) throws IOException {
-		System.out.println("*** CY3 CLIENT: Message received from server:" + message);
 
+//		if(session == null || session != this.session ) {
+//			return;
+//		}
+		
 		// Map message into message object
 		final InterAppMessage msg = mapper.readValue(message, InterAppMessage.class);
 
 		final String from = msg.getFrom();
+		
+		System.out.println("*** CY3 CLIENT: Message received from server:" + message);
 
 		if (msg.getType().equals(InterAppMessage.TYPE_CLOSED)) {
 			System.out.println("Electron closed: ");
@@ -107,39 +114,55 @@ public class ClientSocket {
 			if (from.equals(InterAppMessage.FROM_CY3)) {
 				return;
 			}
-			System.out.println("**** Electron app focused 2++++++++++++ ");
-			focusFlag = false;
-			app.getJFrame().setAlwaysOnTop(true);
-			app.getJFrame().setVisible(true);
-			app.getJFrame().repaint();
-			app.getJFrame().setAlwaysOnTop(false);
 			
+			System.out.println("**** Electron app focused 2++++++++++++ ");
+//			ignore = true;
+			final JFrame desktop = app.getJFrame();
+			if (desktop.isFocused() || desktop.isActive()) {
+				System.out.println("**** No need to focus ");
+			} else {
+//				desktop.setAlwaysOnTop(true);
+				desktop.setVisible(true);
+				desktop.repaint();
+//				desktop.setAlwaysOnTop(false);
+			}
+
 			// Send success message:
 			final InterAppMessage reply = new InterAppMessage();
-			reply.setType(InterAppMessage.TYPE_FOCUS_SUCCESS).setBody(pm.getQuery()).setFrom(InterAppMessage.FROM_CY3);
+			reply.setType(InterAppMessage.TYPE_FOCUS_SUCCESS).setFrom(InterAppMessage.FROM_CY3);
 			try {
 				sendMessage(mapper.writeValueAsString(reply));
 			} catch (JsonProcessingException e1) {
 				e1.printStackTrace();
 			}
+			
+//			ignore = false;
 		} else if (msg.getType().equals(InterAppMessage.TYPE_FOCUS_SUCCESS)) {
 			if (from.equals(InterAppMessage.FROM_CY3)) {
 				return;
 			}
+			
+//			ignore = true;
+			
+			final JFrame desktop = app.getJFrame();
+			if (desktop.isFocused() || desktop.isActive()) {
+				app.getJFrame().toFront();
+				return;
+			}
+
 			System.out.println("**** Focus Success from NDEX: ");
 			app.getJFrame().toFront();
 			app.getJFrame().requestFocus();
 			app.getJFrame().repaint();
-			focusFlag = false;
 			System.out.println("Finish: ");
+//			ignore = false;
 		}
 	}
 
 	@OnWebSocketConnect
 	public void onConnect(Session session) {
-		System.out.println("Connected to server");
-		this.session = session;
-		this.session.setIdleTimeout(1000000000);
+		System.out.println("Cy 3 Client Connected to server");
+		this.currentSession = session;
 		latch.countDown();
 	}
 
@@ -147,25 +170,29 @@ public class ClientSocket {
 	public void onClose(int statusCode, String reason) {
 		System.out.println("***Cy3 Client disconnected from server: " + reason + ", " + statusCode);
 
+		currentSession.close();
+		currentSession = null;
+//		latch.countDown();
+		
 		final InterAppMessage msg = new InterAppMessage();
 		msg.setFrom(InterAppMessage.FROM_CY3).setType(InterAppMessage.TYPE_CLOSED);
 		eventHelper.fireEvent(new WebSocketEvent(this, msg));
 	}
 
 	public void sendMessage(String str) {
+		if(currentSession == null || currentSession.isOpen() == false) {
+			return;
+		}
+		
 		try {
-			session.getRemote().sendString(str);
+			this.currentSession.getRemote().sendString(str);
 		} catch (IOException e) {
-			pm.kill();
+//			pm.kill();
 			e.printStackTrace();
 		}
 	}
 
 	public CountDownLatch getLatch() {
 		return latch;
-	}
-
-	public boolean isOpen() {
-		return session.isOpen();
 	}
 }

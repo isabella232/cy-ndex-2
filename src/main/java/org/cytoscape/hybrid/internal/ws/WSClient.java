@@ -1,7 +1,6 @@
 package org.cytoscape.hybrid.internal.ws;
 
 import java.net.URI;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.cytoscape.application.swing.CySwingApplication;
@@ -11,49 +10,48 @@ import org.eclipse.jetty.websocket.client.WebSocketClient;
 
 public class WSClient {
 
-	private ClientSocket socket;
+	private final ClientSocket socket;
 	private WebSocketClient client;
 
-	private final CySwingApplication app;
-	private final ExternalAppManager pm;
-	private final CyEventHelper eventHelper;
-	private String dest;
-	
-	
+
 	public WSClient(final CySwingApplication app, final ExternalAppManager pm, CyEventHelper eventHelper) {
-		this.app = app;
-		this.pm = pm;
-		this.eventHelper = eventHelper;
-	}
-	
-	public void start(String dest) throws Exception {
+		socket = new ClientSocket(app, pm, eventHelper);
 		client = new WebSocketClient();
 		client.getPolicy().setIdleTimeout(1000000000);
-		socket = new ClientSocket(app, pm, eventHelper);
-		client.start();
-		URI echoUri = new URI(dest);
-		this.dest = dest;
-		
-		ClientUpgradeRequest request = new ClientUpgradeRequest();
-		client.connect(socket, echoUri, request);
 		client.setMaxIdleTimeout(1000000000);
-		socket.getLatch().await(10000, TimeUnit.SECONDS);
 	}
 	
-	public Boolean isStopped() {
-		return client.isStopped(); 
-	}
-	
-	public ClientSocket getSocket() {
-		if(!socket.isOpen()) {
-			try {
-				start(dest);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+
+	public final void start(String dest) throws Exception {
+		
+		final URI echoUri = new URI(dest);
+		final ClientUpgradeRequest request = new ClientUpgradeRequest();
+		
+		if(client.isStarted() == false) {
+			client.start();
+			client.connect(socket, echoUri, request);
+			socket.getLatch().await();
+			System.out.println("^^^^^^^^^^^^^^^^^ Started ^^^^^^^^^^^^^^^^^^");
 		}
+	}
+
+
+	public ClientSocket getSocket() {
 		return socket;
+	}
+
+	public final void close() {
+		try {
+			if(client.isStopped() == false && client.isStopping() == false) {
+				System.out.println("** Need to stop2");
+				client.stop();
+			} else {
+				
+				System.out.println("** Already stopped");
+			}
+		} catch (Exception e) {
+			System.out.println("Closed w/exeption");
+		}
 	}
 
 }
