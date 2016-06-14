@@ -17,11 +17,18 @@ public final class InterAppMessage {
 	public static final String TYPE_QUERY = "query";
 	public static final String TYPE_CLOSED = "closed";
 	public static final String TYPE_CONNECTED = "connected";
+	public static final String TYPE_ALIVE = "alive";
 
 	private String from;
 	private String type;
 	private String body;
 	
+	// Static factory
+	public static final InterAppMessage create() {
+		final InterAppMessage msg = new InterAppMessage();
+		
+		return msg;
+	}
 	
 	public String getFrom() {
 		return from;

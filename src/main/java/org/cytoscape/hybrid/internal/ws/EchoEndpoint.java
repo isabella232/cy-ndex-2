@@ -12,7 +12,9 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.cytoscape.hybrid.events.InterAppMessage;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 
@@ -31,6 +33,19 @@ public class EchoEndpoint {
 	
 	@OnMessage
 	public void onMessage(String message, Session session) {
+		
+		InterAppMessage value = null;
+		try {
+			value = mapper.readValue(message, InterAppMessage.class);
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
+		
+		// Ignore the message is just ping.
+		if(value != null && value.getType().equals(InterAppMessage.TYPE_ALIVE)) {
+			return;
+		}
+		
 		try {
 //			System.out.println("On Message: " + message);
 			broadcast(message, session);

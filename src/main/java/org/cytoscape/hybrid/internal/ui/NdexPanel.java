@@ -116,9 +116,11 @@ public class NdexPanel extends JPanel
 			this.searchPane.setBackground(COLOR_ENABLED);
 			this.logoPanel.setBackground(COLOR_ENABLED);
 			this.buttonPanel.setButtonsEnabled(true);
-//			client.close();
 			pm.kill();
 			System.out.println("** WS Event: CLOSED");
+			this.searchPane.setEnabled(true);
+			this.searchPane.setEditable(true);
+			System.out.println("** Editor pane enabled: " + this.searchPane.isEnabled());
 		}
 	}
 
