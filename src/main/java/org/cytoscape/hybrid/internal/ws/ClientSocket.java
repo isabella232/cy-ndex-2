@@ -44,6 +44,8 @@ public class ClientSocket {
 
 	// private Boolean ignore = false;
 	private final CountDownLatch latch = new CountDownLatch(1);
+	
+	private String application;
 
 	public ClientSocket(final CySwingApplication app, ExternalAppManager pm, final CyEventHelper eventHelper) {
 		this.app = app;
@@ -65,6 +67,10 @@ public class ClientSocket {
 				}
 			}
 		}, 0, 120000);
+	}
+	
+	public void setApplication(final String app) {
+		this.application = app;
 	}
 
 	private void addListener() {
@@ -90,10 +96,6 @@ public class ClientSocket {
 	@OnWebSocketMessage
 	public void onText(Session session, String message) throws IOException {
 
-		// if(session == null || session != this.session ) {
-		// return;
-		// }
-
 		// Map message into message object
 		final InterAppMessage msg = mapper.readValue(message, InterAppMessage.class);
 
@@ -101,7 +103,19 @@ public class ClientSocket {
 
 		System.out.println("*** CY3 CLIENT: Message received from server:" + message);
 
-		if (msg.getType().equals(InterAppMessage.TYPE_CLOSED)) {
+		if (msg.getType().equals(InterAppMessage.TYPE_APP)) {
+			System.out.println("Electron App type requested: ");
+			final InterAppMessage reply = InterAppMessage.create()
+					.setType(InterAppMessage.TYPE_APP)
+					.setFrom(InterAppMessage.FROM_CY3)
+					.setBody(application);
+			try {
+				sendMessage(mapper.writeValueAsString(reply));
+			} catch (JsonProcessingException e1) {
+				e1.printStackTrace();
+			}
+		
+		} else if (msg.getType().equals(InterAppMessage.TYPE_CLOSED)) {
 			System.out.println("Electron closed: ");
 			pm.kill();
 			final JFrame desktop = app.getJFrame();

@@ -84,8 +84,9 @@ public class SearchPane extends JEditorPane implements PropertyChangeListener {
 		client.start(dest);
 
 		if (pm.isActive()) {
-			final InterAppMessage focus = new InterAppMessage();
-			focus.setFrom(InterAppMessage.FROM_CY3).setType(InterAppMessage.TYPE_FOCUS);
+			final InterAppMessage focus = InterAppMessage.create()
+					.setFrom(InterAppMessage.FROM_CY3)
+					.setType(InterAppMessage.TYPE_FOCUS);
 			this.client.getSocket().sendMessage(mapper.writeValueAsString(focus));
 			return;
 		}
@@ -93,6 +94,8 @@ public class SearchPane extends JEditorPane implements PropertyChangeListener {
 		final ExecutorService executor = Executors.newSingleThreadExecutor();
 		executor.submit(() -> {
 			try {
+				// Set application type:
+				this.client.getSocket().setApplication("ndex-save");
 				pm.setProcess(Runtime.getRuntime().exec(command));
 			} catch (Exception e) {
 				e.printStackTrace();

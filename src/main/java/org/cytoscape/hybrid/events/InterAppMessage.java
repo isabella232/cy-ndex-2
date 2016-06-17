@@ -18,6 +18,7 @@ public final class InterAppMessage {
 	public static final String TYPE_CLOSED = "closed";
 	public static final String TYPE_CONNECTED = "connected";
 	public static final String TYPE_ALIVE = "alive";
+	public static final String TYPE_APP = "app";
 
 	private String from;
 	private String type;

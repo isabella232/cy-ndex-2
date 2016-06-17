@@ -47,7 +47,7 @@ public class EchoEndpoint {
 		}
 		
 		try {
-//			System.out.println("On Message: " + message);
+			System.out.println("On Message: " + message);
 			broadcast(message, session);
 		} catch(Exception e) {
 			System.out.println("Invalid msg: " + message);
