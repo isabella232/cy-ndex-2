@@ -104,7 +104,6 @@ public class NdexPanel extends JPanel
 	@Override
 	public void handleEvent(WebSocketEvent e) {
 		final InterAppMessage msg = e.getMessage();
-		System.out.println("** WS Event: " + msg.getFrom());
 
 		if (msg.getType().equals(InterAppMessage.TYPE_CONNECTED)) {
 			this.searchPane.setEnabled(false);
@@ -121,7 +120,11 @@ public class NdexPanel extends JPanel
 			this.searchPane.setEnabled(true);
 			this.searchPane.setEditable(true);
 			System.out.println("** Editor pane enabled: " + this.searchPane.isEnabled());
+		} else {
+			System.out.println("** WS Event: No need to respond: " + msg);
+			return;
 		}
+		
 	}
 
 }

@@ -6,7 +6,7 @@ package org.cytoscape.hybrid.events;
  * Message exchanged between two applications: Cytoscape and Electron
  * 
  */
-public final class InterAppMessage {
+public class InterAppMessage {
 	
 	public static final String FROM_CY3 = "cy3";
 	public static final String FROM_NDEX = "ndex";

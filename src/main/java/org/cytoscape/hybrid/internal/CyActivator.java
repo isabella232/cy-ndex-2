@@ -1,22 +1,33 @@
 package org.cytoscape.hybrid.internal;
 
+import static org.cytoscape.application.swing.ActionEnableSupport.*;
+import static org.cytoscape.work.ServiceProperties.*;
+
 import java.awt.Dimension;
+
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.cytoscape.application.CyApplicationConfiguration;
+import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.CytoPanel;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.application.swing.CytoPanelState;
 import org.cytoscape.event.CyEventHelper;
+import org.cytoscape.hybrid.events.WSHandler;
+import org.cytoscape.hybrid.events.WebSocketEventListener;
 import org.cytoscape.hybrid.internal.electron.NativeAppInstaller;
+import org.cytoscape.hybrid.internal.task.NdexSaveTaskFactory;
 import org.cytoscape.hybrid.internal.ui.NdexPanel;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
+import org.cytoscape.hybrid.internal.ws.NdexSaveMessage;
+import org.cytoscape.hybrid.internal.ws.SaveMessageHandler;
 import org.cytoscape.hybrid.internal.ws.WSClient;
 import org.cytoscape.hybrid.internal.ws.WSServer;
 import org.cytoscape.service.util.AbstractCyActivator;
+import org.cytoscape.task.NetworkViewTaskFactory;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +44,7 @@ public class CyActivator extends AbstractCyActivator {
 		// Importing Service
 		final CySwingApplication desktop = getService(bc, CySwingApplication.class);
 		final CyApplicationConfiguration config = getService(bc, CyApplicationConfiguration.class);
+		final CyApplicationManager appManager = getService(bc, CyApplicationManager.class);
 		final CyEventHelper eventHelper = getService(bc, CyEventHelper.class);
 
 		// Local components
@@ -62,6 +74,20 @@ public class CyActivator extends AbstractCyActivator {
 			}
 			System.out.println("Server started ");
 		});
+
+		// Menu item for NDEx Save
+		final NdexSaveTaskFactory ndexSaveTaskFactory = new NdexSaveTaskFactory(client, pm, installer.getCommand());
+		
+		final Properties ndexSaveTaskFactoryProps = new Properties();
+		ndexSaveTaskFactoryProps.setProperty(ENABLE_FOR, ENABLE_FOR_NETWORK);
+		ndexSaveTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export");
+		ndexSaveTaskFactoryProps.setProperty(MENU_GRAVITY, "1.0");
+		ndexSaveTaskFactoryProps.setProperty(TITLE, "Network to NDEx");
+		registerAllServices(bc, ndexSaveTaskFactory, ndexSaveTaskFactoryProps);
+	
+		// WebSocket event handlers
+		final WSHandler saveHandler = new SaveMessageHandler(appManager);
+		client.getSocket().addHandler(saveHandler);
 	}
 
 	@Override

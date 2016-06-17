@@ -95,7 +95,7 @@ public class SearchPane extends JEditorPane implements PropertyChangeListener {
 		executor.submit(() -> {
 			try {
 				// Set application type:
-				this.client.getSocket().setApplication("ndex-save");
+				this.client.getSocket().setApplication("ndex");
 				pm.setProcess(Runtime.getRuntime().exec(command));
 			} catch (Exception e) {
 				e.printStackTrace();

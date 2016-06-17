@@ -3,6 +3,8 @@ package org.cytoscape.hybrid.internal.ws;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
@@ -12,6 +14,7 @@ import javax.swing.JFrame;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.hybrid.events.InterAppMessage;
+import org.cytoscape.hybrid.events.WSHandler;
 import org.cytoscape.hybrid.events.WebSocketEvent;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
@@ -35,6 +38,8 @@ public class ClientSocket {
 
 	private static final InterAppMessage ALIVE;
 
+	private final Map<String, WSHandler> handlers;
+	
 	static {
 		ALIVE = InterAppMessage.create()
 				.setFrom(InterAppMessage.FROM_CY3)
@@ -53,6 +58,8 @@ public class ClientSocket {
 		this.eventHelper = eventHelper;
 
 		this.mapper = new ObjectMapper();
+		this.handlers = new HashMap<>();
+		
 		addListener();
 
 		final Timer ping = new Timer();
@@ -190,6 +197,15 @@ public class ClientSocket {
 			app.getJFrame().repaint();
 			System.out.println("Finish: ");
 			// ignore = false;
+		} else {
+			// Try handlers
+			final WSHandler handler = handlers.get(msg.getType());
+			System.out.println("!!!!!!!!Need handler: " + handler);
+			System.out.println("!!!!!!!!Need handler2: " + handlers.size());
+			if(handler != null) {
+				handler.handleMessage(msg, this.currentSession);
+			}
+			
 		}
 	}
 
@@ -221,12 +237,16 @@ public class ClientSocket {
 		try {
 			this.currentSession.getRemote().sendString(str);
 		} catch (IOException e) {
-			// pm.kill();
 			e.printStackTrace();
 		}
 	}
 
 	public CountDownLatch getLatch() {
 		return latch;
+	}
+	
+	
+	public void addHandler(final WSHandler handler) {
+		this.handlers.put(handler.getType(), handler);
 	}
 }
