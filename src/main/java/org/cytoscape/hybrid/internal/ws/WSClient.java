@@ -1,7 +1,6 @@
 package org.cytoscape.hybrid.internal.ws;
 
 import java.net.URI;
-import java.util.concurrent.TimeUnit;
 
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.event.CyEventHelper;
@@ -52,6 +51,10 @@ public class WSClient {
 		} catch (Exception e) {
 			System.out.println("Closed w/exeption");
 		}
+	}
+	
+	public boolean isStopped() {
+		return client.isStopped();
 	}
 
 }

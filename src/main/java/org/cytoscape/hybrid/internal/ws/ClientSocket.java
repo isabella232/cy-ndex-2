@@ -211,7 +211,7 @@ public class ClientSocket {
 
 	@OnWebSocketConnect
 	public void onConnect(Session session) {
-		System.out.println("Cy 3 Client Connected to server");
+		System.out.println("@@@@@@@@@@ Cy 3 Client Connected to server");
 		this.currentSession = session;
 		latch.countDown();
 	}
