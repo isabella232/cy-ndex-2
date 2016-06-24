@@ -2,39 +2,57 @@ package org.cytoscape.hybrid.internal.login;
 
 public class Credential {
 
-	private String id;
-	private String pw;
-	private ServiceInfo serviceInfo;
+	private String userName;
+	private String userPass;
+	private String serverName;
+	private String serverAddress;
+	private Boolean loggedIn;
 
 	public static Credential create() {
 		return new Credential();
 	}
 
-	public String getId() {
-		return id;
+	public String getUserName() {
+		return userName;
 	}
 
-	public Credential setId(String id) {
-		this.id = id;
+	public Credential setUserName(String userName) {
+		this.userName = userName;
 		return this;
 	}
 
-	public String getPw() {
-		return pw;
+	public String getUserPass() {
+		return userPass;
 	}
 
-	public Credential setPw(String pw) {
-		this.pw = pw;
+	public Credential setUserPass(String userPass) {
+		this.userPass = userPass;
 		return this;
 	}
 
-	public ServiceInfo getServiceInfo() {
-		return serviceInfo;
+	public Boolean getLoggedIn() {
+		return loggedIn;
 	}
 
-	public Credential setServiceInfo(ServiceInfo serviceInfo) {
-		this.serviceInfo = serviceInfo;
+	public void setLoggedIn(Boolean loggedIn) {
+		this.loggedIn = loggedIn;
+	}
+
+	public String getServerName() {
+		return serverName;
+	}
+
+	public Credential setServerName(String serverName) {
+		this.serverName = serverName;
 		return this;
 	}
 
+	public String getServerAddress() {
+		return serverAddress;
+	}
+
+	public Credential setServerAddress(String serverAddress) {
+		this.serverAddress = serverAddress;
+		return this;
+	}
 }

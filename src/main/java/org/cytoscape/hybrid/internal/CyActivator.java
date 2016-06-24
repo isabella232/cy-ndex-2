@@ -20,6 +20,8 @@ import org.cytoscape.application.swing.CytoPanelState;
 import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.hybrid.events.WSHandler;
 import org.cytoscape.hybrid.internal.electron.NativeAppInstaller;
+import org.cytoscape.hybrid.internal.login.LoginManager;
+import org.cytoscape.hybrid.internal.login.NdexLoginMessageHandler;
 import org.cytoscape.hybrid.internal.task.OpenExternalAppTaskFactory;
 import org.cytoscape.hybrid.internal.ui.NdexPanel;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
@@ -92,8 +94,12 @@ public class CyActivator extends AbstractCyActivator {
 		registerAllServices(bc, ndexLoginTaskFactory, ndexLoginTaskFactoryProps);
 	
 		// WebSocket event handlers
+		final LoginManager loginManager = new LoginManager();
+		
 		final WSHandler saveHandler = new SaveMessageHandler(appManager);
+		final WSHandler loginHandler = new NdexLoginMessageHandler(appManager, loginManager);
 		client.getSocket().addHandler(saveHandler);
+		client.getSocket().addHandler(loginHandler);
 	}
 
 	@Override

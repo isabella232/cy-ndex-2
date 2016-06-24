@@ -7,17 +7,13 @@ public class LoginManager {
 
 	private Credential login;
 
-	public void setLogin(Credential login) {
+	public void setLogin(final Credential login) {
 		if (login != null) {
 			this.login = login;
 		}
 	}
 
 	public Credential getLogin() {
-		if (login == null) {
-			throw new IllegalStateException("Login information is missing.");
-		}
-
 		return login;
 	}
 

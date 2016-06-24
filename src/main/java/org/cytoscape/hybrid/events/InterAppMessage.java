@@ -23,6 +23,7 @@ public class InterAppMessage {
 	private String from;
 	private String type;
 	private String body;
+	private Object options;
 	
 	// Static factory
 	public static final InterAppMessage create() {
@@ -51,6 +52,14 @@ public class InterAppMessage {
 	public InterAppMessage setBody(String body) {
 		this.body = body;
 		return this;
+	}
+
+	public Object getOptions() {
+		return options;
+	}
+
+	public void setOptions(Object options) {
+		this.options = options;
 	}
 
 }
