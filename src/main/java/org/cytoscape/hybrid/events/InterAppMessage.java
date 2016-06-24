@@ -58,8 +58,8 @@ public class InterAppMessage {
 		return options;
 	}
 
-	public void setOptions(Object options) {
+	public InterAppMessage setOptions(Object options) {
 		this.options = options;
+		return this;
 	}
-
 }

@@ -3,13 +3,17 @@ package org.cytoscape.hybrid.internal.ws;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.hybrid.events.InterAppMessage;
 import org.cytoscape.hybrid.events.WSHandler;
 import org.cytoscape.hybrid.events.WebSocketEvent;
 import org.cytoscape.hybrid.events.WebSocketEventListener;
+import org.cytoscape.hybrid.internal.login.Credential;
+import org.cytoscape.hybrid.internal.login.LoginManager;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
 import org.eclipse.jetty.websocket.api.Session;
@@ -22,9 +26,12 @@ public class SaveMessageHandler implements WSHandler {
 	private final CyApplicationManager appManager;
 	private final ObjectMapper mapper;
 	
-	public SaveMessageHandler(CyApplicationManager appManager) {
+	private final LoginManager manager;
+	
+	public SaveMessageHandler(CyApplicationManager appManager, final LoginManager manager) {
 		this.appManager = appManager;
 		this.mapper = new ObjectMapper();
+		this.manager = manager;
 	}
 	
 	
@@ -35,6 +42,11 @@ public class SaveMessageHandler implements WSHandler {
 
 		if (!msg.getType().equals(NdexSaveMessage.TYPE_SAVE)) {
 			return;
+		}
+		
+		final Credential credential = manager.getLogin();
+		if(credential == null) {
+			throw new IllegalStateException("You have not loggedin yet.");
 		}
 
 		// This is the save message from NDEx Save
@@ -47,10 +59,19 @@ public class SaveMessageHandler implements WSHandler {
 		propList.add(networkSUID.toString());
 		propList.add(networkName);
 		
+
+		final Map<String, String> saveProps = new HashMap<>();
+		saveProps.put(CyNetwork.NAME, networkName);
+		saveProps.put(CyNetwork.SUID, networkSUID.toString());
+		saveProps.put("userName", credential.getUserName());
+		saveProps.put("userPass", credential.getUserPass());
+		saveProps.put("serverName", credential.getServerName());
+		saveProps.put("serverAddress", credential.getServerAddress());
+		
 		final InterAppMessage reply = InterAppMessage.create()
 				.setType(NdexSaveMessage.TYPE_SAVE)
 				.setFrom(InterAppMessage.FROM_CY3)
-				.setBody(propList.toString());
+				.setOptions(saveProps);
 		try {
 			sendMessage(mapper.writeValueAsString(reply), session);
 		} catch (JsonProcessingException e1) {

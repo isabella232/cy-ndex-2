@@ -52,9 +52,10 @@ public class CyActivator extends AbstractCyActivator {
 		final ExternalAppManager pm = new ExternalAppManager();
 		final WSClient client = new WSClient(desktop, pm, eventHelper);
 		final NativeAppInstaller installer = new NativeAppInstaller(config);
+		final LoginManager loginManager = new LoginManager();
 
 		// This is a singleton
-		final NdexPanel panel = new NdexPanel(installer, pm, client);
+		final NdexPanel panel = new NdexPanel(installer, pm, client, loginManager);
 		registerAllServices(bc, panel, new Properties());
 
 		final CytoPanel parent = desktop.getCytoPanel(CytoPanelName.SOUTH_WEST);
@@ -94,9 +95,8 @@ public class CyActivator extends AbstractCyActivator {
 		registerAllServices(bc, ndexLoginTaskFactory, ndexLoginTaskFactoryProps);
 	
 		// WebSocket event handlers
-		final LoginManager loginManager = new LoginManager();
 		
-		final WSHandler saveHandler = new SaveMessageHandler(appManager);
+		final WSHandler saveHandler = new SaveMessageHandler(appManager, loginManager);
 		final WSHandler loginHandler = new NdexLoginMessageHandler(appManager, loginManager);
 		client.getSocket().addHandler(saveHandler);
 		client.getSocket().addHandler(loginHandler);
