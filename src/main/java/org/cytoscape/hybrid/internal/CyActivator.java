@@ -49,10 +49,10 @@ public class CyActivator extends AbstractCyActivator {
 		final CyEventHelper eventHelper = getService(bc, CyEventHelper.class);
 
 		// Local components
-		final ExternalAppManager pm = new ExternalAppManager();
-		final WSClient client = new WSClient(desktop, pm, eventHelper);
-		final NativeAppInstaller installer = new NativeAppInstaller(config);
 		final LoginManager loginManager = new LoginManager();
+		final ExternalAppManager pm = new ExternalAppManager();
+		final WSClient client = new WSClient(desktop, pm, eventHelper, loginManager);
+		final NativeAppInstaller installer = new NativeAppInstaller(config);
 
 		// This is a singleton
 		final NdexPanel panel = new NdexPanel(installer, pm, client, loginManager);
