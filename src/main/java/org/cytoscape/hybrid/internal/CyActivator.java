@@ -28,6 +28,7 @@ import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
 import org.cytoscape.hybrid.internal.ws.SaveMessageHandler;
 import org.cytoscape.hybrid.internal.ws.WSClient;
 import org.cytoscape.hybrid.internal.ws.WSServer;
+import org.cytoscape.model.subnetwork.CyRootNetworkManager;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
@@ -47,6 +48,7 @@ public class CyActivator extends AbstractCyActivator {
 		final CyApplicationConfiguration config = getService(bc, CyApplicationConfiguration.class);
 		final CyApplicationManager appManager = getService(bc, CyApplicationManager.class);
 		final CyEventHelper eventHelper = getService(bc, CyEventHelper.class);
+		final CyRootNetworkManager rootManager = getService(bc, CyRootNetworkManager.class);
 
 		// Local components
 		final LoginManager loginManager = new LoginManager();
@@ -96,7 +98,7 @@ public class CyActivator extends AbstractCyActivator {
 	
 		// WebSocket event handlers
 		
-		final WSHandler saveHandler = new SaveMessageHandler(appManager, loginManager);
+		final WSHandler saveHandler = new SaveMessageHandler(appManager, loginManager, rootManager);
 		final WSHandler loginHandler = new NdexLoginMessageHandler(appManager, loginManager);
 		client.getSocket().addHandler(saveHandler);
 		client.getSocket().addHandler(loginHandler);

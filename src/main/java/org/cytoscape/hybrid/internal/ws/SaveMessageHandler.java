@@ -16,10 +16,13 @@ import org.cytoscape.hybrid.internal.login.Credential;
 import org.cytoscape.hybrid.internal.login.LoginManager;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
+import org.cytoscape.model.subnetwork.CyRootNetwork;
+import org.cytoscape.model.subnetwork.CyRootNetworkManager;
 import org.eclipse.jetty.websocket.api.Session;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.util.RootNameLookup;
 
 public class SaveMessageHandler implements WSHandler {
 
@@ -27,11 +30,14 @@ public class SaveMessageHandler implements WSHandler {
 	private final ObjectMapper mapper;
 	
 	private final LoginManager manager;
+	private final CyRootNetworkManager rootManager;
 	
-	public SaveMessageHandler(CyApplicationManager appManager, final LoginManager manager) {
+	public SaveMessageHandler(CyApplicationManager appManager, 
+			final LoginManager manager, final CyRootNetworkManager rootManager) {
 		this.appManager = appManager;
 		this.mapper = new ObjectMapper();
 		this.manager = manager;
+		this.rootManager = rootManager;
 	}
 	
 	
@@ -59,10 +65,15 @@ public class SaveMessageHandler implements WSHandler {
 		propList.add(networkSUID.toString());
 		propList.add(networkName);
 		
+		final CyRootNetwork root = rootManager.getRootNetwork(net);
+		final String rootNetName = root.getDefaultNetworkTable()
+				.getRow(root.getSUID()).get(CyNetwork.NAME, String.class);
 
 		final Map<String, String> saveProps = new HashMap<>();
 		saveProps.put(CyNetwork.NAME, networkName);
 		saveProps.put(CyNetwork.SUID, networkSUID.toString());
+		saveProps.put("root" + CyNetwork.NAME, rootNetName);
+		saveProps.put("root" + CyNetwork.SUID, root.getSUID().toString());
 		saveProps.put("userName", credential.getUserName());
 		saveProps.put("userPass", credential.getUserPass());
 		saveProps.put("serverName", credential.getServerName());
@@ -77,6 +88,10 @@ public class SaveMessageHandler implements WSHandler {
 		} catch (JsonProcessingException e1) {
 			e1.printStackTrace();
 		}
+	}
+	
+	private void getRootNetwork(final CyNetwork net) {
+	
 	}
 	
 	private void sendMessage(final String str, final Session session) {
