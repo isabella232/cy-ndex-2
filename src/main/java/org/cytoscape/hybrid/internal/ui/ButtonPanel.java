@@ -27,7 +27,7 @@ public class ButtonPanel extends JPanel {
 	// Theme for this panel components
 	private static final Font BUTTON_FONT1 = new Font("helvatica", Font.PLAIN, 18);
 	private static final Font BUTTON_FONT2 = new Font("helvatica", Font.BOLD, 18);
-	private static final Color SEARCH_COLOR = Color.decode("#FF4081");
+	private static final Color SEARCH_COLOR = Color.decode("#E78D00");
 	private static final Color CLEAR_COLOR = Color.decode("#FAFFEA");
 	private static final Color SEARCH_COLOR_FONT = Color.WHITE;
 	private static final Color CLEAR_COLOR_FONT = Color.decode("#777777");

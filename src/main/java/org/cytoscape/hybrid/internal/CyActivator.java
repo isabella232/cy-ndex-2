@@ -86,14 +86,14 @@ public class CyActivator extends AbstractCyActivator {
 		final Properties ndexSaveTaskFactoryProps = new Properties();
 		ndexSaveTaskFactoryProps.setProperty(ENABLE_FOR, ENABLE_FOR_NETWORK);
 		ndexSaveTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export");
-		ndexSaveTaskFactoryProps.setProperty(MENU_GRAVITY, "1.0");
-		ndexSaveTaskFactoryProps.setProperty(TITLE, "Network to NDEx");
+		ndexSaveTaskFactoryProps.setProperty(MENU_GRAVITY, "1000.0");
+		ndexSaveTaskFactoryProps.setProperty(TITLE, "Network Collection to NDEx");
 		registerAllServices(bc, ndexSaveTaskFactory, ndexSaveTaskFactoryProps);
 		
 		final Properties ndexLoginTaskFactoryProps = new Properties();
 		ndexLoginTaskFactoryProps.setProperty(PREFERRED_MENU, "Tools");
-		ndexLoginTaskFactoryProps.setProperty(MENU_GRAVITY, "1.0");
-		ndexLoginTaskFactoryProps.setProperty(TITLE, "Login to NDEx");
+		ndexLoginTaskFactoryProps.setProperty(MENU_GRAVITY, "1000.0");
+		ndexLoginTaskFactoryProps.setProperty(TITLE, "Login to NDEx...");
 		registerAllServices(bc, ndexLoginTaskFactory, ndexLoginTaskFactoryProps);
 	
 		// WebSocket event handlers
