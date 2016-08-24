@@ -12,9 +12,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.cytoscape.hybrid.events.InterAppMessage;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 

@@ -10,19 +10,15 @@ import java.util.Map;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.hybrid.events.InterAppMessage;
 import org.cytoscape.hybrid.events.WSHandler;
-import org.cytoscape.hybrid.events.WebSocketEvent;
-import org.cytoscape.hybrid.events.WebSocketEventListener;
 import org.cytoscape.hybrid.internal.login.Credential;
 import org.cytoscape.hybrid.internal.login.LoginManager;
 import org.cytoscape.model.CyNetwork;
-import org.cytoscape.model.CyTable;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
 import org.cytoscape.model.subnetwork.CyRootNetworkManager;
 import org.eclipse.jetty.websocket.api.Session;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.util.RootNameLookup;
 
 public class SaveMessageHandler implements WSHandler {
 
@@ -88,10 +84,6 @@ public class SaveMessageHandler implements WSHandler {
 		} catch (JsonProcessingException e1) {
 			e1.printStackTrace();
 		}
-	}
-	
-	private void getRootNetwork(final CyNetwork net) {
-	
 	}
 	
 	private void sendMessage(final String str, final Session session) {

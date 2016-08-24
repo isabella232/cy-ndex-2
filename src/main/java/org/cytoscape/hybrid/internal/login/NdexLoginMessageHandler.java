@@ -2,9 +2,6 @@ package org.cytoscape.hybrid.internal.login;
 
 import java.io.IOException;
 
-import javax.management.OperationsException;
-
-import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.hybrid.events.InterAppMessage;
 import org.cytoscape.hybrid.events.WSHandler;
 import org.eclipse.jetty.websocket.api.Session;
@@ -17,13 +14,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class NdexLoginMessageHandler implements WSHandler {
 
-	private final CyApplicationManager appManager;
 	private final ObjectMapper mapper;
 	
 	private final LoginManager loginManager;
 
-	public NdexLoginMessageHandler(final CyApplicationManager appManager, final LoginManager loginManager) {
-		this.appManager = appManager;
+	public NdexLoginMessageHandler(final LoginManager loginManager) {
 		this.mapper = new ObjectMapper();
 		mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
 

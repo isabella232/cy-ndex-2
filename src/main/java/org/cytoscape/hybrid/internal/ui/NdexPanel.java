@@ -6,13 +6,11 @@ import static org.cytoscape.hybrid.internal.ui.UiTheme.COLOR_ENABLED;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.io.File;
 
 import javax.swing.Icon;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.events.CyShutdownEvent;
 import org.cytoscape.application.events.CyShutdownListener;
 import org.cytoscape.application.swing.CytoPanelComponent2;
@@ -37,7 +35,6 @@ public class NdexPanel extends JPanel
 	private SearchPane searchPane;
 	
 	private final ExternalAppManager pm;
-	private final WSClient client;
 	private final LoginManager manager;
 
 
@@ -45,7 +42,6 @@ public class NdexPanel extends JPanel
 		this.pm = pm;
 		
 		this.manager = manager;
-		this.client = client;
 		
 		init(client, pm, installer.getCommand());
 	}

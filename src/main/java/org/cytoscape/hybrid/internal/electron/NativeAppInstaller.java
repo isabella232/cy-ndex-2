@@ -21,8 +21,6 @@ import org.cytoscape.application.CyApplicationConfiguration;
 
 public class NativeAppInstaller {
 
-	private static final String VERSION = "1.0.0";
-
 	// Platform types
 	private static final String PLATFORM_WIN = "win";
 	private static final String PLATFORM_MAC = "mac";

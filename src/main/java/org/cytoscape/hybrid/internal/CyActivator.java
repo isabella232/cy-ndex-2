@@ -99,7 +99,7 @@ public class CyActivator extends AbstractCyActivator {
 		// WebSocket event handlers
 		
 		final WSHandler saveHandler = new SaveMessageHandler(appManager, loginManager, rootManager);
-		final WSHandler loginHandler = new NdexLoginMessageHandler(appManager, loginManager);
+		final WSHandler loginHandler = new NdexLoginMessageHandler(loginManager);
 		client.getSocket().addHandler(saveHandler);
 		client.getSocket().addHandler(loginHandler);
 	}

@@ -1,9 +1,9 @@
 package org.cytoscape.hybrid.internal.ui;
 
-import static org.cytoscape.hybrid.internal.ui.UiTheme.*;
+import static org.cytoscape.hybrid.internal.ui.UiTheme.COLOR_ENABLED;
+import static org.cytoscape.hybrid.internal.ui.UiTheme.DEF_FONT;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
