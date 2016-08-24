@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
 
-
 # Build Script for all 3 platforms
-rm -rf ../build
 
-mkdir ../build
+rm -rf ./build
+mkdir ./build
 
 # For Mac (Universal)
-electron-packager . --platform=darwin --arch=x64 --overwrite --icon=icon256.icns --out=../build
-cd ../build/NDEx-Valet-darwin-x64
-tar -zcvf ../NDEx-Valet-mac.tar.gz ./NDEx-Valet.app
-rm -f ../../ndex-valet/src/main/resources/ndex/NDEx-Valet-mac.tar.gz
-cp ../NDEx-Valet-mac.tar.gz ../../ndex-valet/src/main/resources/ndex/
+electron-packager . --platform=darwin --arch=x64 --overwrite --icon=icon256.icns --out=./build
+cd ./build/NDEx-Valet-darwin-x64
+tar -zcvf ./NDEx-Valet-mac.tar.gz ./NDEx-Valet.app
+rm -f ../../../src/main/resources/ndex/NDEx-Valet-mac.tar.gz
+cp ./NDEx-Valet-mac.tar.gz ../../../src/main/resources/ndex/
 cd -
 
 ## For Linux: 32bit

@@ -1,8 +1,8 @@
 {
   "name": "ndex-valet-electron",
   "productName": "NDEx-Valet",
-  "version": "1.0.1",
-  "description": "NDEx Valet desktop app using Electron",
+  "version": "1.1.0",
+  "description": "NDEx Valet Cytoscape App using Electron",
   "main": "main.js",
   "scripts": {
     "start": "electron main.js",
@@ -22,13 +22,14 @@
   "license": "MIT",
   "homepage": "https://github.com/idekerlab/ndex-valet-electron#readme",
   "devDependencies": {
-    "devtron": "^1.2.0",
-    "electron-prebuilt": "^1.2.0",
-    "eslint": "^2.12.0"
+    "devtron": "^1.3.4",
+    "electron-packager": "^7.7.0",
+    "electron-prebuilt": "^1.3.4",
+    "eslint": "^2.12.0",
+    "eslint-plugin-import": "^1.9.2",
+    "eslint-plugin-jsx-a11y": "^1.5.3"
   },
   "dependencies": {
-    "eslint-plugin-import": "^1.9.2",
-    "eslint-plugin-jsx-a11y": "^1.5.3",
     "immutable": "^3.8.1",
     "jsonfile": "^2.3.1",
     "winston": "^2.2.0",
