@@ -1,0 +1,36 @@
+<html>
+<head>
+  <link href='https://fonts.googleapis.com/css?family=Roboto:300,400' rel='stylesheet' type='text/css'>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/immutable/3.8.1/immutable.js"></script>
+
+  <script src="CyFramework/CyFramework.js"></script>
+  <script src="NDExStore/NDExStore.js"></script>
+  <script src="NDExPlugins/NDExPlugins.js"></script>
+  <script src="NDExValetFinder/NDExValetFinder.js"></script>
+
+  <!--Electron only dependency-->
+  <link rel="stylesheet" href="../../css/photon.min.css">
+  <link rel="stylesheet" href="../../css/desktop.css">
+
+</head>
+<body>
+
+<div id='valet'>
+</div>
+
+<div id="button-bar" class="toolbar-actions">
+
+  <button id="close" class="btn btn-primary pull-right">
+    Close NDEx Valet
+  </button>
+  <button id="help" class="btn btn-default pull-right">
+    <span class="icon icon-help"></span>
+  </button>
+
+</div>
+<script src="renderer.js"></script>
+
+</body>
+</html>
