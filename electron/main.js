@@ -9,8 +9,6 @@ const APP_CONFIG_VALET = require('./webapp/ndex/config');
 const APP_CONFIG_SAVE = require('./webapp/ndex-save/config');
 const APP_CONFIG_LOGIN = require('./webapp/ndex-login/config');
 
-console.log(APP_CONFIG_VALET);
-
 const APP_CONFIG_MAP = new Map();
 APP_CONFIG_MAP.set(APP_NAME_VALET, APP_CONFIG_VALET);
 APP_CONFIG_MAP.set(APP_NAME_SAVE, APP_CONFIG_SAVE);
@@ -20,7 +18,6 @@ APP_CONFIG_MAP.set(APP_NAME_LOGIN, APP_CONFIG_LOGIN);
 const { app, globalShortcut, BrowserWindow } = require('electron');
 
 global.sharedObj = { temp: app.getPath('temp') };
-console.log('==========temp');
 console.log(global.sharedObj);
 
 // For duplex communication
@@ -72,8 +69,10 @@ function initWindow(appType) {
 
   const dir = `${__dirname}`;
   global.sharedObj.dir = dir;
-  
+
   mainWindow.loadURL('file://' + dir + '/webapp/' + appType + '/index.html');
+
+  // Event handlers:
 
   // Emitted when the window is closed.
   mainWindow.on('focus', () => {
@@ -82,9 +81,10 @@ function initWindow(appType) {
     }
     ws.send(JSON.stringify(MSG_FOCUS));
   });
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
+
+  // mainWindow.on('closed', () => {
+  //   mainWindow = null;
+  // });
 
   if (appType === APP_NAME_SAVE) {
     initSave();
@@ -118,35 +118,38 @@ function initSocket() {
 
       switch (msgObj.type) {
         case 'app':
-          LOGGER.log("debug", "APP Signal:  ==================");
+          LOGGER.log("debug", "==== APP Type Message ====");
           LOGGER.log("debug", msgObj);
           opts = msgObj.options;
-          // const tmpPath = app.getPath('temp');
-          // console.log('==========temp');
-          // console.log(tmpPath);
-          // opts['tempPath'] = tmpPath;
-
           initWindow(msgObj.body);
           break;
         case "focus-success":
-          if(mainWindow !== null && mainWindow !== undefined && !mainWindow.isFocused()) {
+          if(mainWindow === null || mainWindow === undefined) {
+            break
+          }
+
+          console.log('Focus Success: ----------- ')
+          if(!mainWindow.isAlwaysOnTop()) {
+            console.log('Enable Always on top: ----------- ')
             block = true;
             mainWindow.setAlwaysOnTop(true);
             mainWindow.show();
             mainWindow.focus();
             setTimeout(()=> {
               mainWindow.setAlwaysOnTop(false);
+              console.log('DISABLE Always on top: ----------- ')
             }, 500);
             block = false;
           }
           break;
         case "focus":
-          block = true;
           if(mainWindow === undefined || mainWindow === null) {
               break;
           }
+          console.log('######## Focus request: ----------- ')
+          block = true;
 
-          if(!mainWindow.isFocused()) {
+          if(!mainWindow.isAlwaysOnTop()) {
             mainWindow.setAlwaysOnTop(true);
             mainWindow.showInactive();
             setTimeout(()=> {

@@ -6,7 +6,7 @@ rm -rf ./build
 mkdir ./build
 
 # For Mac (Universal)
-electron-packager . --platform=darwin --arch=x64 --overwrite --icon=icon256.icns --out=./build
+electron-packager . --platform=darwin --arch=x64 --overwrite --prune --ignore=external-modules --ignore=build --ignore=.idea --icon=icon256.icns --out=./build
 cd ./build/NDEx-Valet-darwin-x64
 tar -zcvf ./NDEx-Valet-mac.tar.gz ./NDEx-Valet.app
 rm -f ../../../src/main/resources/ndex/NDEx-Valet-mac.tar.gz
@@ -39,8 +39,8 @@ cd -
 #cd -
 #
 #
-## For Windows: 64bit
-electron-packager . --platform=win32 --arch=x64 --out=./build
+# For Windows: 64bit
+electron-packager . --platform=win32 --arch=x64 --prune --ignore=external-modules --ignore=build --ignore=.idea --out=./build
 cd ./build
 mv NDEx-Valet-win32-x64 NDEx-Valet-win64
 zip -r NDEx-Valet-win64.zip ./NDEx-Valet-win64
