@@ -374,10 +374,31 @@ function initWsConnection() {
       case MESSAGE_TYPE.QUERY:
       {
         const query = msg.body;
-        cyto.dispatch(NDExValetFinder.fieldActions.updateQuery(query));
-        const store = cyto.getStore(STORE_NDEX);
-        const server = store.server.toJS();
-        cyto.dispatch(NDExStore.luceneActions.searchFor(server, query));
+        cyto.render(NDExValetFinder, document.getElementById('valet'), {
+          theme: {
+            palette: {
+              primary1Color: '#6E93B6',
+              primary2Color: '#244060',
+              primary3Color: '##EDEDED',
+              accent1Color: '#D69121',
+              accent2Color: '#E4E4E4',
+              accent3Color: '##9695A6'
+            }
+          },
+          style: {
+            backgroundColor: '#EDEDED'
+          },
+          filters: [NDExPlugins.Filters.TextBox],
+          visualizations: [
+            NDExPlugins.NetworkViz.NetworkTable,
+            NDExPlugins.NetworkViz.CardSmall,
+            NDExPlugins.NetworkViz.CardLarge
+          ],
+          defaultQuery: query,
+          onLoad: (ids, toSingleCollection) => {
+            importCollections(ids, toSingleCollection)
+          }
+        });
         break;
       }
       default:
@@ -394,37 +415,17 @@ function initWsConnection() {
 
 }
 
+
 function initCyComponent(serverState) {
+
+  // Just create new data store.
   cyto = CyFramework.config([NDExStore], {
     ndex: {
       server: serverState
     }
-  });
-  cyto.render(NDExValetFinder, document.getElementById('valet'), {
-    theme: {
-      palette: {
-        primary1Color: '#6E93B6',
-        primary2Color: '#244060',
-        primary3Color: '##EDEDED',
-        accent1Color: '#D69121',
-        accent2Color: '#E4E4E4',
-        accent3Color: '##9695A6'
-      }
-    },
-    style: {
-      backgroundColor: '#EDEDED'
-    },
-    filters: [NDExPlugins.Filters.TextBox],
-    visualizations: [
-      NDExPlugins.NetworkViz.NetworkTable,
-      NDExPlugins.NetworkViz.CardSmall,
-      NDExPlugins.NetworkViz.CardLarge
-    ],
-    onLoad: (ids, toSingleCollection) => {
-      importCollections(ids, toSingleCollection)
-    }
-  });
+  })
 }
+
 
 function updateWindowProps(server) {
   remote.getCurrentWindow()

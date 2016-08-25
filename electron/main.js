@@ -79,12 +79,22 @@ function initWindow(appType) {
     if (block) {
       return;
     }
-    ws.send(JSON.stringify(MSG_FOCUS));
+
+    console.log('######## Electron Focus ######')
+    if(!mainWindow.isAlwaysOnTop()) {
+      console.log('Enable Always on top: ----------- ')
+      mainWindow.setAlwaysOnTop(true);
+      mainWindow.showInactive();
+
+      ws.send(JSON.stringify(MSG_FOCUS));
+
+      setTimeout(()=> {
+        mainWindow.setAlwaysOnTop(false);
+        console.log('DISABLE Always on top: ----------- ')
+      }, 300);
+    }
   });
 
-  // mainWindow.on('closed', () => {
-  //   mainWindow = null;
-  // });
 
   if (appType === APP_NAME_SAVE) {
     initSave();
@@ -123,39 +133,23 @@ function initSocket() {
           opts = msgObj.options;
           initWindow(msgObj.body);
           break;
-        case "focus-success":
-          if(mainWindow === null || mainWindow === undefined) {
-            break
-          }
-
-          console.log('Focus Success: ----------- ')
-          if(!mainWindow.isAlwaysOnTop()) {
-            console.log('Enable Always on top: ----------- ')
-            block = true;
-            mainWindow.setAlwaysOnTop(true);
-            mainWindow.show();
-            mainWindow.focus();
-            setTimeout(()=> {
-              mainWindow.setAlwaysOnTop(false);
-              console.log('DISABLE Always on top: ----------- ')
-            }, 500);
-            block = false;
-          }
-          break;
         case "focus":
           if(mainWindow === undefined || mainWindow === null) {
               break;
           }
+
           console.log('######## Focus request: ----------- ')
           block = true;
 
           if(!mainWindow.isAlwaysOnTop()) {
+            console.log('######## ALWAYS on top')
             mainWindow.setAlwaysOnTop(true);
             mainWindow.showInactive();
             setTimeout(()=> {
               mainWindow.setAlwaysOnTop(false);
-            }, 500);
+            }, 200);
           }
+
           var msg = {
             from: "ndex",
             type: "focus-success",

@@ -170,26 +170,32 @@ public class ClientSocket {
 			System.out.println("**** Electron app focused 2++++++++++++ ");
 			// ignore = true;
 			final JFrame desktop = app.getJFrame();
+			System.out.println("* IsFocused: " + desktop.isFocused());
+			System.out.println("* IsActive: " + desktop.isActive());
+			System.out.println("* IsShow: " + desktop.isShowing());
+			System.out.println("* IsFocusOwner: " + desktop.isFocusOwner());
+			System.out.println("* IsVisible: " + desktop.isVisible());
+			System.out.println("* IsFocusableWindow: " + desktop.isFocusableWindow());
+			System.out.println("* IsisAutoRequestFocus: " + desktop.isAutoRequestFocus());
+			
 			if (desktop.isFocused() || desktop.isActive()) {
 				System.out.println("**** No need to focus ");
 			} else {
-				// desktop.setAlwaysOnTop(true);
-				desktop.setVisible(true);
+				System.out.println("**** AOT Bring Cytoscape desktop to front");
+				desktop.setAlwaysOnTop(true);
 				desktop.toFront();
-				desktop.repaint();
-				// desktop.setAlwaysOnTop(false);
+				desktop.requestFocus();
+				desktop.setAlwaysOnTop(false);
+				
+				// Send success message:
+				final InterAppMessage reply = new InterAppMessage();
+				reply.setType(InterAppMessage.TYPE_FOCUS_SUCCESS).setFrom(InterAppMessage.FROM_CY3);
+				try {
+					sendMessage(mapper.writeValueAsString(reply));
+				} catch (JsonProcessingException e1) {
+					e1.printStackTrace();
+				}
 			}
-
-			// Send success message:
-			final InterAppMessage reply = new InterAppMessage();
-			reply.setType(InterAppMessage.TYPE_FOCUS_SUCCESS).setFrom(InterAppMessage.FROM_CY3);
-			try {
-				sendMessage(mapper.writeValueAsString(reply));
-			} catch (JsonProcessingException e1) {
-				e1.printStackTrace();
-			}
-
-			// ignore = false;
 		} else if (msg.getType().equals(InterAppMessage.TYPE_FOCUS_SUCCESS)) {
 			if (from.equals(InterAppMessage.FROM_CY3)) {
 				return;
