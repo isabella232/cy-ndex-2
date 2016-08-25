@@ -129,21 +129,29 @@ function initSocket() {
           initWindow(msgObj.body);
           break;
         case "focus-success":
-          // if(!mainWindow.isFocused()) {
-          //   block = true;
-          //   mainWindow.setAlwaysOnTop(true);
-          //   mainWindow.show();
-          //   mainWindow.focus();
-          //   mainWindow.setAlwaysOnTop(false);
-          //   block = false;
-          // }
+          if(mainWindow !== null && mainWindow !== undefined && !mainWindow.isFocused()) {
+            block = true;
+            mainWindow.setAlwaysOnTop(true);
+            mainWindow.show();
+            mainWindow.focus();
+            setTimeout(()=> {
+              mainWindow.setAlwaysOnTop(false);
+            }, 500);
+            block = false;
+          }
           break;
         case "focus":
           block = true;
+          if(mainWindow === undefined || mainWindow === null) {
+              break;
+          }
+
           if(!mainWindow.isFocused()) {
             mainWindow.setAlwaysOnTop(true);
             mainWindow.showInactive();
-            mainWindow.setAlwaysOnTop(false);
+            setTimeout(()=> {
+              mainWindow.setAlwaysOnTop(false);
+            }, 500);
           }
           var msg = {
             from: "ndex",
