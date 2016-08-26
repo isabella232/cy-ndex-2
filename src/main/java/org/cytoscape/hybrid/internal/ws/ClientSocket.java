@@ -187,17 +187,18 @@ public class ClientSocket {
 			System.out.println("* IsFocusableWindow: " + desktop.isFocusableWindow());
 			System.out.println("* IsisAutoRequestFocus: " + desktop.isAutoRequestFocus());
 			
-			if (desktop.isFocused() || desktop.isActive()) {
+			if (desktop.isFocused() && desktop.isActive()) {
 				System.out.println("**** No need to focus ");
 			} else {
-				System.out.println("**** AOT Bring Cytoscape desktop to front");
 				EventQueue.invokeLater(new Runnable() {
 					@Override
 					public void run() {
+						System.out.println("****ACT AOT Bring Cytoscape desktop to front");
 						desktop.setAlwaysOnTop(true);
+						desktop.toFront();
 						desktop.repaint();
 						try {
-							Thread.sleep(120);
+							Thread.sleep(100);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
@@ -220,21 +221,16 @@ public class ClientSocket {
 			}
 			
 			System.out.println("%%%%%%%%%% F success!");
+			final JFrame desktop = app.getJFrame();
+			if (desktop.isFocused() && desktop.isActive()) {
+				app.getJFrame().toFront();
+			} else {
+				System.out.println("**** Focus Success from NDEX: ");
+				app.getJFrame().requestFocus();
+				app.getJFrame().toFront();
+				System.out.println("Finish: ");
+			}
 
-			// ignore = true;
-
-//			final JFrame desktop = app.getJFrame();
-//			if (desktop.isFocused() || desktop.isActive()) {
-//				app.getJFrame().toFront();
-//				return;
-//			}
-//
-//			System.out.println("**** Focus Success from NDEX: ");
-//			app.getJFrame().toFront();
-//			app.getJFrame().requestFocus();
-//			app.getJFrame().repaint();
-//			System.out.println("Finish: ");
-			// ignore = false;
 		} else {
 			// Try handlers
 			final WSHandler handler = handlers.get(msg.getType());
@@ -242,9 +238,27 @@ public class ClientSocket {
 			System.out.println("!!!!!!!!Need handler2: " + handlers.size());
 			if(handler != null) {
 				handler.handleMessage(msg, this.currentSession);
-			}
-			
+			}	
 		}
+	}
+	
+	
+	private final void activateDesktop(final JFrame desktop) {
+		System.out.println("**** Activate: front");
+		EventQueue.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				desktop.setAlwaysOnTop(true);
+				desktop.repaint();
+				try {
+					Thread.sleep(120);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				desktop.setAlwaysOnTop(false);
+			}
+		});
+
 	}
 
 	@OnWebSocketConnect
