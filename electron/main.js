@@ -84,7 +84,7 @@ function initWindow(appType) {
     if(!mainWindow.isAlwaysOnTop()) {
       console.log('Enable Always on top: ----------- ')
       mainWindow.setAlwaysOnTop(true);
-      mainWindow.showInactive();
+      mainWindow.show();
 
       ws.send(JSON.stringify(MSG_FOCUS));
 
@@ -147,7 +147,7 @@ function initSocket() {
             mainWindow.showInactive();
             setTimeout(()=> {
               mainWindow.setAlwaysOnTop(false);
-            }, 200);
+            }, 250);
           }
 
           var msg = {

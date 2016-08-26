@@ -1,5 +1,6 @@
 package org.cytoscape.hybrid.internal.ws;
 
+import java.awt.EventQueue;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
@@ -41,6 +42,8 @@ public class ClientSocket {
 	private static final InterAppMessage ALIVE;
 
 	private final Map<String, WSHandler> handlers;
+	
+	private boolean appStarted = false;
 	
 	static {
 		ALIVE = InterAppMessage.create()
@@ -118,6 +121,7 @@ public class ClientSocket {
 
 		if (msg.getType().equals(InterAppMessage.TYPE_APP)) {
 			System.out.println("Electron App type requested: ");
+			appStarted = false;
 			final InterAppMessage reply = InterAppMessage.create()
 					.setType(InterAppMessage.TYPE_APP)
 					.setFrom(InterAppMessage.FROM_CY3)
@@ -166,6 +170,11 @@ public class ClientSocket {
 			if (from.equals(InterAppMessage.FROM_CY3)) {
 				return;
 			}
+			
+			if(!appStarted) {
+				appStarted = true;
+				return;
+			}
 
 			System.out.println("**** Electron app focused 2++++++++++++ ");
 			// ignore = true;
@@ -182,11 +191,20 @@ public class ClientSocket {
 				System.out.println("**** No need to focus ");
 			} else {
 				System.out.println("**** AOT Bring Cytoscape desktop to front");
-				desktop.setAlwaysOnTop(true);
-				desktop.toFront();
-				desktop.requestFocus();
-				desktop.setAlwaysOnTop(false);
-				
+				EventQueue.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						desktop.setAlwaysOnTop(true);
+						desktop.repaint();
+						try {
+							Thread.sleep(120);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						desktop.setAlwaysOnTop(false);
+					}
+				});
+
 				// Send success message:
 				final InterAppMessage reply = new InterAppMessage();
 				reply.setType(InterAppMessage.TYPE_FOCUS_SUCCESS).setFrom(InterAppMessage.FROM_CY3);
@@ -200,20 +218,22 @@ public class ClientSocket {
 			if (from.equals(InterAppMessage.FROM_CY3)) {
 				return;
 			}
+			
+			System.out.println("%%%%%%%%%% F success!");
 
 			// ignore = true;
 
-			final JFrame desktop = app.getJFrame();
-			if (desktop.isFocused() || desktop.isActive()) {
-				app.getJFrame().toFront();
-				return;
-			}
-
-			System.out.println("**** Focus Success from NDEX: ");
-			app.getJFrame().toFront();
-			app.getJFrame().requestFocus();
-			app.getJFrame().repaint();
-			System.out.println("Finish: ");
+//			final JFrame desktop = app.getJFrame();
+//			if (desktop.isFocused() || desktop.isActive()) {
+//				app.getJFrame().toFront();
+//				return;
+//			}
+//
+//			System.out.println("**** Focus Success from NDEX: ");
+//			app.getJFrame().toFront();
+//			app.getJFrame().requestFocus();
+//			app.getJFrame().repaint();
+//			System.out.println("Finish: ");
 			// ignore = false;
 		} else {
 			// Try handlers
