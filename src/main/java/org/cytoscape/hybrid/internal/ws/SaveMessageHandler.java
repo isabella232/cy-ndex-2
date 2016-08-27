@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JOptionPane;
+
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.hybrid.events.InterAppMessage;
 import org.cytoscape.hybrid.events.WSHandler;
@@ -47,8 +49,19 @@ public class SaveMessageHandler implements WSHandler {
 		}
 		
 		final Credential credential = manager.getLogin();
+		System.out.println("!!!!!!!!!!! SAVE Event: " + credential);
+		
 		if(credential == null) {
-			throw new IllegalStateException("You have not loggedin yet.");
+			final InterAppMessage errorReply = InterAppMessage.create()
+					.setType(NdexSaveMessage.TYPE_CLOSED)
+					.setFrom(InterAppMessage.FROM_CY3);
+			try {
+				sendMessage(mapper.writeValueAsString(errorReply), session);
+			} catch (JsonProcessingException e1) {
+				e1.printStackTrace();
+			}
+			return;
+//			throw new IllegalStateException("You have not loggedin yet.");
 		}
 
 		// This is the save message from NDEx Save

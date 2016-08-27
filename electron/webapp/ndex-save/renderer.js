@@ -52,6 +52,14 @@ const MSG_ERROR = {
   detail: 'Failed.'
 };
 
+const MSG_ERROR_LOGIN = {
+  title: 'Login Error',
+  type: 'error',
+  buttons: ['Close'],
+  message: 'Failed to Login:',
+  detail: 'You MUST login before saving networks.'
+};
+
 const MSG_ERROR_CYREST = {
   title: 'Import Error:',
   type: 'error',
@@ -372,10 +380,20 @@ function getImage(suid, uuid) {
 // Start the application whenever the required parameters are ready.
 ipcRenderer.on('ping', (event, arg) => {
   console.log(arg);
-  console.log(event);
-  options = arg;
-  console.log('Options available:');
-  console.log(options);
 
-  startApp();
+  console.log(event);
+
+  if(arg === null || arg === undefined) {
+    dialog.showMessageBox(win, MSG_ERROR_LOGIN, () => {
+      win.close()
+    });
+  } else {
+    options = arg;
+    console.log('Options available:');
+    console.log(options);
+
+    startApp();
+
+  }
+
 });

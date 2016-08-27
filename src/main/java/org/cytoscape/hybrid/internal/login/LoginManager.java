@@ -10,7 +10,7 @@ public class LoginManager {
 
 	public static final String EVENT_LOGIN = "login";
 	
-	private Credential login;
+	private Credential login = null;
 	private final PropertyChangeSupport pcs;
 	
 	public LoginManager() {
