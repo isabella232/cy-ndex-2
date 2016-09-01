@@ -268,6 +268,40 @@ function assignNdexId(suid, uuid) {
     })
 }
 
+
+/**
+ * If networks are imported into one collection, old UUID
+ * Should be removed.
+ * This function removes it.
+ *
+ * @param suid
+ */
+function deleteNdexId(suid) {
+  const url = config.CYREST.COLLECTIONS + '?subsuid=' + suid
+
+  fetch(url)
+      .then(response => {
+        return response.json();
+      })
+      .then(rootIdArray => {
+        const rootId = rootIdArray[0]
+        const urlOriginal = config.CYREST.COLLECTIONS
+            + '/' + rootId + '/tables/default/columns/ndex:uuid'
+
+        console.log(urlOriginal)
+        const urlDelete = encodeURIComponent(urlOriginal)
+        console.log(urlDelete)
+
+        const param = {
+          method: 'delete',
+          headers: HEADERS
+        }
+
+        fetch(urlOriginal, param)
+      })
+}
+
+
 function createAssignIdData(suid, uuid) {
   return {
     key: 'SUID',
@@ -334,7 +368,13 @@ function importAll(toSingleCollection, collectionName, ids, privateNetworks, doL
       return response.json();
     })
     .then(json => {
-      setUUIDs(json);
+      if(toSingleCollection && json.length != 0) {
+        console.log("NEED to DELETE public ID#############")
+        console.log(json)
+        deleteNdexId(json[0]['networkSUID'][0])
+      } else {
+        setUUIDs(json);
+      }
     })
     .then(() => {
       // Private collections
@@ -343,7 +383,13 @@ function importAll(toSingleCollection, collectionName, ids, privateNetworks, doL
           return response.json();
         })
         .then(json => {
-          setUUIDs(json);
+          if(toSingleCollection && json.length != 0) {
+            console.log("NEED to DELETE#############")
+            console.log(json)
+            deleteNdexId(json[0]['networkSUID'][0])
+          } else {
+            setUUIDs(json);
+          }
         });
     })
 

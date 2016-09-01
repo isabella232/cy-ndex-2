@@ -60,6 +60,24 @@ const MSG_ERROR_LOGIN = {
   detail: 'You MUST login before saving networks.'
 };
 
+const MSG_ERROR_NOT_FOUND = {
+  title: 'No such network',
+  type: 'error',
+  buttons: ['Close'],
+  message: 'Network does not exist:',
+  detail: 'Failed to find the existing entry in NDEx server.' +
+  'New record will be created for this collection.'
+};
+
+const MSG_ERROR_IMAGE_SAVE = {
+  title: 'Network Saved, but image upload failed',
+  type: 'warning',
+  buttons: ['Close'],
+  message: 'Saved, but no image:',
+  detail: 'Network was successfully saved, ' +
+  'but could not upload network image. Possibly an image cache server problem.'
+};
+
 const MSG_ERROR_CYREST = {
   title: 'Import Error:',
   type: 'error',
@@ -79,6 +97,11 @@ let existingUuid = null
 function fillForm(table) {
   const row = table.rows[0];
   existingUuid = row[UUID_TAG]
+
+  if(existingUuid !== undefined &&
+      existingUuid !== null && existingUuid !== '') {
+    checkUuid(existingUuid)
+  }
 
   console.log('** uuid:')
   console.log(row)
@@ -363,10 +386,28 @@ function getImage(suid, uuid) {
   oReq.open('GET', url, true);
   oReq.responseType = 'blob';
 
+  oReq.addEventListener('error', evt => {
+    console.log('** ERROR downloading image:')
+    console.log(evt);
+    child.close()
+    win.close()
+  });
+
   oReq.onload = oEvent => {
     // To image cache
     const blob = oReq.response;
     const pReq = new XMLHttpRequest();
+
+    pReq.addEventListener('error', evt => {
+      console.log('** ERROR uploading image:')
+      console.log(evt);
+      child.close()
+      dialog.showMessageBox(MSG_ERROR_IMAGE_SAVE, () => {
+        win.close()
+      })
+    });
+
+
     pReq.open('POST', imageUrl, true);
     pReq.onload = evt => {
       child.close()
@@ -391,9 +432,19 @@ ipcRenderer.on('ping', (event, arg) => {
     options = arg;
     console.log('Options available:');
     console.log(options);
-
     startApp();
-
   }
+})
 
-});
+function checkUuid(uuid) {
+  const url = options.serverAddress + '/rest/network/' + uuid;
+
+  fetch(url)
+      .then(response => {
+        if(!response.ok) {
+          dialog.showMessageBox(win, MSG_ERROR_NOT_FOUND, () => {
+            existingUuid = null
+          })
+        }
+      })
+}
