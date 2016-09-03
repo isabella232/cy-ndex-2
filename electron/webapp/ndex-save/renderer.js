@@ -14,15 +14,7 @@ const child = new BrowserWindow({
 
 const UUID_TAG = 'ndex:uuid'
 
-const PRESET_PROPS = [
-  'networkName', 'private',
-  'author', 'organism',
-  'disease', 'tissue',
-  'rightsHolder', 'rights',
-  'reference','description'
-]
 
-// Color theme of the UI
 const THEME = {
   palette: {
     primary1Color: '#6E93B6',
@@ -32,7 +24,17 @@ const THEME = {
     accent2Color: '#E4E4E4',
     accent3Color: '##9695A6'
   }
-}
+};
+
+const PRESET_PROPS = [
+  'networkName', 'private',
+  'author', 'organism',
+  'disease', 'tissue',
+  'rightsHolder', 'rights',
+  'reference','description'
+]
+
+// Color theme of the UI
 
 const STYLE = {
   backgroundColor: '#EDEDED'
