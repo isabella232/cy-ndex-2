@@ -93,6 +93,7 @@ const MSG_ERROR_CYREST = {
 let options;
 
 let isPrivate = true
+let overwrite = false
 let existingUuid = null
 
 
@@ -112,7 +113,6 @@ function fillForm(table) {
     UUID: row[UUID_TAG],
     networkName: row.name,
     private: true,
-    toggleDisabled: false,
     author: row.author,
     organism: row.organism,
     disease: row.disease,
@@ -127,6 +127,7 @@ function fillForm(table) {
     onSave(newProps) {
       console.log(newProps);
       isPrivate = newProps.private
+      overwrite = newProps.overwrite
       showLoading()
       updateRootTable(options.rootSUID, newProps)
     }
@@ -239,9 +240,11 @@ function postCx(rawCX) {
   let isUpdate = false
 
   let url = ndexServerAddress + '/rest/network/asCX';
-  if(existingUuid !== null && existingUuid !== undefined) {
+  if(existingUuid !== null
+      && existingUuid !== undefined && overwrite === true) {
     url = url + '/' + existingUuid
     isUpdate = true
+    console.log("* Will update existing entry")
   }
 
   const XHR = new XMLHttpRequest();

@@ -4,6 +4,7 @@ const {ipcRenderer} = require('electron');
 const jsonfile = require('jsonfile');
 
 const config = require('./config_browser');
+const fileUrl = require('file-url');
 
 const CLOSE_BUTTON_ID = 'close';
 
@@ -28,14 +29,11 @@ let tempDir;
 // For saving to local directory
 function storeFile(cx, fileName) {
   const file = tempDir + fileName;
-  jsonfile.writeFile(file, cx, err => {
-    if (err != null || err != undefined) {
-      console.error(err);
-    } else {
-      // OK
-    }
-  });
+
+  console.log('Temp File location: ' + file);
+  return jsonfile.writeFileSync(file, cx);
 }
+
 // Get options from main process
 ipcRenderer.on('ping', (event, arg) => {
   console.log(arg);
@@ -97,7 +95,12 @@ function createNetworkList(idList, isPublic) {
     if (isPublic) {
       return server.serverAddress + '/rest/network/' + id + '/asCX';
     } else {
-      return 'file://' + tempDir + id + '.json';
+
+      const tmpFileUrl = fileUrl(tempDir + id + '.json')
+      console.log("%% Got url: " + tmpFileUrl);
+
+      return tmpFileUrl
+      // return 'file://' + tempDir + id + '.json';
     }
   })
 }
@@ -150,20 +153,6 @@ function getSummaries(ids) {
 }
 
 
-function getSubnetworkCount(net) {
-  const subnets = new Set();
-  const netProps = net.properties;
-  netProps.map(prop => {
-    const subnetId = prop.subNetworkId;
-    if (subnetId != null && subnetId != undefined) {
-      subnets.add(subnetId);
-    }
-  });
-
-  return subnets.size;
-}
-
-
 /**
  *
  * Import networks as individual collections
@@ -200,12 +189,13 @@ function importCollections(ids, toSingleCollection) {
       // Download all private networks into temp dir.
       return Promise.all(idList.map(id => {
         if (privateNetworks.has(id.externalId)) {
-          fetchNetwork(id.externalId);
+          return fetchNetwork(id.externalId);
         }
       }))
     })
     .then(() => {
       // Import both private and public networks at once.
+        console.log("-------- Download finished2.  Next import...")
       importAll(toSingleCollection, collectionName, idList, privateNetworks, true);
     });
 }
@@ -230,12 +220,12 @@ function fetchNetwork(uuid) {
     }
   };
 
-  fetch(url, param)
+  return fetch(url, param)
     .then(response => {
-      return response.json();
+      return response.json()
     })
     .then(json => {
-      storeFile(json, uuid + '.json');
+      return storeFile(json, uuid + '.json');
     });
 }
 

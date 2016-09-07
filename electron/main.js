@@ -141,25 +141,32 @@ function initSocket() {
           console.log('######## Focus request: ----------- ')
           block = true;
 
-          if(!mainWindow.isAlwaysOnTop()) {
-            console.log('######## ALWAYS on top')
-            mainWindow.setAlwaysOnTop(true);
-            mainWindow.showInactive();
-            setTimeout(()=> {
-              mainWindow.setAlwaysOnTop(false);
-            }, 250);
+          try {
+
+
+            if(!mainWindow.isAlwaysOnTop()) {
+              console.log('######## ALWAYS on top')
+              mainWindow.setAlwaysOnTop(true);
+              mainWindow.showInactive();
+              setTimeout(()=> {
+                mainWindow.setAlwaysOnTop(false);
+              }, 250);
+            }
+
+            var msg = {
+              from: "ndex",
+              type: "focus-success",
+              body: "Ndex focuse Success"
+            };
+
+            ws.send(JSON.stringify(msg));
+
+            block = false;
+            break;
+
+          } catch(ex) {
+
           }
-
-          var msg = {
-            from: "ndex",
-            type: "focus-success",
-            body: "Ndex focuse Success"
-          };
-
-          ws.send(JSON.stringify(msg));
-
-          block = false;
-          break;
         case "save":
           opts = msgObj.options;
           // LOGGER.log("debug", 'Fire2: Got Save Params: ' + opts);
@@ -169,6 +176,8 @@ function initSocket() {
     };
 
     ws.onclose = function () {
+      mainWindow.close()
+      mainWindow = null
       app.quit()
     };
 
