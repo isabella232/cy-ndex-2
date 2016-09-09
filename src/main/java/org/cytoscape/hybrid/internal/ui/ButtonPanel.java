@@ -59,7 +59,6 @@ public class ButtonPanel extends JPanel {
 		clearButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				System.out.println("Button Click clear $$$$$$$$$$$$$$$$$: " + clearButton.isEnabled());
 				if (clearButton.isEnabled()) {
 					PropertyChangeEvent event = new PropertyChangeEvent(this, SearchPane.ACTION_CLEAR, null, null);
 					pcs.firePropertyChange(event);
@@ -74,8 +73,6 @@ public class ButtonPanel extends JPanel {
 		searchButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-
-				System.out.println("Button Click search $$$$$$$$$$$$$$$$$: " + searchButton.isEnabled());
 				if (searchButton.isEnabled()) {
 					pcs.firePropertyChange(SearchPane.ACTION_SEARCH, null, null);
 				}

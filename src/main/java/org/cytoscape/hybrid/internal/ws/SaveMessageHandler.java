@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.swing.JOptionPane;
 
@@ -17,6 +18,7 @@ import org.cytoscape.hybrid.internal.login.LoginManager;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
 import org.cytoscape.model.subnetwork.CyRootNetworkManager;
+import org.cytoscape.property.CyProperty;
 import org.eclipse.jetty.websocket.api.Session;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -29,13 +31,17 @@ public class SaveMessageHandler implements WSHandler {
 	
 	private final LoginManager manager;
 	private final CyRootNetworkManager rootManager;
+	private final String cyrestPort;
 	
 	public SaveMessageHandler(CyApplicationManager appManager, 
-			final LoginManager manager, final CyRootNetworkManager rootManager) {
+			final LoginManager manager, final CyRootNetworkManager rootManager,
+			final CyProperty<Properties> props) {
 		this.appManager = appManager;
 		this.mapper = new ObjectMapper();
 		this.manager = manager;
 		this.rootManager = rootManager;
+		
+		this.cyrestPort = props.getProperties().get("rest.port").toString();
 	}
 	
 	
@@ -49,8 +55,6 @@ public class SaveMessageHandler implements WSHandler {
 		}
 		
 		final Credential credential = manager.getLogin();
-		System.out.println("!!!!!!!!!!! SAVE Event: " + credential);
-		
 		if(credential == null) {
 			final InterAppMessage errorReply = InterAppMessage.create()
 					.setType(NdexSaveMessage.TYPE_CLOSED)
@@ -66,7 +70,6 @@ public class SaveMessageHandler implements WSHandler {
 
 		// This is the save message from NDEx Save
 
-		System.out.println("** Got SAVE Event: " + msg);
 		final CyNetwork net = appManager.getCurrentNetwork();
 		final String networkName = net.getRow(net).get(CyNetwork.NAME, String.class);
 		final Long networkSUID = net.getSUID();
@@ -87,6 +90,7 @@ public class SaveMessageHandler implements WSHandler {
 		saveProps.put("userPass", credential.getUserPass());
 		saveProps.put("serverName", credential.getServerName());
 		saveProps.put("serverAddress", credential.getServerAddress());
+		saveProps.put("cyrestPort", cyrestPort);
 		
 		final InterAppMessage reply = InterAppMessage.create()
 				.setType(NdexSaveMessage.TYPE_SAVE)
@@ -114,7 +118,6 @@ public class SaveMessageHandler implements WSHandler {
 
 	@Override
 	public void handleMessage(InterAppMessage msg, Session session) {
-		System.out.println("** Save Handler Event: " + msg);
 		process(msg, session);
 	}
 

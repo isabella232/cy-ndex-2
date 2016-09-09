@@ -16,6 +16,12 @@ const HEADERS = {
 const DEF_PUBLIC_NAME = 'NDEx Public Server';
 const DEF_PUBLIC_SERVER = 'http://public.ndexbio.org';
 
+const CYREST = {
+  IMPORT_NET: 'http://localhost:1234/v1/networks?format=cx&source=url',
+  COLLECTIONS: 'http://localhost:1234/v1/collections'
+};
+
+
 let defaultState = Immutable.Map({
   serverName: DEF_PUBLIC_NAME,
   serverAddress: DEF_PUBLIC_SERVER,
@@ -25,6 +31,8 @@ let defaultState = Immutable.Map({
 });
 
 let tempDir;
+let cyrestPortNumber
+
 
 // For saving to local directory
 function storeFile(cx, fileName) {
@@ -100,7 +108,6 @@ function createNetworkList(idList, isPublic) {
       console.log("%% Got url: " + tmpFileUrl);
 
       return tmpFileUrl
-      // return 'file://' + tempDir + id + '.json';
     }
   })
 }
@@ -243,7 +250,8 @@ function assignNdexId(suid, uuid) {
   }
 
   // API to get SUID of the root network
-  const url = config.CYREST.COLLECTIONS + '?subsuid=' + suid
+  const baseUrl = CYREST.COLLECTIONS.replace('1234', cyrestPortNumber)
+  const url = baseUrl + '?subsuid=' + suid
 
   fetch(url, param)
     .then(response => {
@@ -251,7 +259,7 @@ function assignNdexId(suid, uuid) {
     })
     .then(rootIdArray => {
       const rootId = rootIdArray[0]
-      const urlPost = config.CYREST.COLLECTIONS + '/' + rootId + '/tables/default'
+      const urlPost = baseUrl + '/' + rootId + '/tables/default'
       paramPut.body = JSON.stringify(createAssignIdData(rootId, uuid))
 
       fetch(urlPost, paramPut)
@@ -267,7 +275,8 @@ function assignNdexId(suid, uuid) {
  * @param suid
  */
 function deleteNdexId(suid) {
-  const url = config.CYREST.COLLECTIONS + '?subsuid=' + suid
+  const baseUrl = CYREST.COLLECTIONS.replace('1234', cyrestPortNumber)
+  const url = baseUrl + '?subsuid=' + suid
 
   fetch(url)
       .then(response => {
@@ -275,7 +284,7 @@ function deleteNdexId(suid) {
       })
       .then(rootIdArray => {
         const rootId = rootIdArray[0]
-        const urlOriginal = config.CYREST.COLLECTIONS
+        const urlOriginal = baseUrl
             + '/' + rootId + '/tables/default/columns/ndex:uuid'
 
         console.log(urlOriginal)
@@ -341,7 +350,7 @@ function importAll(toSingleCollection, collectionName, ids, privateNetworks, doL
     }
   });
 
-  let url = config.CYREST.IMPORT_NET
+  let url = CYREST.IMPORT_NET.replace('1234', cyrestPortNumber)
   if(toSingleCollection) {
     url = url + '&collection=' + collectionName
   }
@@ -410,6 +419,12 @@ function initWsConnection() {
       case MESSAGE_TYPE.QUERY:
       {
         const query = msg.body;
+        const port = msg.options;
+        console.log('+++++++++++++++ PORT')
+        console.log(port)
+        cyrestPortNumber = port
+
+
         cyto.render(NDExValetFinder, document.getElementById('valet'), {
           theme: {
             palette: {

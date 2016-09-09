@@ -6,6 +6,7 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
@@ -19,6 +20,7 @@ import org.cytoscape.hybrid.events.WSHandler;
 import org.cytoscape.hybrid.events.WebSocketEvent;
 import org.cytoscape.hybrid.internal.login.Credential;
 import org.cytoscape.hybrid.internal.login.LoginManager;
+import org.cytoscape.property.CyProperty;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
@@ -57,10 +59,13 @@ public class ClientSocket {
 	
 	private String application;
 	private final LoginManager loginManager;
+
+	private final String cyrestPort;
 	
 
 	public ClientSocket(final CySwingApplication app, 
-			ExternalAppManager pm, final CyEventHelper eventHelper, final LoginManager loginManager) {
+			ExternalAppManager pm, final CyEventHelper eventHelper, 
+			final LoginManager loginManager, final CyProperty<Properties> props) {
 		this.app = app;
 		this.pm = pm;
 		this.eventHelper = eventHelper;
@@ -68,6 +73,8 @@ public class ClientSocket {
 
 		this.mapper = new ObjectMapper();
 		this.handlers = new HashMap<>();
+		
+		this.cyrestPort = props.getProperties().get("rest.port").toString();
 		
 		addListener();
 
@@ -95,9 +102,6 @@ public class ClientSocket {
 
 			@Override
 			public void windowActivated(WindowEvent e) {
-
-				System.out.println("* Cy3 Window Activated manually: " + e);
-
 				final InterAppMessage msg = InterAppMessage.create().setType(InterAppMessage.TYPE_FOCUS)
 						.setFrom(InterAppMessage.FROM_CY3);
 				try {
@@ -117,15 +121,13 @@ public class ClientSocket {
 
 		final String from = msg.getFrom();
 
-		System.out.println("*** CY3 CLIENT: Message received from server:" + message);
-
 		if (msg.getType().equals(InterAppMessage.TYPE_APP)) {
-			System.out.println("Electron App type requested: ");
 			appStarted = false;
 			final InterAppMessage reply = InterAppMessage.create()
 					.setType(InterAppMessage.TYPE_APP)
 					.setFrom(InterAppMessage.FROM_CY3)
 					.setBody(application);
+					
 			final Credential cred = loginManager.getLogin();
 			if(cred != null) {
 				// Add login as optional param
@@ -137,9 +139,7 @@ public class ClientSocket {
 			} catch (JsonProcessingException e1) {
 				e1.printStackTrace();
 			}
-		
 		} else if (msg.getType().equals(InterAppMessage.TYPE_CLOSED)) {
-			System.out.println("Electron closed: ");
 			pm.kill();
 			final JFrame desktop = app.getJFrame();
 			desktop.setAlwaysOnTop(true);
@@ -156,9 +156,12 @@ public class ClientSocket {
 			eventHelper.fireEvent(new WebSocketEvent(this, msg));
 
 		} else if (msg.getType().equals(InterAppMessage.TYPE_CONNECTED)) {
-			System.out.println("**** Sending query *****");
 			final InterAppMessage reply = new InterAppMessage();
-			reply.setType(InterAppMessage.TYPE_QUERY).setBody(pm.getQuery()).setFrom(InterAppMessage.FROM_CY3);
+			reply
+				.setType(InterAppMessage.TYPE_QUERY)
+				.setBody(pm.getQuery())
+				.setFrom(InterAppMessage.FROM_CY3)
+				.setOptions(cyrestPort);
 			try {
 				sendMessage(mapper.writeValueAsString(reply));
 			} catch (JsonProcessingException e1) {
@@ -175,17 +178,8 @@ public class ClientSocket {
 				appStarted = true;
 				return;
 			}
-
-			System.out.println("**** Electron app focused 2++++++++++++ ");
 			// ignore = true;
 			final JFrame desktop = app.getJFrame();
-			System.out.println("* IsFocused: " + desktop.isFocused());
-			System.out.println("* IsActive: " + desktop.isActive());
-			System.out.println("* IsShow: " + desktop.isShowing());
-			System.out.println("* IsFocusOwner: " + desktop.isFocusOwner());
-			System.out.println("* IsVisible: " + desktop.isVisible());
-			System.out.println("* IsFocusableWindow: " + desktop.isFocusableWindow());
-			System.out.println("* IsisAutoRequestFocus: " + desktop.isAutoRequestFocus());
 			
 			if (desktop.isFocused() && desktop.isActive()) {
 				System.out.println("**** No need to focus ");
@@ -193,7 +187,6 @@ public class ClientSocket {
 				EventQueue.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						System.out.println("****ACT AOT Bring Cytoscape desktop to front");
 						desktop.setAlwaysOnTop(true);
 						desktop.toFront();
 						desktop.repaint();
@@ -219,59 +212,31 @@ public class ClientSocket {
 			if (from.equals(InterAppMessage.FROM_CY3)) {
 				return;
 			}
-			
-			System.out.println("%%%%%%%%%% F success!");
 			final JFrame desktop = app.getJFrame();
 			if (desktop.isFocused() && desktop.isActive()) {
 				app.getJFrame().toFront();
 			} else {
-				System.out.println("**** Focus Success from NDEX: ");
 				app.getJFrame().requestFocus();
 				app.getJFrame().toFront();
-				System.out.println("Finish: ");
 			}
 
 		} else {
 			// Try handlers
 			final WSHandler handler = handlers.get(msg.getType());
-			System.out.println("!!!!!!!!Need handler: " + handler);
-			System.out.println("!!!!!!!!Need handler2: " + handlers.size());
 			if(handler != null) {
 				handler.handleMessage(msg, this.currentSession);
 			}	
 		}
 	}
 	
-	
-	private final void activateDesktop(final JFrame desktop) {
-		System.out.println("**** Activate: front");
-		EventQueue.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				desktop.setAlwaysOnTop(true);
-				desktop.repaint();
-				try {
-					Thread.sleep(120);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				desktop.setAlwaysOnTop(false);
-			}
-		});
-
-	}
-
 	@OnWebSocketConnect
 	public void onConnect(Session session) {
-		System.out.println("@@@@@@@@@@ Cy 3 Client Connected to server");
 		this.currentSession = session;
 		latch.countDown();
 	}
 
 	@OnWebSocketClose
 	public void onClose(int statusCode, String reason) {
-		System.out.println("***Cy3 Client disconnected from server: " + reason + ", " + statusCode);
-
 		currentSession.close();
 		currentSession = null;
 		// latch.countDown();

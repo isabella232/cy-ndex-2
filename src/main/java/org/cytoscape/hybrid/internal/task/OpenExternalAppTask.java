@@ -27,10 +27,8 @@ public class OpenExternalAppTask extends AbstractTask {
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
-		System.out.println("Opening App: " + appName);
 	
 		if(client.isStopped()) {
-			System.out.println("Starting WS Client for Cy3: " + appName);
 			client.start(WS_LOCATION);
 		}
 		

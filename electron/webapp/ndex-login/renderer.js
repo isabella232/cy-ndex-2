@@ -8,7 +8,8 @@ const WS_SERVER = 'ws://localhost:8025/ws/echo';
 const win = remote.getCurrentWindow();
 
 const DEF_SERVER = 'http://public.ndexbio.org';
-const DEF_NAME = "NDEx Public";
+const DEF_NAME = 'NDEx Public';
+const AUTH_API = '/rest/user/authenticate';
 
 const DEFAULTS = {
   userName: '',
@@ -16,24 +17,7 @@ const DEFAULTS = {
   serverName: DEF_NAME,
   serverAddress: DEF_SERVER,
   loggedIn: false
-};
-
-
-// Get options from main process
-ipcRenderer.on('ping', (event, arg) => {
-  console.log(arg);
-  console.log(event);
-  loginInfo = arg;
-  console.log('Loign Options available:');
-  console.log(loginInfo);
-
-  if(loginInfo === undefined || loginInfo === null || loginInfo === {}) {
-    loginInfo = DEFAULTS;
-  }
-
-  // Login is ready.  Init opts
-  init(loginInfo);
-});
+}
 
 const LOGIN = {
   from: 'ndex',
@@ -42,15 +26,13 @@ const LOGIN = {
   options: {}
 };
 
-const AUTH_API = '/rest/user/authenticate';
-
 const MSG_ERROR = {
   title: 'Error:',
   type: 'info',
   buttons: ['Retry'],
   message: 'Failed to login, ',
   detail: 'Please check your inputs and try again.'
-};
+}
 
 const MSG_SUCCESS = {
   title: 'NDEx Replied:',
@@ -58,8 +40,19 @@ const MSG_SUCCESS = {
   buttons: ['OK'],
   message: 'Welcome Back, ',
   detail: 'Status: Login Success'
-};
+}
 
+// Get options from main process
+ipcRenderer.on('ping', (event, arg) => {
+  let loginInfo = arg;
+
+  if (loginInfo === undefined || loginInfo === null || loginInfo === {}) {
+    loginInfo = DEFAULTS;
+  }
+
+  // Login is ready.  Init opts
+  init(loginInfo);
+})
 
 
 function init(loginInfo) {
@@ -111,7 +104,6 @@ function connect(credential) {
       }
     })
     .then(json => {
-      console.log(json);
       const msg = MSG_SUCCESS;
       msg.message = msg.message + json.firstName;
       dialog.showMessageBox(win, msg, () => {

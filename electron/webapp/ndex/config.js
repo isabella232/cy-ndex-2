@@ -3,8 +3,8 @@
  */
 
 const DESKTOP = {
-  width: 1180,
-  height: 870,
+  width: 1250,
+  height: 880,
   minHeight: 870,
   minWidth: 500,
   frame: true,

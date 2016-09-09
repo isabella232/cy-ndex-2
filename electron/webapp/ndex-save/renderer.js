@@ -12,6 +12,23 @@ const child = new BrowserWindow({
   width: 400, height: 400
 });
 
+const RESERVED_TAGS = [
+  "author",
+  "creationTime",
+  "description",
+  "disease",
+  "edgeCount",
+  "modificationTime",
+  "nodeCount",
+  "organism",
+  "rights",
+  "rightsHolder",
+  "tissue",
+  "uuid",
+  "version",
+  "visibility"
+];
+
 const UUID_TAG = 'ndex:uuid'
 
 
@@ -106,9 +123,6 @@ function fillForm(table) {
     checkUuid(existingUuid)
   }
 
-  console.log('** uuid:')
-  console.log(row)
-
   return {
     UUID: row[UUID_TAG],
     networkName: row.name,
@@ -125,11 +139,10 @@ function fillForm(table) {
     style: STYLE,
 
     onSave(newProps) {
-      console.log(newProps);
       isPrivate = newProps.private
       overwrite = newProps.overwrite
       showLoading()
-      updateRootTable(options.rootSUID, newProps)
+      deleteInvalidColumns(options.rootSUID, newProps)
     }
   }
 }
@@ -145,7 +158,7 @@ function getTable() {
     headers: HEADERS
   }
 
-  const url = 'http://localhost:1234/v1/collections/' + options.rootSUID + '/tables/default'
+  const url = 'http://localhost:' + options.cyrestPort +'/v1/collections/' + options.rootSUID + '/tables/default'
 
   fetch(url, params)
     .then(response => {
@@ -176,7 +189,6 @@ function createUpdateTable(props, suid) {
   };
 
   for (let key of PRESET_PROPS) {
-    console.log(key);
     const val = props[key];
     if (val !== undefined && val !== null && val !== '') {
         if(key === 'networkName') {
@@ -207,10 +219,28 @@ function updateRootTable(rootSuid, newProps) {
     body: JSON.stringify(data)
   }
 
-  const url = 'http://localhost:1234/v1/collections/' + rootSuid + '/tables/default';
+  const url = 'http://localhost:' + options.cyrestPort + '/v1/collections/' + rootSuid + '/tables/default';
   fetch(url, params)
     .then(postCollection());
 }
+
+function deleteInvalidColumns(rootSuid, newProps) {
+  const params = {
+    method: 'delete',
+    headers: HEADERS,
+  }
+
+  // Get list of subnetworks in this collection
+  const url = 'http://localhost:' + options.cyrestPort +'/v1/collections/' + rootSuid + '/tables/shared/columns/';
+
+  Promise.all(RESERVED_TAGS.map(tag => {
+    const removeUrl = url + tag
+    return fetch(removeUrl, params)
+  })).then(() => {
+    updateRootTable(rootSuid, newProps)
+  })
+}
+
 
 
 function init(table) {
@@ -255,12 +285,7 @@ function postCx(rawCX) {
   FD.append('CXNetworkStream', blob);
 
   XHR.addEventListener('load', evt => {
-    console.log('Load listener:')
-    console.log(evt);
-
     const resCode = evt.target.status
-
-    console.log(resCode)
     if(resCode !== 200) {
       // Failed to load.
       saveFailed(evt)
@@ -272,8 +297,6 @@ function postCx(rawCX) {
   });
 
   XHR.addEventListener('error', evt => {
-    console.log('!!!!!!!!!!ERR listener:')
-    console.log(evt);
     saveFailed(evt);
   });
 
@@ -358,12 +381,12 @@ function assignNdexId(uuid) {
     body: JSON.stringify(data)
   }
 
-  const url = 'http://localhost:1234/v1/collections/' + options.rootSUID + '/tables/default';
+  const url = 'http://localhost:' + options.cyrestPort +'/v1/collections/' + options.rootSUID + '/tables/default';
   fetch(url, params);
 }
 
 function postCollection() {
-  const cxUrl = 'http://localhost:1234/v1/collections/' + options.rootSUID;
+  const cxUrl = 'http://localhost:' + options.cyrestPort +'/v1/collections/' + options.rootSUID;
   fetch(cxUrl, {
     method: 'get',
     headers: HEADERS,
@@ -384,7 +407,7 @@ function showLoading() {
 }
 
 function getImage(suid, uuid) {
-  const url = 'http://localhost:1234/v1/networks/' + suid + '/views/first.png?h=2000';
+  const url = 'http://localhost:' + options.cyrestPort +'/v1/networks/' + suid + '/views/first.png?h=2000';
   const imageUrl = 'http://ci-dev-serv.ucsd.edu:8081/image/png/' + uuid;
 
   const oReq = new XMLHttpRequest();

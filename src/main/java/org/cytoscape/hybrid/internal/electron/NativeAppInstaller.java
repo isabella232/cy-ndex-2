@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,7 +21,10 @@ import java.util.zip.ZipInputStream;
 
 import org.cytoscape.application.CyApplicationConfiguration;
 
-public class NativeAppInstaller {
+public final class NativeAppInstaller {
+	private static final String VERSION = "1.1.1";
+	private static final String NATIVE_APP_LOCATION = "ndex-electron";
+	private static final String APP_DIR = NATIVE_APP_LOCATION + "-" + VERSION;
 
 	// Platform types
 	private static final String PLATFORM_WIN = "win";
@@ -31,7 +36,6 @@ public class NativeAppInstaller {
 	private static final String ARCHIVE_LINUX = "NDEx-Valet-linux.tar.gz";
 	private static final String ARCHIVE_WIN = "NDEx-Valet-win64.zip";
 
-	private static final String NATIVE_APP_LOCATION = "native";
 	private static final String TEMPLATE_NAME = "ndex";
 
 	private static final Map<String, String> COMMANDS = new HashMap<>();
@@ -61,15 +65,16 @@ public class NativeAppInstaller {
 		this.platform = detectPlatform();
 
 		final File configLocation = this.appConfig.getConfigurationDirectoryLocation();
-		final File electronAppDirectory = new File(configLocation, NATIVE_APP_LOCATION);
+		final File electronAppDirectory = new File(configLocation, APP_DIR);
 	
+		checkVersion(configLocation.toString(), electronAppDirectory.toString());
+		
 		if(!electronAppDirectory.exists()) {
 			electronAppDirectory.mkdir();
-		
 			try {
 				extractNativeApp(electronAppDirectory);
 			} catch (IOException e) {
-				e.printStackTrace();
+				throw new RuntimeException("Failed to install native app", e);
 			}
 		}
 
@@ -84,6 +89,20 @@ public class NativeAppInstaller {
 			return PLATFORM_WIN;
 		} else {
 			return PLATFORM_LINUX;
+		}
+	}
+	
+	private final void checkVersion(final String cyConfigDir, final String current) {
+		final Path path = FileSystems.getDefault().getPath(cyConfigDir);
+		try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path, NATIVE_APP_LOCATION + "*")) {
+		    for(final Path file : directoryStream) {
+		        if(!file.toString().equals(current)) {
+		        		deleteDirectory(file);
+		        		System.out.println("Old files deleted: " + file.toString());
+		        }
+		    }
+		} catch (IOException e) {
+		    e.printStackTrace();
 		}
 	}
 
@@ -212,7 +231,6 @@ public class NativeAppInstaller {
 
 	private final String getPlatformDependentCommand(final File configLocation) {
 		final File executable = new File(configLocation, COMMANDS.get(platform));
-		System.out.println("\n\nNDEx Command: " + executable.getAbsolutePath());
 		return executable.getAbsolutePath();
 	}
 

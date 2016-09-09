@@ -1,8 +1,4 @@
 const WS_SERVER = 'ws://localhost:8025/ws/echo';
-const CYREST = {
-  IMPORT_NET: 'http://localhost:1234/v1/networks?format=cx&source=url',
-  COLLECTIONS: 'http://localhost:1234/v1/collections'
-};
 
 const MESSAGES = {
   CONNECT: {
@@ -26,4 +22,4 @@ const EMPTY_NET = {
   }
 };
 
-module.exports = { WS_SERVER, CYREST, MESSAGES, EMPTY_NET };
+module.exports = { WS_SERVER, MESSAGES, EMPTY_NET };

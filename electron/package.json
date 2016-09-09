@@ -1,7 +1,7 @@
 {
   "name": "ndex-valet-electron",
   "productName": "NDEx-Valet",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "NDEx Valet Cytoscape App using Electron",
   "main": "main.js",
   "scripts": {
@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "file-url": "^1.1.0",
+    "fluent-logger-node": "0.0.3",
     "immutable": "^3.8.1",
     "jsonfile": "^2.3.1",
     "winston": "^2.2.0",

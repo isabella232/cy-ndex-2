@@ -1,10 +1,12 @@
 package org.cytoscape.hybrid.internal.ws;
 
 import java.net.URI;
+import java.util.Properties;
 
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.hybrid.internal.login.LoginManager;
+import org.cytoscape.property.CyProperty;
 import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
 
@@ -15,8 +17,8 @@ public class WSClient {
 
 
 	public WSClient(final CySwingApplication app, final ExternalAppManager pm, CyEventHelper eventHelper,
-			final LoginManager loginManager) {
-		socket = new ClientSocket(app, pm, eventHelper, loginManager);
+			final LoginManager loginManager, final CyProperty<Properties> props) {
+		socket = new ClientSocket(app, pm, eventHelper, loginManager, props);
 		client = new WebSocketClient();
 		client.getPolicy().setIdleTimeout(1000000000);
 		client.setMaxIdleTimeout(1000000000);
@@ -32,7 +34,6 @@ public class WSClient {
 			client.start();
 			client.connect(socket, echoUri, request);
 			socket.getLatch().await();
-			System.out.println("^^^^^^^^^^^^^^^^^ Started ^^^^^^^^^^^^^^^^^^");
 		}
 	}
 
@@ -44,14 +45,12 @@ public class WSClient {
 	public final void close() {
 		try {
 			if(client.isStopped() == false && client.isStopping() == false) {
-				System.out.println("** Need to stop2");
 				client.stop();
 			} else {
 				
-				System.out.println("** Already stopped");
 			}
 		} catch (Exception e) {
-			System.out.println("Closed w/exeption");
+			e.printStackTrace();
 		}
 	}
 	

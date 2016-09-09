@@ -47,7 +47,6 @@ public class LogoPanel extends JPanel implements PropertyChangeListener{
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		System.out.println("Got PCE " + evt);
 		if(evt.getPropertyName().equals(LoginManager.EVENT_LOGIN)) {
 			Credential credential = (Credential) evt.getNewValue();
 			

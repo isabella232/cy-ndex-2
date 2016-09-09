@@ -36,23 +36,14 @@ public class NdexLoginMessageHandler implements WSHandler {
 
 		// Save login
 		final Object options = msg.getOptions();
-		System.out.println("** Got LOGIN Event: " + msg);
-		
 		final Credential credential = mapper.readValue(mapper.writeValueAsString(options), Credential.class);
 		
 		loginManager.setLogin(credential);
-		System.out.println("** \n\nOK!: " + credential);
-		System.out.println(credential.getServerName());
-		System.out.println(credential.getServerAddress());
-		System.out.println(credential.getUserName());
-		System.out.println(credential.getUserPass());
-		System.out.println(credential.getLoggedIn());
 	}
 
 
 	@Override
 	public void handleMessage(InterAppMessage msg, Session session) {
-		System.out.println("** Login Handler Event: " + msg);
 		try {
 			process(msg, session);
 		} catch (Exception e) {

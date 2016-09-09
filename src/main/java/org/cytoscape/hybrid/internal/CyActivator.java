@@ -29,10 +29,13 @@ import org.cytoscape.hybrid.internal.ws.SaveMessageHandler;
 import org.cytoscape.hybrid.internal.ws.WSClient;
 import org.cytoscape.hybrid.internal.ws.WSServer;
 import org.cytoscape.model.subnetwork.CyRootNetworkManager;
+import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.annotation.JsonAppend.Prop;
 
 public class CyActivator extends AbstractCyActivator {
 
@@ -49,11 +52,13 @@ public class CyActivator extends AbstractCyActivator {
 		final CyApplicationManager appManager = getService(bc, CyApplicationManager.class);
 		final CyEventHelper eventHelper = getService(bc, CyEventHelper.class);
 		final CyRootNetworkManager rootManager = getService(bc, CyRootNetworkManager.class);
+		@SuppressWarnings("unchecked")
+		final CyProperty<Properties> cyProp = getService(bc,CyProperty.class,"(cyPropertyName=cytoscape3.props)");
 
 		// Local components
 		final LoginManager loginManager = new LoginManager();
 		final ExternalAppManager pm = new ExternalAppManager();
-		final WSClient client = new WSClient(desktop, pm, eventHelper, loginManager);
+		final WSClient client = new WSClient(desktop, pm, eventHelper, loginManager, cyProp);
 		final NativeAppInstaller installer = new NativeAppInstaller(config);
 
 		// This is a singleton
@@ -76,7 +81,6 @@ public class CyActivator extends AbstractCyActivator {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			System.out.println("Server started ");
 		});
 
 		// Menu item for NDEx Save
@@ -98,7 +102,7 @@ public class CyActivator extends AbstractCyActivator {
 	
 		// WebSocket event handlers
 		
-		final WSHandler saveHandler = new SaveMessageHandler(appManager, loginManager, rootManager);
+		final WSHandler saveHandler = new SaveMessageHandler(appManager, loginManager, rootManager, cyProp);
 		final WSHandler loginHandler = new NdexLoginMessageHandler(loginManager);
 		client.getSocket().addHandler(saveHandler);
 		client.getSocket().addHandler(loginHandler);
