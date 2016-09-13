@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import org.cytoscape.application.CyApplicationManager;
@@ -49,7 +50,6 @@ public class SaveMessageHandler implements WSHandler {
 		if (msg.getFrom().equals(InterAppMessage.FROM_CY3)) {
 			return;
 		}
-
 		if (!msg.getType().equals(NdexSaveMessage.TYPE_SAVE)) {
 			return;
 		}
@@ -65,7 +65,6 @@ public class SaveMessageHandler implements WSHandler {
 				e1.printStackTrace();
 			}
 			return;
-//			throw new IllegalStateException("You have not loggedin yet.");
 		}
 
 		// This is the save message from NDEx Save

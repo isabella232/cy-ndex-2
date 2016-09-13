@@ -467,7 +467,16 @@ ipcRenderer.on('ping', (event, arg) => {
 function checkUuid(uuid) {
   const url = options.serverAddress + '/rest/network/' + uuid;
 
-  fetch(url)
+  const param = {
+    method: 'get',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      Authorization: 'Basic ' + btoa(options.userName + ':' + options.userPass)
+    }
+  };
+
+  fetch(url, param)
       .then(response => {
         if(!response.ok) {
           dialog.showMessageBox(win, MSG_ERROR_NOT_FOUND, () => {

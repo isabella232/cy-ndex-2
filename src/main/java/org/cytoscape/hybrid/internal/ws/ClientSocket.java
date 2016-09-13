@@ -127,6 +127,8 @@ public class ClientSocket {
 					.setType(InterAppMessage.TYPE_APP)
 					.setFrom(InterAppMessage.FROM_CY3)
 					.setBody(application);
+			final JFrame desktop = app.getJFrame();
+			desktop.setEnabled(false);
 					
 			final Credential cred = loginManager.getLogin();
 			if(cred != null) {
@@ -142,6 +144,7 @@ public class ClientSocket {
 		} else if (msg.getType().equals(InterAppMessage.TYPE_CLOSED)) {
 			pm.kill();
 			final JFrame desktop = app.getJFrame();
+			desktop.setEnabled(true);
 			desktop.setAlwaysOnTop(true);
 			try {
 				Thread.sleep(100);
@@ -237,9 +240,16 @@ public class ClientSocket {
 
 	@OnWebSocketClose
 	public void onClose(int statusCode, String reason) {
+		System.out.println("&&&&&&&&&&&&& Closing");
+		
 		currentSession.close();
 		currentSession = null;
 		// latch.countDown();
+		
+		
+		// Enable window
+		final JFrame desktop = app.getJFrame();
+		desktop.setEnabled(true);
 
 		final InterAppMessage msg = new InterAppMessage();
 		msg.setFrom(InterAppMessage.FROM_CY3).setType(InterAppMessage.TYPE_CLOSED);

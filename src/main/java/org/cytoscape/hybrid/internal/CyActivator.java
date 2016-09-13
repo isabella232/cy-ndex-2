@@ -13,6 +13,7 @@ import java.util.concurrent.Executors;
 
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
+import org.cytoscape.application.swing.ActionEnableSupport;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.CytoPanel;
 import org.cytoscape.application.swing.CytoPanelName;
@@ -88,7 +89,7 @@ public class CyActivator extends AbstractCyActivator {
 		final OpenExternalAppTaskFactory ndexLoginTaskFactory = new OpenExternalAppTaskFactory("ndex-login", client, pm, installer.getCommand());
 		
 		final Properties ndexSaveTaskFactoryProps = new Properties();
-		ndexSaveTaskFactoryProps.setProperty(ENABLE_FOR, ENABLE_FOR_NETWORK);
+		ndexSaveTaskFactoryProps.setProperty(ENABLE_FOR, ActionEnableSupport.ENABLE_FOR_NETWORK);
 		ndexSaveTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export");
 		ndexSaveTaskFactoryProps.setProperty(MENU_GRAVITY, "1000.0");
 		ndexSaveTaskFactoryProps.setProperty(TITLE, "Network Collection to NDEx");
