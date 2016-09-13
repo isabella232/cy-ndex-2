@@ -64,8 +64,17 @@ function init(loginInfo) {
     onSubmit: () => {
       const state = cyto.getStore('ndex').server.toJS();
       connect(state);
+    },
+
+    onLogout: () => {
+      console.log('LOGOUT!!!')
+      logout()
     }
   });
+}
+
+function logout() {
+  sendMessage(null);
 }
 
 

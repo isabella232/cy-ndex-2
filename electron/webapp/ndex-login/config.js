@@ -1,5 +1,5 @@
 const DESKTOP = {
-  width: 500,
+  width: 450,
   height: 380,
   frame: true,
   alwaysOnTop: true,

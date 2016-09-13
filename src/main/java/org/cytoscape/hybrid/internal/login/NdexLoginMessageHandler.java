@@ -36,9 +36,12 @@ public class NdexLoginMessageHandler implements WSHandler {
 
 		// Save login
 		final Object options = msg.getOptions();
-		final Credential credential = mapper.readValue(mapper.writeValueAsString(options), Credential.class);
-		
-		loginManager.setLogin(credential);
+		if(options == null) {
+			loginManager.setLogin(null);
+		} else {
+			final Credential credential = mapper.readValue(mapper.writeValueAsString(options), Credential.class);
+			loginManager.setLogin(credential);
+		}
 	}
 
 

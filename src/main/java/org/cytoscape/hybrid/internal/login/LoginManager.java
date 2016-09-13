@@ -18,11 +18,8 @@ public class LoginManager {
 	}
 	
 	public void setLogin(final Credential login) {
-		if (login != null) {
-			this.login = login;
-		}
-		
-		pcs.firePropertyChange(EVENT_LOGIN, null, login);
+		this.login = login;
+		pcs.firePropertyChange(EVENT_LOGIN, "last", login);
 	}
 
 	public Credential getLogin() {

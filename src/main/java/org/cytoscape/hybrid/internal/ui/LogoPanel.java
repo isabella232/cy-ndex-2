@@ -52,6 +52,8 @@ public class LogoPanel extends JPanel implements PropertyChangeListener{
 			
 			if(credential != null) {
 				this.logo.setText("ID: " + credential.getUserName() + " (" + credential.getServerName() + ")");
+			} else {
+				this.logo.setText("(Not Logged In)");
 			}
 		}
 		

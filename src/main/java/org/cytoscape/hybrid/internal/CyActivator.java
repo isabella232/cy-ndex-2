@@ -97,7 +97,7 @@ public class CyActivator extends AbstractCyActivator {
 		final Properties ndexLoginTaskFactoryProps = new Properties();
 		ndexLoginTaskFactoryProps.setProperty(PREFERRED_MENU, "Tools");
 		ndexLoginTaskFactoryProps.setProperty(MENU_GRAVITY, "1000.0");
-		ndexLoginTaskFactoryProps.setProperty(TITLE, "Login to NDEx...");
+		ndexLoginTaskFactoryProps.setProperty(TITLE, "NDEx: Login / Logout");
 		registerAllServices(bc, ndexLoginTaskFactory, ndexLoginTaskFactoryProps);
 	
 		// WebSocket event handlers
