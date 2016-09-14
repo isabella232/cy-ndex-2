@@ -127,8 +127,12 @@ public class ClientSocket {
 					.setType(InterAppMessage.TYPE_APP)
 					.setFrom(InterAppMessage.FROM_CY3)
 					.setBody(application);
-			final JFrame desktop = app.getJFrame();
-			desktop.setEnabled(false);
+			
+			if(application.contains("save")) {
+				System.out.println("Activating Save Panel...");
+				final JFrame desktop = app.getJFrame();
+				desktop.setEnabled(false);
+			}
 					
 			final Credential cred = loginManager.getLogin();
 			if(cred != null) {
