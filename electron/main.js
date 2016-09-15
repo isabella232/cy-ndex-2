@@ -150,6 +150,15 @@ function initSocket() {
           opts = msgObj.options;
           initWindow(msgObj.body);
           break;
+        case 'minimized':
+          if (mainWindow === undefined || mainWindow === null) {
+            break;
+          }
+
+          console.log('######## MINIMIZE request')
+          mainWindow.minimize();
+          break;
+        
         case "focus":
           if(mainWindow === undefined || mainWindow === null) {
               break;

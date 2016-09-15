@@ -110,6 +110,19 @@ public class ClientSocket {
 					e1.printStackTrace();
 				}
 			}
+			
+			@Override
+			public void windowIconified(WindowEvent e) {
+				// Minimized
+				final InterAppMessage msg = InterAppMessage.create()
+						.setType(InterAppMessage.TYPE_MINIMIZED)
+						.setFrom(InterAppMessage.FROM_CY3);
+				try {
+					sendMessage(mapper.writeValueAsString(msg));
+				} catch (JsonProcessingException ex) {
+					ex.printStackTrace();
+				}
+			}
 		});
 	}
 
@@ -132,7 +145,7 @@ public class ClientSocket {
 				System.out.println("Activating Save Panel...");
 				final JFrame desktop = app.getJFrame();
 				desktop.setEnabled(false);
-			}
+				app.getJMenuBar().setEnabled(false);			}
 					
 			final Credential cred = loginManager.getLogin();
 			if(cred != null) {

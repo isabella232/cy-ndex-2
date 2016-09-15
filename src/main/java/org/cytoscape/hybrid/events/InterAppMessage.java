@@ -19,6 +19,7 @@ public class InterAppMessage {
 	public static final String TYPE_CONNECTED = "connected";
 	public static final String TYPE_ALIVE = "alive";
 	public static final String TYPE_APP = "app";
+	public static final String TYPE_MINIMIZED = "minimized";
 
 	private String from;
 	private String type;
@@ -28,7 +29,6 @@ public class InterAppMessage {
 	// Static factory
 	public static final InterAppMessage create() {
 		final InterAppMessage msg = new InterAppMessage();
-		
 		return msg;
 	}
 	
