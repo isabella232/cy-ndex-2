@@ -15,7 +15,7 @@ APP_CONFIG_MAP.set(APP_NAME_SAVE, APP_CONFIG_SAVE);
 APP_CONFIG_MAP.set(APP_NAME_LOGIN, APP_CONFIG_LOGIN);
 
 // Required Electron components
-const { app, globalShortcut, BrowserWindow } = require('electron');
+const { app, globalShortcut, BrowserWindow, Menu } = require('electron');
 
 global.sharedObj = { temp: app.getPath('temp') };
 console.log(global.sharedObj);
@@ -51,6 +51,23 @@ const MSG_SAVE = {
   type: 'save',
   body: ''
 };
+
+const template = [
+  {
+    label: 'Edit',
+    submenu: [
+      { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:"},
+      { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:"},
+      { type: "separator"},
+      { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:"},
+      { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:"},
+      { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:"},
+      { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:"}
+    ]
+  }
+];
+
+
 
 function initLogger() {
   LOGGER.add(LOGGER.transports.File, { filename: 'electron-app.log' });
@@ -222,6 +239,8 @@ function addShortcuts() {
       isDevEnabled = true;
     }
   });
+
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template))
 }
 
 app.on('ready', () => {
