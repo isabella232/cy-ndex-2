@@ -52,22 +52,6 @@ const MSG_SAVE = {
   body: ''
 };
 
-const template = [
-  {
-    label: 'Edit',
-    submenu: [
-      { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:"},
-      { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:"},
-      { type: "separator"},
-      { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:"},
-      { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:"},
-      { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:"},
-      { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:"}
-    ]
-  }
-];
-
-
 
 function initLogger() {
   LOGGER.add(LOGGER.transports.File, { filename: 'electron-app.log' });
@@ -158,7 +142,7 @@ function initSocket() {
           console.log('######## MINIMIZE request')
           mainWindow.minimize();
           break;
-        
+
         case "focus":
           if(mainWindow === undefined || mainWindow === null) {
               break;
@@ -248,19 +232,20 @@ function addShortcuts() {
       isDevEnabled = true;
     }
   });
-
-  Menu.setApplicationMenu(Menu.buildFromTemplate(template))
 }
+
 
 app.on('ready', () => {
   createWindow();
   addShortcuts();
 });
 
+
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
   app.quit()
 });
+
 
 app.on('activate', function () {
   if (mainWindow === null) {

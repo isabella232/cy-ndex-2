@@ -1,8 +1,8 @@
 {
-  "name": "ndex-valet-electron",
+  "name": "ndex-valet",
   "productName": "NDEx-Valet",
-  "version": "1.1.1",
-  "description": "NDEx Valet Cytoscape App using Electron",
+  "version": "1.1.3",
+  "description": "NDEx Valet Cytoscape App",
   "main": "main.js",
   "scripts": {
     "start": "electron main.js",
@@ -13,28 +13,28 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/idekerlab/ndex-valet-electron.git"
+    "url": "git+https://github.com/idekerlab/ndex-valet.git"
   },
   "keywords": [
-    "Electron",
+    "electron",
     "cytoscape",
     "bioinformatics",
-    "graph"
+    "graph",
+    "biology"
   ],
   "author": "Keiichiro Ono",
   "license": "MIT",
-  "homepage": "https://github.com/idekerlab/ndex-valet-electron#readme",
+  "homepage": "https://github.com/idekerlab/ndex-valet",
   "devDependencies": {
-    "devtron": "^1.3.0",
+    "devtron": "^1.4.0",
     "electron-packager": "^7.7.0",
-    "electron-prebuilt": "^1.3.4",
+    "electron-prebuilt": "^1.4.0",
     "eslint": "^2.12.0",
     "eslint-plugin-import": "^1.9.2",
     "eslint-plugin-jsx-a11y": "^1.5.3"
   },
   "dependencies": {
     "file-url": "^1.1.0",
-    "fluent-logger-node": "0.0.3",
     "immutable": "^3.8.1",
     "jsonfile": "^2.3.1",
     "winston": "^2.2.0",

@@ -1,11 +1,10 @@
 const DESKTOP = {
-  width: 800,
-  height: 730,
-  minHeight: 730,
-  minWidth: 800,
+  width: 850,
+  height: 750,
+  minHeight: 750,
+  minWidth: 850,
   frame: true,
   alwaysOnTop: false
 };
-
 
 module.exports = DESKTOP;

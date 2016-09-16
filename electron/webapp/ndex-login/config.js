@@ -1,9 +1,9 @@
 const DESKTOP = {
-  width: 450,
-  height: 380,
+  width: 440,
+  height: 400,
   frame: true,
   alwaysOnTop: true,
-  title: "Login to NDEx"
+  title: "NDEx Server Login Information"
 };
 
 module.exports = DESKTOP;
