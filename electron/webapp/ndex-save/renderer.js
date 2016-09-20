@@ -377,7 +377,7 @@ function saveSuccess(ndexId) {
         // Save the image:
         getImage(options.SUID, ndexId);
 
-        win.close()
+        // win.close()
       } else {
         saveFailed(response);
       }
@@ -444,8 +444,15 @@ function getImage(suid, uuid) {
   const imageUrl = 'http://ci-dev-serv.ucsd.edu:8081/image/png/' + uuid;
 
   const oReq = new XMLHttpRequest();
-  oReq.open('GET', url, true);
-  oReq.responseType = 'blob';
+  oReq.timeout = 30000
+  oReq.ontimeout = evt => {
+    console.log('** ERROR: timeout - could not get image from Cytoscape')
+    console.log(evt);
+    child.close()
+    dialog.showMessageBox(MSG_ERROR_IMAGE_SAVE, () => {
+      win.close()
+    })
+  }
 
   oReq.addEventListener('error', evt => {
     console.log('** ERROR downloading image:')
@@ -454,10 +461,24 @@ function getImage(suid, uuid) {
     win.close()
   });
 
+  oReq.open('GET', url, true);
+  oReq.responseType = 'blob';
+
   oReq.onload = oEvent => {
     // To image cache
     const blob = oReq.response;
     const pReq = new XMLHttpRequest();
+
+
+    pReq.timeout = 40000
+    pReq.ontimeout = evt => {
+      console.log('** ERROR: Image upload timeout')
+      console.log(evt);
+      child.close()
+      dialog.showMessageBox(MSG_ERROR_IMAGE_SAVE, () => {
+        win.close()
+      })
+    }
 
     pReq.addEventListener('error', evt => {
       console.log('** ERROR uploading image:')
@@ -468,14 +489,16 @@ function getImage(suid, uuid) {
       })
     });
 
-
     pReq.open('POST', imageUrl, true);
     pReq.onload = evt => {
       child.close()
       win.close()
     };
+
     pReq.send(blob);
   };
+
+  // GET image from Cytoscape
   oReq.send();
 }
 

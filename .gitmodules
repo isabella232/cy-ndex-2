@@ -16,3 +16,6 @@
 [submodule "electron/extrnal-modules/NDExLogin"]
 	path = electron/external-modules/NDExLogin
 	url = git@github.com:CyComponent/NDExLogin.git
+[submodule "electron/external-modules/NDExSearchUI"]
+	path = electron/external-modules/NDExSearchUI
+	url = git@github.com:CyComponent/NDExSearchUI.git

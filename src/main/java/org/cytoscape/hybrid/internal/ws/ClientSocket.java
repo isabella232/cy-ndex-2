@@ -145,7 +145,8 @@ public class ClientSocket {
 				System.out.println("Activating Save Panel...");
 				final JFrame desktop = app.getJFrame();
 				desktop.setEnabled(false);
-				app.getJMenuBar().setEnabled(false);			}
+				app.getJMenuBar().setEnabled(false);	
+			}
 					
 			final Credential cred = loginManager.getLogin();
 			if(cred != null) {
@@ -162,6 +163,7 @@ public class ClientSocket {
 			pm.kill();
 			final JFrame desktop = app.getJFrame();
 			desktop.setEnabled(true);
+			app.getJMenuBar().setEnabled(true);	
 			desktop.setAlwaysOnTop(true);
 			try {
 				Thread.sleep(100);
@@ -257,8 +259,6 @@ public class ClientSocket {
 
 	@OnWebSocketClose
 	public void onClose(int statusCode, String reason) {
-		System.out.println("&&&&&&&&&&&&& Closing");
-		
 		currentSession.close();
 		currentSession = null;
 		// latch.countDown();
@@ -267,6 +267,7 @@ public class ClientSocket {
 		// Enable window
 		final JFrame desktop = app.getJFrame();
 		desktop.setEnabled(true);
+		app.getJMenuBar().setEnabled(true);	
 
 		final InterAppMessage msg = new InterAppMessage();
 		msg.setFrom(InterAppMessage.FROM_CY3).setType(InterAppMessage.TYPE_CLOSED);
