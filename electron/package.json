@@ -1,7 +1,7 @@
 {
   "name": "ndex-valet",
   "productName": "NDEx-Valet",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "NDEx Valet Cytoscape App",
   "main": "main.js",
   "scripts": {
