@@ -27,6 +27,8 @@ public class SearchPane extends JEditorPane implements PropertyChangeListener {
 	protected static final String ACTION_CLEAR = "clear";
 	protected static final String ACTION_SEARCH = "search";
 	
+	private static final String PLACEHOLDER = "Enter search terms here...";
+	
 	// WS Client
 	private final WSClient client;
 	private final ObjectMapper mapper;
@@ -54,7 +56,7 @@ public class SearchPane extends JEditorPane implements PropertyChangeListener {
 		final Border paddingBorder3 = BorderFactory.createEmptyBorder(7, 7, 7, 7);
 		setBorder(paddingBorder3);
 
-		setText("Enter search terms here...");
+		setText(PLACEHOLDER);
 
 		addMouseListener(new MouseAdapter() {
 			@Override
@@ -67,7 +69,6 @@ public class SearchPane extends JEditorPane implements PropertyChangeListener {
 				
 				if (!searchBoxClicked) {
 					setText("");
-					
 					searchBoxClicked = true;
 				}
 			}
@@ -75,8 +76,13 @@ public class SearchPane extends JEditorPane implements PropertyChangeListener {
 
 	}
 
-	private final void search(final String query) throws Exception {
+	private final void search(String query) throws Exception {
 
+		// Use empty String if default text is used.
+		if(query.equals(PLACEHOLDER)) {
+			query = "";
+		}
+		
 		pm.setQuery(query);
 
 		final String dest = "ws://localhost:8025/ws/echo";
