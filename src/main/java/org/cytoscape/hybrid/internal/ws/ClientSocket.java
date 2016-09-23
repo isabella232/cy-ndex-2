@@ -141,8 +141,7 @@ public class ClientSocket {
 					.setFrom(InterAppMessage.FROM_CY3)
 					.setBody(application);
 			
-			if(application.contains("save")) {
-				System.out.println("Activating Save Panel...");
+			if(application.contains("save") || application.contains("login")) {
 				final JFrame desktop = app.getJFrame();
 				desktop.setEnabled(false);
 				app.getJMenuBar().setEnabled(false);	
@@ -202,9 +201,9 @@ public class ClientSocket {
 			}
 			// ignore = true;
 			final JFrame desktop = app.getJFrame();
+			app.getJMenuBar().setEnabled(true);	
 			
 			if (desktop.isFocused() && desktop.isActive()) {
-				System.out.println("**** No need to focus ");
 			} else {
 				EventQueue.invokeLater(new Runnable() {
 					@Override
@@ -235,6 +234,7 @@ public class ClientSocket {
 				return;
 			}
 			final JFrame desktop = app.getJFrame();
+			app.getJMenuBar().setEnabled(true);	
 			if (desktop.isFocused() && desktop.isActive()) {
 				app.getJFrame().toFront();
 			} else {
