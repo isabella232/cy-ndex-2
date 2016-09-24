@@ -6,6 +6,8 @@ const jsonfile = require('jsonfile');
 const config = require('./config_browser');
 const fileUrl = require('file-url');
 
+const {Menu, MenuItem} = require('electron').remote;
+
 const CLOSE_BUTTON_ID = 'close';
 
 const HEADERS = {
@@ -20,6 +22,38 @@ const CYREST = {
   IMPORT_NET: 'http://localhost:1234/v1/networks?format=cx&source=url',
   COLLECTIONS: 'http://localhost:1234/v1/collections'
 };
+
+// Context Menu
+const menu = new Menu()
+
+menu.append(new MenuItem({
+  label: 'Cut',
+  type: 'normal',
+  role: 'cut'
+}))
+
+menu.append(new MenuItem({
+  label: 'Copy',
+  type: 'normal',
+  role: 'copy'
+}))
+
+menu.append(new MenuItem({
+  label: 'Paste',
+  type: 'normal',
+  role: 'paste'
+}))
+
+menu.append(new MenuItem({
+  label: 'Select all',
+  type: 'normal',
+  role: 'selectall'
+}))
+
+window.addEventListener('contextmenu', (e) => {
+  e.preventDefault()
+  menu.popup(remote.getCurrentWindow())
+}, false)
 
 
 let defaultState = Immutable.Map({
