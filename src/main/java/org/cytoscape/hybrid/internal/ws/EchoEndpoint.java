@@ -7,10 +7,13 @@ import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
+import javax.websocket.RemoteEndpoint.Basic;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.cytoscape.hybrid.events.InterAppMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,6 +25,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 @ServerEndpoint(value = "/echo")
 public class EchoEndpoint {
+
+	private final Logger logger = LoggerFactory.getLogger(EchoEndpoint.class);
 	
 	private final ObjectMapper mapper;
 	
@@ -56,9 +61,10 @@ public class EchoEndpoint {
 		session.getOpenSessions().forEach(s->{
 				if(session != s && s.isOpen()) {
 					try {
-						s.getBasicRemote().sendText(msg);
+						final Basic remote = s.getBasicRemote();
+						remote.sendText(msg);
 					} catch (Exception e) {
-						e.printStackTrace();
+						logger.warn("Tried to open multiple instances.", e);
 					}
 				}
 		});

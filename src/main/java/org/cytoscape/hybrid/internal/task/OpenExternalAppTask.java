@@ -35,7 +35,16 @@ public class OpenExternalAppTask extends AbstractTask {
 		final ExecutorService executor = Executors.newSingleThreadExecutor();
 		executor.submit(() -> {
 			try {
+				// Close other application
+				try {
+					pm.kill();
+					Thread.sleep(400);
+				} catch(Exception e2) {
+					e2.printStackTrace();
+				}
+				
 				// Set application type:
+				
 				this.client.getSocket().setApplication(appName);
 				pm.setProcess(Runtime.getRuntime().exec(command));
 			} catch (Exception e) {

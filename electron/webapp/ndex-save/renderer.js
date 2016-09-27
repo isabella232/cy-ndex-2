@@ -121,6 +121,14 @@ const MSG_ERROR_NOT_FOUND = {
   'New record will be created for this collection.'
 };
 
+const MSG_ERROR_NOT_OWNER = {
+  title: 'Permission Error',
+  type: 'warning',
+  buttons: ['Close'],
+  message: 'You are not the owner of this network:',
+  detail: 'Since you are not the owner of this network, new record will be created.'
+};
+
 const MSG_ERROR_IMAGE_SAVE = {
   title: 'Network Saved, but image upload failed',
   type: 'warning',
@@ -538,6 +546,30 @@ function checkUuid(uuid) {
           dialog.showMessageBox(win, MSG_ERROR_NOT_FOUND, () => {
             existingUuid = null
           })
+
+          return null;
+        } else {
+          console.log('UUID found: ' + uuid)
+          // Check permission
+          return response.json()
         }
       })
+    .then(json => {
+      if(json !== null) {
+        checkPermission(json)
+      }
+    })
+}
+
+function checkPermission(metadata) {
+
+  console.log("Checking permission: ")
+  console.log(metadata);
+
+  const owner = metadata.owner;
+  if(owner !== options.userName) {
+    dialog.showMessageBox(win, MSG_ERROR_NOT_OWNER, () => {
+      existingUuid = null
+    })
+  }
 }

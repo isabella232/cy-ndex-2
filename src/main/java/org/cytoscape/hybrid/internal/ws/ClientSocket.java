@@ -255,6 +255,7 @@ public class ClientSocket {
 	public void onConnect(Session session) {
 		this.currentSession = session;
 		latch.countDown();
+		
 	}
 
 	@OnWebSocketClose

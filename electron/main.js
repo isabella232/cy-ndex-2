@@ -30,6 +30,9 @@ let ws;
 let mainWindow;
 let opts;
 
+// Type of the app for this instance.
+let appName = null;
+
 let block = false;
 let isDevEnabled = false;
 
@@ -62,6 +65,7 @@ function initLogger() {
 function initWindow(appType) {
   // Create the browser window.
   LOGGER.log('debug', 'Target app = ' + appType);
+  appName = appType;
 
   mainWindow = new BrowserWindow(APP_CONFIG_MAP.get(appType));
   mainWindow.webContents.on('did-finish-load', () => {
@@ -77,13 +81,11 @@ function initWindow(appType) {
 
   // Emitted when the window is closed.
   mainWindow.on('focus', () => {
-    if (block) {
+    if (block || mainWindow === null || mainWindow === undefined) {
       return;
     }
 
-    console.log('######## Electron Focus ######')
-    if(!mainWindow.isAlwaysOnTop()) {
-      console.log('Enable Always on top: ----------- ')
+    if(!mainWindow.isDestroyed() && !mainWindow.isAlwaysOnTop()) {
       mainWindow.setAlwaysOnTop(true);
       mainWindow.show();
 
@@ -186,8 +188,11 @@ function initSocket() {
     };
 
     ws.onclose = function () {
-      mainWindow.close()
-      mainWindow = null
+      if(mainWindow !== undefined && mainWindow !== null && !mainWindow.isDestroyed()) {
+        mainWindow.close()
+        mainWindow = null
+      }
+
       app.quit()
     };
 
@@ -236,19 +241,16 @@ function addShortcuts() {
 
 
 app.on('ready', () => {
-  createWindow();
-  addShortcuts();
+
+  // Respond to only once.  One app == one instance.
+  if(appName === null) {
+    createWindow();
+    addShortcuts();
+  }
 });
 
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
   app.quit()
-});
-
-
-app.on('activate', function () {
-  if (mainWindow === null) {
-    createWindow()
-  }
 });

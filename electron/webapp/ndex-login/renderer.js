@@ -55,6 +55,9 @@ ipcRenderer.on('ping', (event, arg) => {
 })
 
 
+let ws = null;
+
+
 function init(loginInfo) {
   const cyto = CyFramework.config([NDExStore]);
 
@@ -71,6 +74,8 @@ function init(loginInfo) {
       logout()
     }
   });
+
+  ws = new WebSocket(WS_SERVER);
 }
 
 function logout() {
@@ -123,14 +128,9 @@ function connect(credential) {
 
 
 function sendMessage(credential) {
-  // Open WS connection and send credential to Cytoscape.
-  const ws = new WebSocket(WS_SERVER);
-
-  ws.onopen = () => {
     const loginSuccess = LOGIN;
     loginSuccess.options = credential;
     ws.send(JSON.stringify(loginSuccess));
     ws.close();
     win.close();
-  };
 }
