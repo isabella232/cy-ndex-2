@@ -6,10 +6,13 @@ import static org.cytoscape.work.ServiceProperties.MENU_GRAVITY;
 import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
 import static org.cytoscape.work.ServiceProperties.TITLE;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.swing.JPanel;
 
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
@@ -25,6 +28,7 @@ import org.cytoscape.hybrid.internal.login.LoginManager;
 import org.cytoscape.hybrid.internal.login.NdexLoginMessageHandler;
 import org.cytoscape.hybrid.internal.task.OpenExternalAppTaskFactory;
 import org.cytoscape.hybrid.internal.ui.NdexPanel;
+import org.cytoscape.hybrid.internal.ui.SearchBox;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
 import org.cytoscape.hybrid.internal.ws.SaveMessageHandler;
 import org.cytoscape.hybrid.internal.ws.WSClient;
@@ -107,6 +111,12 @@ public class CyActivator extends AbstractCyActivator {
 		final WSHandler loginHandler = new NdexLoginMessageHandler(loginManager);
 		client.getSocket().addHandler(saveHandler);
 		client.getSocket().addHandler(loginHandler);
+		
+		// Export as service
+		final JPanel searchPanel = new SearchBox(client, pm, installer.getCommand());
+		Properties metadata = new Properties();
+		metadata.put("id", "searchPanel");
+		registerService(bc, searchPanel, JPanel.class, metadata);
 	}
 
 	@Override
