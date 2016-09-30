@@ -133,6 +133,9 @@ let cySocket;
  */
 function createNetworkList(idList, isPublic) {
   const servers = cyto.getStore(STORE_NDEX).servers.toJS();
+
+  console.log("@@@servers")
+  console.log(servers)
   const server = convertServerInfo(servers);
 
 
@@ -506,13 +509,31 @@ function initWsConnection() {
 
 }
 
-
+// FIXME
 function initCyComponent(serverState) {
 
-  // Just create new data store.
+  // This is a Immutable.js Map
+  const server = serverState.toJS();
+
+  const initialState = {
+    address: server.serverAddress,
+    login: {
+      name: server.userName,
+      pass: server.userPass
+    }
+  }
+
+  const serverJs = {}
+  serverJs[server.serverName] = initialState
+  const serverObj = Immutable.Map(serverJs)
+
   cyto = CyFramework.config([NDExStore], {
     ndex: {
-      server: serverState
+      servers: serverObj,
+      settings: Immutable.Map({
+        server: server.serverName,
+        resultSize: 50
+      })
     }
   })
 }
@@ -527,6 +548,7 @@ function updateWindowProps(server) {
 function convertServerInfo(servers) {
   const serverName = cyto.getStore('ndex').settings.get('server');
   const server = servers[serverName];
+  console.log(server)
 
   return {
     serverName: serverName,

@@ -305,6 +305,10 @@ function startApp() {
 
 
 function postCx(rawCX) {
+
+  // For checking performance
+  let start = null;
+
   const ndexServerAddress = options.serverAddress;
   const id = options.userName;
   const pass = options.userPass;
@@ -333,6 +337,10 @@ function postCx(rawCX) {
       return
     }
 
+    const end = new Date().getTime();
+    const time = end - start;
+    console.log('## Upload time: ' + time);
+
     const newNdexId = evt.target.response;
     saveSuccess(newNdexId);
   });
@@ -349,6 +357,8 @@ function postCx(rawCX) {
 
   const auth = 'Basic ' + btoa(id + ':' + pass);
   XHR.setRequestHeader('Authorization', auth);
+  start = new Date().getTime();
+  console.log('## Upload Start');
   XHR.send(FD);
 }
 
