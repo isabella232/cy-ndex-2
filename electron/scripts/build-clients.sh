@@ -26,11 +26,6 @@ npm run build
 cp build/NDExPlugins.js ../../webapp/ndex/NDExPlugins/
 cd -
 
-cd ./external-modules/NDExSearchUI/
-npm run build
-cp build/NDExSearch.js ../../webapp/ndex/NDExSearch/
-cd -
-
 cd ./external-modules/NDExValetFinder/
 npm run build
 cp build/NDExValetFinder.js ../../webapp/ndex/NDExValetFinder/

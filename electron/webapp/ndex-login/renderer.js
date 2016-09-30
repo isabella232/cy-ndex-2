@@ -65,8 +65,22 @@ function init(loginInfo) {
     defaults: loginInfo,
 
     onSubmit: () => {
-      const state = cyto.getStore('ndex').server.toJS();
-      connect(state);
+      const state = cyto.getStore('ndex').servers.toJS();
+      console.log('----------- Server -------------')
+      console.log(state);
+      const serverName = cyto.getStore('ndex').settings.get('server');
+
+      const server = state[serverName];
+
+      const serverInfo = {
+        serverName: serverName,
+        serverAddress: server.address,
+        userName: server.login.name,
+        userPass: server.login.pass,
+        loggedIn: true
+      }
+
+      connect(serverInfo);
     },
 
     onLogout: () => {

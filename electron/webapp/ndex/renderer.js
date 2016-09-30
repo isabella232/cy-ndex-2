@@ -132,7 +132,10 @@ let cySocket;
  * @returns {*}
  */
 function createNetworkList(idList, isPublic) {
-  const server = cyto.getStore(STORE_NDEX).server.toJS();
+  const servers = cyto.getStore(STORE_NDEX).servers.toJS();
+  const server = convertServerInfo(servers);
+
+
   return idList.map(id => {
     if (isPublic) {
       return server.serverAddress + '/rest/network/' + id + '/asCX';
@@ -432,7 +435,10 @@ function importAll(toSingleCollection, collectionName, ids, privateNetworks, doL
 
 function init() {
   initCyComponent(defaultState);
-  updateWindowProps(cyto.getStore(STORE_NDEX).server.toJS());
+  const servers = cyto.getStore(STORE_NDEX).servers.toJS()
+  const server = convertServerInfo(servers)
+
+  updateWindowProps(server);
   initWsConnection();
 }
 
@@ -515,5 +521,19 @@ function initCyComponent(serverState) {
 function updateWindowProps(server) {
   remote.getCurrentWindow()
     .setTitle('Connected: ' + server.serverName + ' ( ' + server.serverAddress + ' )');
+}
+
+
+function convertServerInfo(servers) {
+  const serverName = cyto.getStore('ndex').settings.get('server');
+  const server = servers[serverName];
+
+  return {
+    serverName: serverName,
+    serverAddress: server.address,
+    userName: server.login.name,
+    userPass: server.login.pass,
+    loggedIn: true
+  }
 }
 

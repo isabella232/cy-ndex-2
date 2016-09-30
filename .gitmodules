@@ -1,9 +1,6 @@
 [submodule "electron/extrnal-modules/NDExStore"]
 	path = electron/external-modules/NDExStore
 	url = git@github.com:CyComponent/NDExStore.git
-[submodule "electron/extrnal-modules/NDExValetFinder"]
-	path = electron/external-modules/NDExValetFinder
-	url = git@github.com:CyComponent/NDExValetFinder.git
 [submodule "electron/extrnal-modules/NDExPlugins"]
 	path = electron/external-modules/NDExPlugins
 	url = git@github.com:CyComponent/NDExPlugins.git
@@ -16,6 +13,9 @@
 [submodule "electron/extrnal-modules/NDExLogin"]
 	path = electron/external-modules/NDExLogin
 	url = git@github.com:CyComponent/NDExLogin.git
-[submodule "electron/external-modules/NDExSearchUI"]
-	path = electron/external-modules/NDExSearchUI
-	url = git@github.com:CyComponent/NDExSearchUI.git
+[submodule "electron/external-modules/NDExServerManager"]
+	path = electron/external-modules/NDExServerManager
+	url = git@github.com:CyComponent/NDExServerManager.git
+[submodule "electron/external-modules/NDExValetFinder"]
+	path = electron/external-modules/NDExValetFinder
+	url = git@github.com:CyComponent/NDExValetFinder.git

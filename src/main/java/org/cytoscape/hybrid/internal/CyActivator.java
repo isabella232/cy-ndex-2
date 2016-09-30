@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
+import org.cytoscape.application.events.CyShutdownListener;
 import org.cytoscape.application.swing.ActionEnableSupport;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.CytoPanel;
@@ -24,6 +25,7 @@ import org.cytoscape.application.swing.CytoPanelState;
 import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.hybrid.events.WSHandler;
 import org.cytoscape.hybrid.internal.electron.NativeAppInstaller;
+import org.cytoscape.hybrid.internal.electron.NdexAppStateManager;
 import org.cytoscape.hybrid.internal.login.LoginManager;
 import org.cytoscape.hybrid.internal.login.NdexLoginMessageHandler;
 import org.cytoscape.hybrid.internal.task.OpenExternalAppTaskFactory;
@@ -62,6 +64,8 @@ public class CyActivator extends AbstractCyActivator {
 
 		// Local components
 		final LoginManager loginManager = new LoginManager();
+		final NdexAppStateManager appStateManager = new NdexAppStateManager(config, loginManager);
+		
 		final ExternalAppManager pm = new ExternalAppManager();
 		final WSClient client = new WSClient(desktop, pm, eventHelper, loginManager, cyProp);
 		final NativeAppInstaller installer = new NativeAppInstaller(config);
@@ -117,6 +121,9 @@ public class CyActivator extends AbstractCyActivator {
 		Properties metadata = new Properties();
 		metadata.put("id", "searchPanel");
 		registerService(bc, searchPanel, JPanel.class, metadata);
+		
+		// Login manager
+		registerService(bc, appStateManager, CyShutdownListener.class, new Properties());
 	}
 
 	@Override
