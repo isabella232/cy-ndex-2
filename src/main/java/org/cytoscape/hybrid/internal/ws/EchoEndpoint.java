@@ -50,10 +50,9 @@ public class EchoEndpoint {
 		}
 		
 		try {
-			System.out.println("On Message: " + message);
 			broadcast(message, session);
 		} catch(Exception e) {
-			System.out.println("Invalid msg: " + message);
+			logger.warn("Invalid message: " + message, e);
 		}
 	}
 	
@@ -72,7 +71,7 @@ public class EchoEndpoint {
 
 	@OnOpen
 	public void onOpen(Session session) {
-		System.out.println("* Client Connected: " + session.getId());
+		logger.info("Client Connected: " + session.getId());
 	}
 
 
@@ -83,7 +82,7 @@ public class EchoEndpoint {
 
 	@OnClose
 	public void onClose(CloseReason reason, Session session) {
-		System.out.println("* Client Disconnected: " + session.getId());
+		logger.info("Client Disconnected: " + session.getId());
 		
 		final InterAppMessage msg = new InterAppMessage();
 		msg.setFrom(InterAppMessage.FROM_CY3)
@@ -92,8 +91,8 @@ public class EchoEndpoint {
 		try {
 			broadcast(mapper.writeValueAsString(msg), session);
 		} catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.warn("Could not encode message: ", e);
 		}
 		try {
 			session.close();

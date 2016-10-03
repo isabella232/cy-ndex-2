@@ -2,7 +2,6 @@ package org.cytoscape.hybrid.internal.electron;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -93,13 +92,11 @@ public class NdexAppStateManager implements CyShutdownListener {
 	}
 
 	private final NdexAppState restoreState() {
-		System.out.println("Loading from Config...");
 		if(configFile.exists()) {
 			// Load it into object
 			try {
 				final NdexAppState state = mapper.readValue(configFile, NdexAppState.class);		
-				System.out.println("* App State Restored:");
-				System.out.println(mapper.writeValueAsString(state));
+				restorePasswords(state.getServers());
 				return state;
 			} catch (IOException e) {
 				LOGGER.warn("Could not read config file.  Initial state will be used instead.", e);
@@ -110,7 +107,30 @@ public class NdexAppStateManager implements CyShutdownListener {
 			return createInitialState();
 		}
 	}
+	
+	private final Map<String, Credential> restorePasswords(final Map<String, Credential> servers) {
+		for(final String serverId: servers.keySet()) {
+			final Credential server = servers.get(serverId);
+			final String encodedPass = server.getUserPass();
+			if(encodedPass == null) {
+				continue;
+			}
+			try {
+				String decoded = passUtil.decode(encodedPass, this.key);
+				server.setUserPass(decoded);
+				servers.put(serverId, server);
+			} catch (Exception e) {
+				e.printStackTrace();
+				continue;
+			}
+		}
+		return servers;
+	}
+	
 
+	/**
+	 * For saving state to config directory.
+	 */
 	@Override
 	public void handleEvent(CyShutdownEvent evt) {
 		System.out.println("@@ Saving Ndex App state...");
@@ -129,7 +149,7 @@ public class NdexAppStateManager implements CyShutdownListener {
 			System.out.println(mapper.writeValueAsString(servers));
 			
 			System.out.println(mapper.writeValueAsString(appState));
-			mapper.writeValue(configFile, appState);
+			mapper.writerWithDefaultPrettyPrinter().writeValue(configFile, appState);
 			System.out.println("* NDEx States saved!");
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -139,7 +159,6 @@ public class NdexAppStateManager implements CyShutdownListener {
 	
 	private final Map<String, Credential> encodeServerPassword() {
 		final Map<String, Credential> servers = appState.getServers();
-		System.out.println("#### ENCODING: " + servers.size());
 		for(String name: servers.keySet()) {
 			encode(servers.get(name));
 		}
@@ -148,8 +167,6 @@ public class NdexAppStateManager implements CyShutdownListener {
 	}
 	
 	private final void encode(final Credential server) {
-		System.out.println("* Server: " + server.getUserName());
-		System.out.println("* Server PW: " + server.getUserPass());
 		final String pw = server.getUserPass();
 		if(pw == null) {
 			return;
@@ -168,7 +185,5 @@ public class NdexAppStateManager implements CyShutdownListener {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		System.out.println("#### PW:" + server.getUserPass());
 	}
 }

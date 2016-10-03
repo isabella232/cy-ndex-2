@@ -28,7 +28,7 @@ public class WSServer implements CyShutdownListener {
 	}
 
 	public void start() throws Exception {
-		System.out.println("Initializing WS Server on port: " + DEF_PORT);
+		logger.info("Initializing WS Server on port: " + DEF_PORT);
 
 		final ServerConnector connector = new ServerConnector(server);
 		connector.setPort(DEF_PORT);
@@ -44,7 +44,7 @@ public class WSServer implements CyShutdownListener {
 		// Add end points
 		wscontainer.addEndpoint(EchoEndpoint.class);
 		server.start();
-		logger.info("WS listening on " + url);
+		logger.info("WS Server listening on " + url);
 		
 		server.join();
 	}
