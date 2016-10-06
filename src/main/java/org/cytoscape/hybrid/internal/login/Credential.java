@@ -7,6 +7,7 @@ public class Credential {
 	private String serverName;
 	private String serverAddress;
 	private Boolean loggedIn;
+	private String serverVersion;
 
 	public static Credential create() {
 		return new Credential();
@@ -54,5 +55,13 @@ public class Credential {
 	public Credential setServerAddress(String serverAddress) {
 		this.serverAddress = serverAddress;
 		return this;
+	}
+
+	public String getServerVersion() {
+		return serverVersion;
+	}
+
+	public void setServerVersion(String serverVersion) {
+		this.serverVersion = serverVersion;
 	}
 }

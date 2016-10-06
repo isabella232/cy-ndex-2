@@ -65,26 +65,39 @@ function init(loginInfo) {
     defaults: loginInfo,
 
     onSubmit: () => {
-      const state = cyto.getStore('ndex').servers.toJS();
-      console.log('----------- Server -------------')
-      console.log(state);
       const serverName = cyto.getStore('ndex').settings.get('server');
 
-      const server = state[serverName];
+      // FIXME: Async. call problem here.
+      let count = 0
+      const interval = 300
+      const maxTry = 10
 
-      const serverInfo = {
-        serverName: serverName,
-        serverAddress: server.address,
-        userName: server.login.name,
-        userPass: server.login.pass,
-        loggedIn: true
-      }
+      const id = setInterval(() => {
+        const state = cyto.getStore('ndex').servers.toJS();
+        let server = state[serverName];
+        count++;
 
-      connect(serverInfo);
+        if(count >= maxTry) {
+          clearInterval(id);
+        }
+
+        if(server !== undefined && server!== null) {
+          const serverInfo = {
+            serverName: serverName,
+            serverAddress: server.address,
+            userName: server.login.name,
+            userPass: server.login.pass,
+            loggedIn: true,
+            serverVersion: server.version
+          }
+
+          connect(serverInfo);
+          clearInterval(id);
+        }
+      }, interval);
     },
 
     onLogout: () => {
-      console.log('LOGOUT!!!')
       logout()
     }
   });

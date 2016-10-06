@@ -133,8 +133,6 @@ public class NdexAppStateManager implements CyShutdownListener {
 	 */
 	@Override
 	public void handleEvent(CyShutdownEvent evt) {
-		System.out.println("@@ Saving Ndex App state...");
-		
 		final Credential currentLogin = loginManager.getLogin();
 		if(currentLogin != null) {
 			final String selectedServerName = currentLogin.getServerName();
@@ -145,12 +143,7 @@ public class NdexAppStateManager implements CyShutdownListener {
 		try {
 			final Map<String, Credential> servers = encodeServerPassword();
 			appState.setServers(servers);
-			System.out.println("#### New server str:");
-			System.out.println(mapper.writeValueAsString(servers));
-			
-			System.out.println(mapper.writeValueAsString(appState));
 			mapper.writerWithDefaultPrettyPrinter().writeValue(configFile, appState);
-			System.out.println("* NDEx States saved!");
 		} catch (IOException e) {
 			e.printStackTrace();
 			LOGGER.warn("Failed to save states.", e);
@@ -173,14 +166,7 @@ public class NdexAppStateManager implements CyShutdownListener {
 		}
 		
 		try {
-			System.out.println(mapper.writeValueAsString(server));
-		} catch (JsonProcessingException e1) {
-			e1.printStackTrace();
-		}
-		
-		try {
 			final String encoded = passUtil.encode(server.getUserPass(), key);
-			System.out.println("* ENCODE: " + encoded);
 			server.setUserPass(encoded);
 		} catch (Exception e) {
 			e.printStackTrace();

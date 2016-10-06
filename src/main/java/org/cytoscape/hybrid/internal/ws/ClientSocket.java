@@ -291,7 +291,6 @@ public class ClientSocket {
 		return latch;
 	}
 	
-	
 	public void addHandler(final WSHandler handler) {
 		this.handlers.put(handler.getType(), handler);
 	}
