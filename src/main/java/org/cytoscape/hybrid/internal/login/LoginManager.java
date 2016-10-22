@@ -29,8 +29,10 @@ public class LoginManager {
 
 	public void setLogin(final Credential login) {
 		this.currentServer = login;
-		this.getServers().put(login.getServerName(), login);
-		pcs.firePropertyChange(EVENT_LOGIN, "last", login);
+		if(login != null) {
+			this.getServers().put(login.getServerName(), login);
+			pcs.firePropertyChange(EVENT_LOGIN, "last", login);
+		}
 	}
 
 	public Credential getLogin() {

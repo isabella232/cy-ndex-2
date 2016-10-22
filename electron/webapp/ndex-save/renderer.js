@@ -362,7 +362,7 @@ function postCx(rawCX) {
   XHR.send(FD);
 }
 
-function saveSuccess(ndexId) {
+function saveSuccess(ndexIdStr) {
 
   const flagPrivate = 'PRIVATE';
   const flagPublic = 'PUBLIC';
@@ -375,6 +375,8 @@ function saveSuccess(ndexId) {
     visibility = flagPublic
   }
 
+  const ndexId = ndexIdStr.replace(/"/g, '');
+
   const updateUrl = options.serverAddress + '/rest/network/' + ndexId + '/summary';
   const param = {
     method: 'post',
@@ -385,6 +387,10 @@ function saveSuccess(ndexId) {
     },
     body: JSON.stringify({visibility: visibility})
   };
+
+
+  console.log('URL for GET summary:')
+  console.log(updateUrl)
 
   fetch(updateUrl, param)
     .then(response => {
