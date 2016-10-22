@@ -6,7 +6,15 @@ const jsonfile = require('jsonfile');
 const config = require('./config_browser');
 const fileUrl = require('file-url');
 
-const {Menu, MenuItem} = require('electron').remote;
+const {BrowserWindow, Menu, MenuItem} = require('electron').remote;
+
+const win = remote.getCurrentWindow();
+
+// For loading animation
+const child = new BrowserWindow({
+  parent: win, modal: true, show: false,
+  width: 600, height: 500
+});
 
 const CLOSE_BUTTON_ID = 'close';
 
@@ -429,6 +437,9 @@ function importAll(toSingleCollection, collectionName, ids, privateNetworks, doL
           } else {
             setUUIDs(json);
           }
+
+          // Close loading window
+          child.hide();
         });
     })
 
@@ -490,6 +501,7 @@ function initWsConnection() {
           ],
           defaultQuery: query,
           onLoad: (ids, toSingleCollection) => {
+            showLoading();
             importCollections(ids, toSingleCollection)
           }
         });
@@ -557,5 +569,14 @@ function convertServerInfo(servers) {
     userPass: server.login.pass,
     loggedIn: true
   }
+}
+
+function showLoading() {
+  const gl = remote.getGlobal('sharedObj');
+  const contentDir = gl.dir;
+  child.loadURL('file://' + contentDir + '/webapp/ndex/waiting/index.html');
+  child.once('ready-to-show', () => {
+    child.show();
+  });
 }
 
