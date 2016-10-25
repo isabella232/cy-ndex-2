@@ -13,7 +13,7 @@ const win = remote.getCurrentWindow();
 // For loading animation
 const child = new BrowserWindow({
   parent: win, modal: true, show: false,
-  width: 600, height: 500
+  width: 600, height: 550
 });
 
 const CLOSE_BUTTON_ID = 'close';
