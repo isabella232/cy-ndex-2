@@ -123,12 +123,27 @@ public class ClientSocket {
 					ex.printStackTrace();
 				}
 			}
+			
+			@Override
+			public void windowDeiconified(WindowEvent e) {
+				// Window size restored
+				final InterAppMessage msg = InterAppMessage.create()
+						.setType(InterAppMessage.TYPE_RESTORED)
+						.setFrom(InterAppMessage.FROM_CY3);
+				try {
+					sendMessage(mapper.writeValueAsString(msg));
+				} catch (JsonProcessingException ex) {
+					ex.printStackTrace();
+				}
+			}
 		});
 	}
 
 	@OnWebSocketMessage
 	public void onText(Session session, String message) throws IOException {
 
+		System.out.println("GOT MSG: " + message);
+		
 		// Map message into message object
 		final InterAppMessage msg = mapper.readValue(message, InterAppMessage.class);
 
@@ -191,16 +206,19 @@ public class ClientSocket {
 			eventHelper.fireEvent(new WebSocketEvent(this, msg));
 
 		} else if (msg.getType().equals(InterAppMessage.TYPE_FOCUS)) {
+			System.out.println("========== FOCUS event ===========");
+			
 			if (from.equals(InterAppMessage.FROM_CY3)) {
 				return;
 			}
+			final JFrame desktop = app.getJFrame();
 			
 			if(!appStarted) {
 				appStarted = true;
 				return;
 			}
+			
 			// ignore = true;
-			final JFrame desktop = app.getJFrame();
 			app.getJMenuBar().setEnabled(true);	
 			
 			if (desktop.isFocused() && desktop.isActive()) {
@@ -242,6 +260,18 @@ public class ClientSocket {
 				app.getJFrame().toFront();
 			}
 
+		} else if (msg.getType().equals(InterAppMessage.TYPE_MINIMIZED)) {
+			if (from.equals(InterAppMessage.FROM_CY3)) {
+				return;
+			}
+			final JFrame desktop = app.getJFrame();
+			desktop.setState(JFrame.ICONIFIED);
+		} else if (msg.getType().equals(InterAppMessage.TYPE_RESTORED)) {
+			if (from.equals(InterAppMessage.FROM_CY3)) {
+				return;
+			}
+			final JFrame desktop = app.getJFrame();
+			desktop.setState(JFrame.NORMAL);
 		} else {
 			// Try handlers
 			final WSHandler handler = handlers.get(msg.getType());

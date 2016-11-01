@@ -15,7 +15,7 @@ APP_CONFIG_MAP.set(APP_NAME_SAVE, APP_CONFIG_SAVE);
 APP_CONFIG_MAP.set(APP_NAME_LOGIN, APP_CONFIG_LOGIN);
 
 // Required Electron components
-const { app, globalShortcut, BrowserWindow, Menu } = require('electron');
+const { app, globalShortcut, BrowserWindow } = require('electron');
 
 global.sharedObj = { temp: app.getPath('temp') };
 console.log(global.sharedObj);
@@ -26,8 +26,9 @@ const WebSocket = require('ws');
 // TODO: make this injectable
 const WS_ADDRESS = 'ws://localhost:8025/ws/echo';
 
-let ws;
-let mainWindow;
+let ws; // Web socket server
+let mainWindow; // The browser window for showing app.
+
 let opts;
 
 // Type of the app for this instance.
@@ -49,6 +50,18 @@ const MSG_FOCUS = {
   body: 'Ndex focused'
 };
 
+const MSG_MINIMIZE = {
+  from: 'ndex',
+  type: 'minimized',
+  body: 'Ndex window minimized'
+};
+
+const MSG_RESTORE = {
+  from: 'ndex',
+  type: 'restored',
+  body: 'Ndex window restored'
+};
+
 const MSG_SAVE = {
   from: 'ndex',
   type: 'save',
@@ -56,13 +69,13 @@ const MSG_SAVE = {
 };
 
 
-function initLogger() {
+const initLogger = () => {
   LOGGER.add(LOGGER.transports.File, { filename: 'electron-app.log' });
   LOGGER.level = 'debug';
   LOGGER.log('debug', 'Starting app');
 }
 
-function initWindow(appType) {
+const initWindow = appType => {
   // Create the browser window.
   LOGGER.log('debug', 'Target app = ' + appType);
   appName = appType;
@@ -78,12 +91,23 @@ function initWindow(appType) {
   mainWindow.loadURL('file://' + dir + '/webapp/' + appType + '/index.html');
 
   // Event handlers:
+  initEventHandlers();
 
-  // Emitted when the window is closed.
+
+  if (appType === APP_NAME_SAVE) {
+    initSave();
+  }
+};
+
+
+const initEventHandlers = () => {
+
+  // Focus: the window clicked.
   mainWindow.on('focus', () => {
     if (block || mainWindow === null || mainWindow === undefined) {
       return;
     }
+
 
     if(!mainWindow.isDestroyed() && !mainWindow.isAlwaysOnTop()) {
       mainWindow.setAlwaysOnTop(true);
@@ -98,15 +122,23 @@ function initWindow(appType) {
     }
   });
 
+  mainWindow.on('minimize', () => {
+    setTimeout(()=> {
+      ws.send(JSON.stringify(MSG_MINIMIZE));
+    }, 300);
+  });
 
-  if (appType === APP_NAME_SAVE) {
-    initSave();
-  }
-}
+  mainWindow.on('restore', () => {
+    ws.send(JSON.stringify(MSG_RESTORE));
+  });
+
+};
+
 
 function initSave() {
   ws.send(JSON.stringify(MSG_SAVE));
 }
+
 
 function initSocket() {
   try {
@@ -142,7 +174,9 @@ function initSocket() {
           }
 
           console.log('######## MINIMIZE request')
+          block = true;
           mainWindow.minimize();
+          block = false;
           break;
 
         case "focus":
@@ -184,6 +218,13 @@ function initSocket() {
           // LOGGER.log("debug", 'Fire2: Got Save Params: ' + opts);
           // mainWindow.setTitle('Save to NDEx: ' + opts.name);
           break;
+        case 'restored':
+          console.log('######## RESTORE request: ----------- ')
+          block = true;
+          mainWindow.restore();
+          block = false;
+          break;
+        default:
       }
     };
 

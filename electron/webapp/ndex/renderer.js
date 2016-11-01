@@ -2,6 +2,7 @@ const remote = require('electron').remote;
 const Immutable = require('immutable');
 const {ipcRenderer} = require('electron');
 const jsonfile = require('jsonfile');
+const path = require('path');
 
 const config = require('./config_browser');
 const fileUrl = require('file-url');
@@ -11,7 +12,7 @@ const {BrowserWindow, Menu, MenuItem} = require('electron').remote;
 const win = remote.getCurrentWindow();
 
 // For loading animation
-const child = new BrowserWindow({
+let child = new BrowserWindow({
   parent: win, modal: true, show: false,
   width: 600, height: 550
 });
@@ -78,9 +79,9 @@ let cyrestPortNumber
 
 // For saving to local directory
 function storeFile(cx, fileName) {
-  const file = tempDir + fileName;
+  const file = path.join(tempDir, fileName);
 
-  console.log('Temp File location: ' + file);
+  console.log('Temp File location new: ' + file);
   return jsonfile.writeFileSync(file, cx);
 }
 
@@ -152,7 +153,9 @@ function createNetworkList(idList, isPublic) {
       return server.serverAddress + '/rest/network/' + id + '/asCX';
     } else {
 
-      const tmpFileUrl = fileUrl(tempDir + id + '.json')
+      console.log("ID = " + id)
+      const file = path.join(tempDir, id + '.json');
+      const tmpFileUrl = fileUrl(file)
       console.log("%% Got url: " + tmpFileUrl);
 
       return tmpFileUrl
@@ -416,8 +419,6 @@ function importAll(toSingleCollection, collectionName, ids, privateNetworks, doL
     })
     .then(json => {
       if(toSingleCollection && json.length != 0) {
-        console.log("NEED to DELETE public ID#############")
-        console.log(json)
         deleteNdexId(json[0]['networkSUID'][0])
       } else {
         setUUIDs(json);
@@ -572,8 +573,15 @@ function convertServerInfo(servers) {
 }
 
 function showLoading() {
+  console.log("_ Loading start!");
+
   const gl = remote.getGlobal('sharedObj');
   const contentDir = gl.dir;
+
+  child = new BrowserWindow({
+    parent: win, modal: true, show: false,
+    width: 600, height: 550
+  });
   child.loadURL('file://' + contentDir + '/webapp/ndex/waiting/index.html');
   child.once('ready-to-show', () => {
     child.show();

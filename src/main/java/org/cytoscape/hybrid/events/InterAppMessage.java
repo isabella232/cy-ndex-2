@@ -20,6 +20,7 @@ public class InterAppMessage {
 	public static final String TYPE_ALIVE = "alive";
 	public static final String TYPE_APP = "app";
 	public static final String TYPE_MINIMIZED = "minimized";
+	public static final String TYPE_RESTORED = "restored";
 
 	private String from;
 	private String type;

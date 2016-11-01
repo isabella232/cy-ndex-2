@@ -11,6 +11,17 @@ const DEF_SERVER = 'http://public.ndexbio.org';
 const DEF_NAME = 'NDEx Public';
 const AUTH_API = '/rest/user/authenticate';
 
+const THEME = {
+  palette: {
+    primary1Color: '#6E93B6',
+    primary2Color: '#244060',
+    primary3Color: '##EDEDED',
+    accent1Color: '#D69121',
+    accent2Color: '#E4E4E4',
+    accent3Color: '##9695A6'
+  }
+};
+
 const DEFAULTS = {
   userName: '',
   userPass: '',
@@ -63,14 +74,15 @@ function init(loginInfo) {
 
   cyto.render(NDExLogin, document.getElementById('valet'), {
     defaults: loginInfo,
+    theme: THEME,
 
     onSubmit: () => {
       const serverName = cyto.getStore('ndex').settings.get('server');
 
       // FIXME: Async. call problem here.
       let count = 0
-      const interval = 300
-      const maxTry = 10
+      const interval = 200
+      const maxTry = 20
 
       const id = setInterval(() => {
         const state = cyto.getStore('ndex').servers.toJS();
@@ -81,7 +93,8 @@ function init(loginInfo) {
           clearInterval(id);
         }
 
-        if(server !== undefined && server!== null) {
+        if(server !== undefined && server !== null
+          && server.login.name !== '' && server.login.pass !== '') {
           const serverInfo = {
             serverName: serverName,
             serverAddress: server.address,
