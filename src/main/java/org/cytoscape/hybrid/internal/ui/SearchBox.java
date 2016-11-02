@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.concurrent.ExecutorService;
@@ -24,6 +26,8 @@ import javax.swing.border.EmptyBorder;
 import org.cytoscape.hybrid.events.InterAppMessage;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
 import org.cytoscape.hybrid.internal.ws.WSClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -31,6 +35,8 @@ public class SearchBox extends JPanel {
 
 	private static final long serialVersionUID = 5216512744558942600L;
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(SearchBox.class);
+	
 	private static final Icon NDEX_LOGO = new ImageIcon(
 			SearchBox.class.getClassLoader().getResource("images/ndex-logo.png"));
 
@@ -127,7 +133,18 @@ public class SearchBox extends JPanel {
 		this.searchTextField.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-
+				processClick();
+			}
+			
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (!searchBoxClicked) {
+					searchTextField.setText("");
+					searchBoxClicked = true;
+				}
+			}
+			
+			private final void processClick() {
 				if (!isEnabled()) {
 					MessageUtil.reauestExternalAppFocus(client);
 					return;
@@ -136,6 +153,18 @@ public class SearchBox extends JPanel {
 				if (!searchBoxClicked) {
 					searchTextField.setText("");
 					searchBoxClicked = true;
+				}
+			}
+		});
+		this.searchTextField.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					search(searchTextField.getText());
+				} catch (Exception e1) {
+					e1.printStackTrace();
+					LOGGER.error("Could not finish search.", e1);
 				}
 			}
 		});

@@ -81,7 +81,7 @@ function init(loginInfo) {
 
       // FIXME: Async. call problem here.
       let count = 0
-      const interval = 200
+      const interval = 300
       const maxTry = 20
 
       const id = setInterval(() => {

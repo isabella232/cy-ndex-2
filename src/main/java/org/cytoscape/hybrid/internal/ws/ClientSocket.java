@@ -156,11 +156,11 @@ public class ClientSocket {
 					.setFrom(InterAppMessage.FROM_CY3)
 					.setBody(application);
 			
-			if(application.contains("save") || application.contains("login")) {
-				final JFrame desktop = app.getJFrame();
-				desktop.setEnabled(false);
-				app.getJMenuBar().setEnabled(false);	
-			}
+			// Make the window disabled.
+			final JFrame desktop = app.getJFrame();
+			desktop.setEnabled(false);
+			app.getJToolBar().setEnabled(false);	
+//			app.getJMenuBar().setEnabled(false);	
 					
 			final Credential cred = loginManager.getLogin();
 			if(cred != null) {
@@ -175,21 +175,32 @@ public class ClientSocket {
 			}
 		} else if (msg.getType().equals(InterAppMessage.TYPE_CLOSED)) {
 			pm.kill();
-			final JFrame desktop = app.getJFrame();
-			desktop.setEnabled(true);
-			app.getJMenuBar().setEnabled(true);	
-			desktop.setAlwaysOnTop(true);
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			desktop.requestFocus();
-			desktop.toFront();
-			desktop.repaint();
-			desktop.setAlwaysOnTop(false);
+			
+			EventQueue.invokeLater(new Runnable() {
 
-			eventHelper.fireEvent(new WebSocketEvent(this, msg));
+				@Override
+				public void run() {
+					final JFrame desktop = app.getJFrame();
+
+					desktop.setAlwaysOnTop(true);
+					try {
+						Thread.sleep(200);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					desktop.requestFocus();
+					desktop.toFront();
+					desktop.repaint();
+					desktop.setAlwaysOnTop(false);
+
+					desktop.setEnabled(true);
+//					app.getJMenuBar().setEnabled(true);
+					app.getJToolBar().setEnabled(true);
+					System.out.println("--------------------- Window closed.");
+				}
+			});
+			
+//			eventHelper.fireEvent(new WebSocketEvent(this, msg));
 
 		} else if (msg.getType().equals(InterAppMessage.TYPE_CONNECTED)) {
 			final InterAppMessage reply = new InterAppMessage();
@@ -219,9 +230,10 @@ public class ClientSocket {
 			}
 			
 			// ignore = true;
-			app.getJMenuBar().setEnabled(true);	
+//			app.getJMenuBar().setEnabled(true);	
 			
 			if (desktop.isFocused() && desktop.isActive()) {
+				desktop.toFront();
 			} else {
 				EventQueue.invokeLater(new Runnable() {
 					@Override
@@ -239,39 +251,57 @@ public class ClientSocket {
 				});
 
 				// Send success message:
-				final InterAppMessage reply = new InterAppMessage();
-				reply.setType(InterAppMessage.TYPE_FOCUS_SUCCESS).setFrom(InterAppMessage.FROM_CY3);
-				try {
-					sendMessage(mapper.writeValueAsString(reply));
-				} catch (JsonProcessingException e1) {
-					e1.printStackTrace();
-				}
+//				final InterAppMessage reply = new InterAppMessage();
+//				reply.setType(InterAppMessage.TYPE_FOCUS_SUCCESS).setFrom(InterAppMessage.FROM_CY3);
+//				try {
+//					sendMessage(mapper.writeValueAsString(reply));
+//				} catch (JsonProcessingException e1) {
+//					e1.printStackTrace();
+//				}
 			}
 		} else if (msg.getType().equals(InterAppMessage.TYPE_FOCUS_SUCCESS)) {
 			if (from.equals(InterAppMessage.FROM_CY3)) {
 				return;
 			}
 			final JFrame desktop = app.getJFrame();
-			app.getJMenuBar().setEnabled(true);	
-			if (desktop.isFocused() && desktop.isActive()) {
-				app.getJFrame().toFront();
-			} else {
-				app.getJFrame().requestFocus();
-				app.getJFrame().toFront();
-			}
+			desktop.toFront();
+			
+//			app.getJMenuBar().setEnabled(true);	
+//			if (desktop.isFocused() && desktop.isActive()) {
+//				app.getJFrame().toFront();
+//			} else {
+//				app.getJFrame().requestFocus();
+//				app.getJFrame().toFront();
+//			}
 
 		} else if (msg.getType().equals(InterAppMessage.TYPE_MINIMIZED)) {
 			if (from.equals(InterAppMessage.FROM_CY3)) {
 				return;
 			}
-			final JFrame desktop = app.getJFrame();
-			desktop.setState(JFrame.ICONIFIED);
+			EventQueue.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					final JFrame desktop = app.getJFrame();
+					if (desktop.getState() == JFrame.NORMAL) {
+						System.out.println("MIN CALLED@@@@@@@@@@@@@: " + message);
+						desktop.setState(JFrame.ICONIFIED);
+					}
+				}
+			});
+			
 		} else if (msg.getType().equals(InterAppMessage.TYPE_RESTORED)) {
 			if (from.equals(InterAppMessage.FROM_CY3)) {
 				return;
 			}
-			final JFrame desktop = app.getJFrame();
-			desktop.setState(JFrame.NORMAL);
+			EventQueue.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					final JFrame desktop = app.getJFrame();
+					if (desktop.getState() == JFrame.ICONIFIED) {
+						desktop.setState(JFrame.NORMAL);
+					}
+				}
+			});
 		} else {
 			// Try handlers
 			final WSHandler handler = handlers.get(msg.getType());
@@ -294,15 +324,17 @@ public class ClientSocket {
 		currentSession = null;
 		// latch.countDown();
 		
-		
 		// Enable window
 		final JFrame desktop = app.getJFrame();
 		desktop.setEnabled(true);
 		app.getJMenuBar().setEnabled(true);	
+		app.getJToolBar().setEnabled(true);	
+		
+		System.out.println("--------------------- SOK closed");;
 
-		final InterAppMessage msg = new InterAppMessage();
-		msg.setFrom(InterAppMessage.FROM_CY3).setType(InterAppMessage.TYPE_CLOSED);
-		eventHelper.fireEvent(new WebSocketEvent(this, msg));
+//		final InterAppMessage msg = new InterAppMessage();
+//		msg.setFrom(InterAppMessage.FROM_CY3).setType(InterAppMessage.TYPE_CLOSED);
+//		eventHelper.fireEvent(new WebSocketEvent(this, msg));
 	}
 
 	public void sendMessage(String str) {

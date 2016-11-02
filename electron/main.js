@@ -37,6 +37,8 @@ let appName = null;
 let block = false;
 let isDevEnabled = false;
 
+let isAppRunning = false;
+
 
 const MSG_SELECT_APP = {
   from: 'ndex',
@@ -118,14 +120,12 @@ const initEventHandlers = () => {
       setTimeout(()=> {
         mainWindow.setAlwaysOnTop(false);
         console.log('DISABLE Always on top: ----------- ')
-      }, 300);
+      }, 200);
     }
   });
 
   mainWindow.on('minimize', () => {
-    setTimeout(()=> {
-      ws.send(JSON.stringify(MSG_MINIMIZE));
-    }, 300);
+    ws.send(JSON.stringify(MSG_MINIMIZE));
   });
 
   mainWindow.on('restore', () => {
@@ -173,6 +173,10 @@ function initSocket() {
             break;
           }
 
+          if(mainWindow.isMinimized()) {
+            break;
+          }
+
           console.log('######## MINIMIZE request')
           block = true;
           mainWindow.minimize();
@@ -182,6 +186,9 @@ function initSocket() {
         case "focus":
           if(mainWindow === undefined || mainWindow === null) {
               break;
+          }
+          if(mainWindow.isFocused()) {
+            break;
           }
 
           console.log('######## Focus request: ----------- ')
@@ -220,9 +227,11 @@ function initSocket() {
           break;
         case 'restored':
           console.log('######## RESTORE request: ----------- ')
-          block = true;
-          mainWindow.restore();
-          block = false;
+          if(mainWindow.isMinimized()) {
+            block = true;
+            mainWindow.restore();
+            block = false;
+          }
           break;
         default:
       }
@@ -283,10 +292,14 @@ function addShortcuts() {
 
 app.on('ready', () => {
 
+  if(isAppRunning) {
+    return;
+  }
   // Respond to only once.  One app == one instance.
   if(appName === null) {
     createWindow();
     addShortcuts();
+    isAppRunning = true;
   }
 });
 
