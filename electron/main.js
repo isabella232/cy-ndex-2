@@ -35,6 +35,8 @@ let opts;
 let appName = null;
 
 let block = false;
+
+let minimized = false;
 let isDevEnabled = false;
 
 let isAppRunning = false;
@@ -105,15 +107,14 @@ const initWindow = appType => {
 const initEventHandlers = () => {
 
   // Focus: the window clicked.
-  mainWindow.on('focus', () => {
+  mainWindow.on('focus', (e) => {
+    console.log("event restore:")
     if (block || mainWindow === null || mainWindow === undefined) {
       return;
     }
 
-
     if(!mainWindow.isDestroyed() && !mainWindow.isAlwaysOnTop()) {
       mainWindow.setAlwaysOnTop(true);
-      mainWindow.show();
 
       ws.send(JSON.stringify(MSG_FOCUS));
 
@@ -124,12 +125,20 @@ const initEventHandlers = () => {
     }
   });
 
-  mainWindow.on('minimize', () => {
+  mainWindow.on('minimize', (e) => {
+    e.preventDefault();
     ws.send(JSON.stringify(MSG_MINIMIZE));
+
   });
 
-  mainWindow.on('restore', () => {
-    ws.send(JSON.stringify(MSG_RESTORE));
+  mainWindow.on('restore', (e) => {
+    e.preventDefault();
+
+    // TODO: Are there any better way to handle strange events from Windows system?
+    setTimeout(()=> {
+        ws.send(JSON.stringify(MSG_RESTORE));
+        console.log('sent2 restore message: ----------- ')
+    }, 200);
   });
 
 };
@@ -173,7 +182,7 @@ function initSocket() {
             break;
           }
 
-          if(mainWindow.isMinimized()) {
+          if(mainWindow.isMinimized() || block) {
             break;
           }
 
@@ -187,7 +196,7 @@ function initSocket() {
           if(mainWindow === undefined || mainWindow === null) {
               break;
           }
-          if(mainWindow.isFocused()) {
+          if(mainWindow.isFocused() || block) {
             break;
           }
 
@@ -203,16 +212,8 @@ function initSocket() {
               mainWindow.showInactive();
               setTimeout(()=> {
                 mainWindow.setAlwaysOnTop(false);
-              }, 250);
+              }, 550);
             }
-
-            var msg = {
-              from: "ndex",
-              type: "focus-success",
-              body: "Ndex focuse Success"
-            };
-
-            ws.send(JSON.stringify(msg));
 
             block = false;
             break;
@@ -227,7 +228,7 @@ function initSocket() {
           break;
         case 'restored':
           console.log('######## RESTORE request: ----------- ')
-          if(mainWindow.isMinimized()) {
+          if(mainWindow.isMinimized() && !block) {
             block = true;
             mainWindow.restore();
             block = false;
