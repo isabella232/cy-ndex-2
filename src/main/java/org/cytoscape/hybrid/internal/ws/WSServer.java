@@ -50,6 +50,15 @@ public class WSServer implements CyShutdownListener {
 	}
 	
 	
+	public void stop() {
+		try {
+			server.stop();
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Could not stop WS server.", e);
+		}
+	}
+	
 	public Server getServer() {
 		return this.server;
 	}

@@ -441,6 +441,7 @@ function importAll(toSingleCollection, collectionName, ids, privateNetworks, doL
 
           // Close loading window
           child.hide();
+          win.close();
         });
     })
 
@@ -475,7 +476,7 @@ function initWsConnection() {
       {
         const query = msg.body;
         const port = msg.options;
-        console.log('+++++++++++++++ PORT')
+        console.log('CyREST PORT')
         console.log(port)
         cyrestPortNumber = port
 
@@ -504,6 +505,10 @@ function initWsConnection() {
           onLoad: (ids, toSingleCollection) => {
             showLoading();
             importCollections(ids, toSingleCollection)
+          },
+          onClose: () => {
+            console.log("CLOSE called------");
+            win.close();
           }
         });
         break;

@@ -39,7 +39,11 @@ import org.slf4j.LoggerFactory;
 public class CyActivator extends AbstractCyActivator {
 
 	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
+	private WSServer server;
+	private JToolBar toolBar;
 
+	private JPanel panel;
+		
 	public CyActivator() {
 		super();
 	}
@@ -63,7 +67,7 @@ public class CyActivator extends AbstractCyActivator {
 		final NativeAppInstaller installer = new NativeAppInstaller(config);
 
 		// Start server
-		final WSServer server = new WSServer();
+		this.server = new WSServer();
 		registerAllServices(bc, server, new Properties());
 		ExecutorService executor = Executors.newSingleThreadExecutor();
 		executor.submit(() -> {
@@ -96,12 +100,12 @@ public class CyActivator extends AbstractCyActivator {
 		client.getSocket().addHandler(loginHandler);
 		
 		// Export as service
-		final JPanel searchPanel = new SearchBox(client, pm, installer.getCommand());
+		panel = new SearchBox(client, pm, installer.getCommand());
 		Properties metadata = new Properties();
 		metadata.put("id", "searchPanel");
 		
-		final JToolBar toolBar = desktop.getJToolBar();
-		toolBar.add(searchPanel);
+		toolBar = desktop.getJToolBar();
+		toolBar.add(panel);
 		
 		// Login manager
 		registerService(bc, appStateManager, CyShutdownListener.class, new Properties());
@@ -110,5 +114,9 @@ public class CyActivator extends AbstractCyActivator {
 	@Override
 	public void shutDown() {
 		logger.info("Shutting down NDEx Valet...");
+		server.stop();
+		toolBar.remove(panel);
+		panel = null;
+		server = null;
 	}
 }
