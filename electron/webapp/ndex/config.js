@@ -3,9 +3,9 @@
  */
 
 const DESKTOP = {
-  width: 1280,
-  height: 890,
-  minHeight: 870,
+  width: 1080,
+  height: 800,
+  minHeight: 400,
   minWidth: 500,
   frame: true,
   title: 'Loading NDEx Valet...',

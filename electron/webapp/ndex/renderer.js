@@ -117,17 +117,9 @@ const MESSAGE_TYPE = {
 let cyto;
 
 function startApp() {
-  addCloseButton();
-}
-
-function addCloseButton() {
-  document.getElementById(CLOSE_BUTTON_ID)
-    .addEventListener('click', () => {
-      remote.getCurrentWindow().close();
-    });
-
   init();
 }
+
 
 let cySocket;
 

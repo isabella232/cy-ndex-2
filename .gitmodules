@@ -19,3 +19,9 @@
 [submodule "electron/external-modules/NDExValetFinder"]
 	path = electron/external-modules/NDExValetFinder
 	url = git@github.com:CyComponent/NDExValetFinder.git
+[submodule "electron/external-modules/NDExSearchUI"]
+	path = electron/external-modules/NDExSearchUI
+	url = git@github.com:CyComponent/NDExSearchUI.git
+[submodule "electron/external-modules/CyUI"]
+	path = electron/external-modules/CyUI
+	url = git@github.com:CyComponent/CyUI.git
