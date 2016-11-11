@@ -26,6 +26,7 @@ import javax.swing.border.EmptyBorder;
 import org.cytoscape.hybrid.events.InterAppMessage;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
 import org.cytoscape.hybrid.internal.ws.WSClient;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -198,6 +199,7 @@ public class SearchBox extends JPanel {
 			
 			@Override
 			public void mouseClicked(MouseEvent e) {
+				System.out.println("Search start!----------");
 				try {
 					search(searchTextField.getText());
 				} catch (Exception e1) {
@@ -270,6 +272,7 @@ public class SearchBox extends JPanel {
 			try {
 				// Set application type:
 				this.client.getSocket().setApplication(app);
+				System.out.println("Command: " + command);
 				pm.setProcess(Runtime.getRuntime().exec(command));
 			} catch (Exception e) {
 				e.printStackTrace();

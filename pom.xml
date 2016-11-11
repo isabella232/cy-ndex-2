@@ -20,7 +20,7 @@
 
 	<groupId>org.cytoscape</groupId>
 	<artifactId>ndex-valet</artifactId>
-	<version>1.2.5</version>
+	<version>1.2.6</version>
 	<packaging>bundle</packaging>
 	<name>NDEx Valet (Electron hybrid app)</name>
 

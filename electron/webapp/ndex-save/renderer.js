@@ -3,6 +3,28 @@ const dialog = require('electron').remote.dialog;
 const {ipcRenderer} = require('electron');
 const {BrowserWindow, Menu, MenuItem} = require('electron').remote;
 
+const fs = require('fs')
+const os = require('os')
+const path = require('path')
+const request = require('request');
+
+
+
+const tempDir = os.tmpdir()
+
+// For posting to Minio server
+const Minio = require('minio');
+
+const IMAGE_SERVER = 'storage.cytoscape.io';
+const minioClient = new Minio(
+  {
+    endPoint: IMAGE_SERVER,
+    secure: false
+  }
+);
+
+
+
 // Main browser window
 const win = remote.getCurrentWindow();
 
@@ -463,67 +485,33 @@ function showLoading() {
   });
 }
 
+
 function getImage(suid, uuid) {
   const url = 'http://localhost:' + options.cyrestPort +'/v1/networks/' + suid + '/views/first.png?h=2000';
-  const imageUrl = 'http://ci-dev-serv.ucsd.edu:8081/image/png/' + uuid;
 
-  const oReq = new XMLHttpRequest();
-  oReq.timeout = 30000
-  oReq.ontimeout = evt => {
-    console.log('** ERROR: timeout - could not get image from Cytoscape')
-    console.log(evt);
-    child.close()
-    dialog.showMessageBox(MSG_ERROR_IMAGE_SAVE, () => {
-      win.close()
-    })
-  }
+  const fileName = path.join(tempDir, uuid + '.png')
 
-  oReq.addEventListener('error', evt => {
-    console.log('** ERROR downloading image:')
-    console.log(evt);
-    child.close()
-    win.close()
-  });
+  request.head(url, (err, res, body) => {
+    console.log('content-type:', res.headers['content-type']);
+    console.log('content-length:', res.headers['content-length']);
 
-  oReq.open('GET', url, true);
-  oReq.responseType = 'blob';
+    request(url).pipe(fs.createWriteStream(fileName)).on('close', () => {
 
-  oReq.onload = oEvent => {
-    // To image cache
-    const blob = oReq.response;
-    const pReq = new XMLHttpRequest();
-
-
-    pReq.timeout = 40000
-    pReq.ontimeout = evt => {
-      console.log('** ERROR: Image upload timeout')
-      console.log(evt);
-      child.close()
-      dialog.showMessageBox(MSG_ERROR_IMAGE_SAVE, () => {
-        win.close()
-      })
-    }
-
-    pReq.addEventListener('error', evt => {
-      console.log('** ERROR uploading image:')
-      console.log(evt);
-      child.close()
-      dialog.showMessageBox(MSG_ERROR_IMAGE_SAVE, () => {
-        win.close()
+      minioClient.fPutObject('images', uuid + '.png', fileName, 'application/octet-stream', function(err, etag) {
+        if(err !== null) {
+          // Upload error
+          dialog.showMessageBox(MSG_ERROR_IMAGE_SAVE, () => {
+            child.close()
+            win.close()
+          })
+        } else {
+          console.log('Success!!!!!!!!')
+          child.close()
+          win.close()
+        }
       })
     });
-
-    pReq.open('POST', imageUrl, true);
-    pReq.onload = evt => {
-      child.close()
-      win.close()
-    };
-
-    pReq.send(blob);
-  };
-
-  // GET image from Cytoscape
-  oReq.send();
+  });
 }
 
 // Start the application whenever the required parameters are ready.
