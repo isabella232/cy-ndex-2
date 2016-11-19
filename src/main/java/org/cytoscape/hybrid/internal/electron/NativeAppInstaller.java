@@ -22,7 +22,7 @@ import java.util.zip.ZipInputStream;
 import org.cytoscape.application.CyApplicationConfiguration;
 
 public final class NativeAppInstaller {
-	private static final String VERSION = "1.2.6";
+	private static final String VERSION = "1.2.8";
 	private static final String NATIVE_APP_LOCATION = "ndex-electron";
 	private static final String APP_DIR = NATIVE_APP_LOCATION + "-" + VERSION;
 

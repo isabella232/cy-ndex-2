@@ -7,7 +7,6 @@ const DESKTOP = {
   minimizable: false,
   maximizable: false,
   fullscreenable: false,
-  resizable: false,
 };
 
 module.exports = DESKTOP;
