@@ -570,8 +570,8 @@ function checkPermission(metadata) {
   console.log("Checking permission: ")
   console.log(metadata);
 
-  const owner = metadata.owner;
-  if(owner !== options.userName) {
+  const owner = metadata.owner.toLowerCase();
+  if(owner !== options.userName.toLowerCase()) {
     dialog.showMessageBox(win, MSG_ERROR_NOT_OWNER, () => {
       existingUuid = null
     })

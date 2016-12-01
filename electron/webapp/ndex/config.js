@@ -4,7 +4,7 @@
 
 const DESKTOP = {
   width: 1080,
-  height: 800,
+  height: 850,
   minHeight: 400,
   minWidth: 500,
   frame: true,
