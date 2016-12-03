@@ -79,8 +79,8 @@ public class CyActivator extends AbstractCyActivator {
 		});
 
 		// Menu item for NDEx Save
-		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory("ndex-save", client, pm, installer.getCommand());
-		final OpenExternalAppTaskFactory ndexLoginTaskFactory = new OpenExternalAppTaskFactory("ndex-login", client, pm, installer.getCommand());
+		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory("ndex-save", client, pm, installer.getCommand(), appManager);
+		final OpenExternalAppTaskFactory ndexLoginTaskFactory = new OpenExternalAppTaskFactory("ndex-login", client, pm, installer.getCommand(), appManager);
 		
 		final Properties ndexSaveTaskFactoryProps = new Properties();
 		ndexSaveTaskFactoryProps.setProperty(ENABLE_FOR, ActionEnableSupport.ENABLE_FOR_NETWORK);
