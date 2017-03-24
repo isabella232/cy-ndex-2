@@ -17,6 +17,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -70,17 +72,28 @@ public final class NativeAppInstaller {
 	
 		checkVersion(configLocation.toString(), electronAppDirectory.toString());
 		
+		// Extract binary from archive
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		executor.submit(() -> {
+			install(electronAppDirectory);
+		});
+
+		this.command = getPlatformDependentCommand(electronAppDirectory);
+	}
+	
+	private final void install(final File electronAppDirectory) {
 		if(!electronAppDirectory.exists()) {
 			electronAppDirectory.mkdir();
 			try {
 				extractNativeApp(electronAppDirectory);
+				System.out.println("CyNDEx is ready!!!!!!!!!!!");
 			} catch (IOException e) {
 				throw new RuntimeException("Failed to install native app", e);
 			}
 		}
-
-		this.command = getPlatformDependentCommand(electronAppDirectory);
 	}
+	
+	
 
 	private final String detectPlatform() {
 		final String os = System.getProperty("os.name").toLowerCase();
@@ -113,7 +126,11 @@ public final class NativeAppInstaller {
 		switch (platform) {
 		case PLATFORM_MAC:
 			try {
+				long s = System.currentTimeMillis();
+				System.out.println("------------ Start ---------------");
 				extract(archiveFile);
+				long t = System.currentTimeMillis() - s;
+				System.out.println("------------ End --------------- " + t);
 				unzip(archiveFile, electronAppDir);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -145,7 +162,7 @@ public final class NativeAppInstaller {
 				stream.close();
 				break;
 			}
-			System.out.print((char) c);
+//			System.out.print((char) c);
 		}
 	}
 
@@ -168,7 +185,8 @@ public final class NativeAppInstaller {
 	private final void extract(File target) throws IOException {
 //		final URL src = this.getClass().getClassLoader().getResource(TEMPLATE_NAME + "/" + ARCHIVE_MAC);
 		final String location = "http://chianti.ucsd.edu/~kono/ci/data/cyndex2/NDEx-Valet-mac.tar.gz";
-		URL src = new URL(location);
+		final String location2 = "https://github.com/idekerlab/cy-ndex-2/releases/download/new-installer1/NDEx-Valet-mac.tar.gz";
+		URL src = new URL(location2);
 		InputStream is = src.openStream();
 		FileOutputStream fos = null;
 		try {

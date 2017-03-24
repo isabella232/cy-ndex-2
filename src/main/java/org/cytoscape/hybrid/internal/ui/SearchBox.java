@@ -169,6 +169,7 @@ public class SearchBox extends JPanel {
 				}
 			}
 		});
+		
 
 		this.searchButton = new JPanel();
 		this.settingButton = new JPanel();
