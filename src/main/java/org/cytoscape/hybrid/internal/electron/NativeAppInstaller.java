@@ -12,6 +12,7 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -165,7 +166,9 @@ public final class NativeAppInstaller {
 	}
 
 	private final void extract(File target) throws IOException {
-		final URL src = this.getClass().getClassLoader().getResource(TEMPLATE_NAME + "/" + ARCHIVE_MAC);
+//		final URL src = this.getClass().getClassLoader().getResource(TEMPLATE_NAME + "/" + ARCHIVE_MAC);
+		final String location = "http://chianti.ucsd.edu/~kono/ci/data/cyndex2/NDEx-Valet-mac.tar.gz";
+		URL src = new URL(location);
 		InputStream is = src.openStream();
 		FileOutputStream fos = null;
 		try {
@@ -237,5 +240,14 @@ public final class NativeAppInstaller {
 
 	public String getCommand() {
 		return this.command;
+	}
+	
+	private final void downloadBinary(final Path target) throws IOException {
+		final String location = "http://chianti.ucsd.edu/~kono/ci/data/cyndex2/NDEx-Valet-mac.tar.gz";
+		
+		URL website = new URL(location);
+		try (InputStream in = website.openStream()) {
+		    Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+		}
 	}
 }
