@@ -28,6 +28,8 @@ public final class NativeAppInstaller {
 	private static final String VERSION = "1.2.10";
 	private static final String NATIVE_APP_LOCATION = "ndex-electron";
 	private static final String APP_DIR = NATIVE_APP_LOCATION + "-" + VERSION;
+	
+	private final String BASE_URL = "https://github.com/idekerlab/cy-ndex-2/releases/download/new-installer1/";
 
 	// Platform types
 	private static final String PLATFORM_WIN = "win";
@@ -36,7 +38,7 @@ public final class NativeAppInstaller {
 
 	// Archive file names
 	private static final String ARCHIVE_MAC = "NDEx-Valet-mac.tar.gz";
-	private static final String ARCHIVE_LINUX = "NDEx-Valet-linux.tar.gz";
+	private static final String ARCHIVE_LINUX = "NDEx-Valet-linux64.tar.gz";
 	private static final String ARCHIVE_WIN = "NDEx-Valet-win64.zip";
 
 	private static final String TEMPLATE_NAME = "ndex";
@@ -128,7 +130,8 @@ public final class NativeAppInstaller {
 			try {
 				long s = System.currentTimeMillis();
 				System.out.println("------------ Start ---------------");
-				extract(archiveFile);
+				final URL sourceUrl = new URL(BASE_URL + ARCHIVE_MAC);
+				extract(sourceUrl, archiveFile);
 				long t = System.currentTimeMillis() - s;
 				System.out.println("------------ End --------------- " + t);
 				unzip(archiveFile, electronAppDir);
@@ -137,8 +140,9 @@ public final class NativeAppInstaller {
 			}
 			break;
 		case PLATFORM_WIN:
-			final URL source = this.getClass().getClassLoader().getResource(TEMPLATE_NAME + "/" + ARCHIVE_WIN);
-			extractPreviewTemplate(source, electronAppDir);
+//			final URL source = this.getClass().getClassLoader().getResource(TEMPLATE_NAME + "/" + ARCHIVE_WIN);
+			final URL sourceUrl = new URL(BASE_URL + ARCHIVE_WIN);
+			extractPreviewTemplate(sourceUrl, electronAppDir);
 			break;
 		case PLATFORM_LINUX:
 
@@ -182,11 +186,7 @@ public final class NativeAppInstaller {
 		});
 	}
 
-	private final void extract(File target) throws IOException {
-//		final URL src = this.getClass().getClassLoader().getResource(TEMPLATE_NAME + "/" + ARCHIVE_MAC);
-		final String location = "http://chianti.ucsd.edu/~kono/ci/data/cyndex2/NDEx-Valet-mac.tar.gz";
-		final String location2 = "https://github.com/idekerlab/cy-ndex-2/releases/download/new-installer1/NDEx-Valet-mac.tar.gz";
-		URL src = new URL(location2);
+	private final void extract(final URL src, File target) throws IOException {
 		InputStream is = src.openStream();
 		FileOutputStream fos = null;
 		try {
@@ -258,14 +258,5 @@ public final class NativeAppInstaller {
 
 	public String getCommand() {
 		return this.command;
-	}
-	
-	private final void downloadBinary(final Path target) throws IOException {
-		final String location = "http://chianti.ucsd.edu/~kono/ci/data/cyndex2/NDEx-Valet-mac.tar.gz";
-		
-		URL website = new URL(location);
-		try (InputStream in = website.openStream()) {
-		    Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
-		}
 	}
 }
