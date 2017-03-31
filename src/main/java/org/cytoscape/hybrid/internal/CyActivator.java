@@ -5,11 +5,16 @@ import static org.cytoscape.work.ServiceProperties.MENU_GRAVITY;
 import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
 import static org.cytoscape.work.ServiceProperties.TITLE;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JToolBar;
 
 import org.cytoscape.application.CyApplicationConfiguration;
@@ -39,6 +44,8 @@ import org.slf4j.LoggerFactory;
 public class CyActivator extends AbstractCyActivator {
 
 	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
+	private static final Dimension PANEL_SIZE = new Dimension(400, 40);
+	private static final Dimension PANEL_SIZE_MAX = new Dimension(900, 100);
 	private WSServer server;
 	private JToolBar toolBar;
 
@@ -64,7 +71,24 @@ public class CyActivator extends AbstractCyActivator {
 		
 		final ExternalAppManager pm = new ExternalAppManager();
 		final WSClient client = new WSClient(desktop, pm, eventHelper, loginManager, cyProp);
-		final NativeAppInstaller installer = new NativeAppInstaller(config);
+		
+		
+		final JProgressBar bar = new JProgressBar();
+		bar.setValue(0);
+		JPanel progress = new JPanel();
+		progress.setPreferredSize(PANEL_SIZE);
+//		progress.setMinimumSize(PANEL_SIZE);
+		progress.setSize(PANEL_SIZE);
+		progress.setMaximumSize(PANEL_SIZE_MAX);
+		progress.setBackground(new Color(245, 245, 245));
+		
+		JLabel label = new JLabel("Installing: ");
+		progress.setLayout(new BorderLayout());
+		progress.add(bar, BorderLayout.CENTER);
+		progress.add(label, BorderLayout.WEST);
+		toolBar = desktop.getJToolBar();
+		toolBar.add(progress);
+		final NativeAppInstaller installer = new NativeAppInstaller(config, bar, progress, toolBar, desktop);
 
 		// Start server
 		this.server = new WSServer();
@@ -104,8 +128,8 @@ public class CyActivator extends AbstractCyActivator {
 		Properties metadata = new Properties();
 		metadata.put("id", "searchPanel");
 		
-		toolBar = desktop.getJToolBar();
-		toolBar.add(panel);
+		installer.executeInstaller(panel);
+//		toolBar.add(panel);
 		
 		// Login manager
 		registerService(bc, appStateManager, CyShutdownListener.class, new Properties());
