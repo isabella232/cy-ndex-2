@@ -16,6 +16,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JToolBar;
+import javax.swing.border.EmptyBorder;
 
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
@@ -76,18 +77,20 @@ public class CyActivator extends AbstractCyActivator {
 		final JProgressBar bar = new JProgressBar();
 		bar.setValue(0);
 		JPanel progress = new JPanel();
+		progress.setBorder(new EmptyBorder(10, 10, 10, 10));
 		progress.setPreferredSize(PANEL_SIZE);
 //		progress.setMinimumSize(PANEL_SIZE);
 		progress.setSize(PANEL_SIZE);
 		progress.setMaximumSize(PANEL_SIZE_MAX);
 		progress.setBackground(new Color(245, 245, 245));
 		
-		JLabel label = new JLabel("Installing: ");
+		JLabel label = new JLabel("Loading NDEx App: ");
 		progress.setLayout(new BorderLayout());
 		progress.add(bar, BorderLayout.CENTER);
 		progress.add(label, BorderLayout.WEST);
 		toolBar = desktop.getJToolBar();
-		toolBar.add(progress);
+		
+		// This is the actual installer extracting binaries
 		final NativeAppInstaller installer = new NativeAppInstaller(config, bar, progress, toolBar, desktop);
 
 		// Start server
@@ -129,7 +132,6 @@ public class CyActivator extends AbstractCyActivator {
 		metadata.put("id", "searchPanel");
 		
 		installer.executeInstaller(panel);
-//		toolBar.add(panel);
 		
 		// Login manager
 		registerService(bc, appStateManager, CyShutdownListener.class, new Properties());

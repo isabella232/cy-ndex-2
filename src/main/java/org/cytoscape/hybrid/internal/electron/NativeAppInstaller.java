@@ -1,7 +1,5 @@
 package org.cytoscape.hybrid.internal.electron;
 
-import java.awt.Color;
-import java.awt.Dimension;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -35,6 +33,8 @@ public final class NativeAppInstaller {
 	private static final String VERSION = "1.2.10";
 	private static final String NATIVE_APP_LOCATION = "ndex-electron";
 	private static final String APP_DIR = NATIVE_APP_LOCATION + "-" + VERSION;
+	
+	private final String INSTALL_MAKER_FILE = "ndex-installed.txt";
 	
 	private final String BASE_URL = "https://github.com/idekerlab/cy-ndex-2/releases/download/new-installer1/";
 
@@ -83,6 +83,11 @@ public final class NativeAppInstaller {
 	private JToolBar toolBar;
 	private CySwingApplication desktop;
 
+
+	// Currently, this is an empty file just for checking installation.
+	// Maybe used as real config file in future.
+	private File markerFile;
+
 	public NativeAppInstaller(final CyApplicationConfiguration appConfig, JProgressBar bar, 
 			JPanel progressPanel, JToolBar toolBar, CySwingApplication desktop) {
 		this.appConfig = appConfig;
@@ -95,6 +100,7 @@ public final class NativeAppInstaller {
 
 		final File configLocation = this.appConfig.getConfigurationDirectoryLocation();
 		this.electronAppDir = new File(configLocation, APP_DIR);
+		this.markerFile = new File(configLocation, INSTALL_MAKER_FILE);
 	
 		checkVersion(configLocation.toString(), electronAppDir.toString());
 		
@@ -112,21 +118,57 @@ public final class NativeAppInstaller {
 		
 	}
 	
-	private final void install(final File electronAppDirectory) {
+	
+	private final Boolean isInstalled(final File electronAppDirectory) {
+		// 1. Check status of the install from file
+		
+		// 1. no directory --> force to install everything
 		if(!electronAppDirectory.exists()) {
+			
+			return false;
+		}
+		
+		// 2. Directory exists.  Check it's valid or not
+		
+		// 2.1. No marker file
+		if(!markerFile.exists()) {
+			return false;
+		} else {
+			// 2.2 It's already installed!
+			return true;
+		}
+	}
+	
+	
+	private final void install(final File electronAppDirectory) {
+		if(isInstalled(electronAppDirectory)) {
+			// Directory already exists.  Simply add the NDEx Search box.
+			toolBar.add(uiPanel);
+		} else {
+			// Clean up unnecessary old files.
+			if(markerFile.exists()) {
+				markerFile.delete();
+			}
+			
+			if(electronAppDirectory.exists()) {
+				deleteAll(electronAppDirectory);
+			}
+			
 			electronAppDirectory.mkdir();
+			toolBar.add(progressPanel);
+			
 			try {
 				extractNativeApp(electronAppDirectory);
-						toolBar.remove(progressPanel);
-							
-						toolBar.add(uiPanel);
-						uiPanel.updateUI();
-						uiPanel.repaint();
-						desktop.getJFrame().repaint();
-						toolBar.repaint();
-						toolBar.updateUI();
-						System.out.println("***CyNDEx is ready!!!!!!!!!!!");
-				
+				toolBar.remove(progressPanel);
+				toolBar.add(uiPanel);
+				uiPanel.updateUI();
+				uiPanel.repaint();
+				desktop.getJFrame().repaint();
+				toolBar.repaint();
+				toolBar.updateUI();
+				System.out.println("***CyNDEx is ready!!!!!!!!!!!");
+				markerFile.createNewFile();
+
 			} catch (IOException e) {
 				throw new RuntimeException("Failed to install native app", e);
 			}
@@ -166,7 +208,6 @@ public final class NativeAppInstaller {
             System.out.println("fileName = " + fileName);
  
             // opens input stream from the HTTP connection
-//            inputStream = httpConn.getInputStream();
             httpConn.disconnect();
             return contentLength;
  
@@ -210,15 +251,9 @@ public final class NativeAppInstaller {
 		switch (platform) {
 		case PLATFORM_MAC:
 			try {
-				long s = System.currentTimeMillis();
-				System.out.println("------------ Start2 ---------------");
-				
 				int fileSize = checkSize(BASE_URL + ARCHIVE_MAC);
-				
 				final URL sourceUrl = new URL(BASE_URL + ARCHIVE_MAC);
 				extract(sourceUrl, archiveFile, fileSize);
-				long t = System.currentTimeMillis() - s;
-				System.out.println("------------ End --------------- " + t);
 				unzip(archiveFile, electronAppDir);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -287,13 +322,12 @@ public final class NativeAppInstaller {
 				r = is.read(buf);
 				finished += BUFFER_SIZE;
 				idx++;
-				if(idx % 200 == 0) {
+				if(idx % 400 == 0) {
 					Double progress = (finished/size)* 100;
 					if(progress>=100) {
 						progress = 100.0;
 					}
 					this.bar.setValue(progress.intValue());
-					System.out.println("Finished: " + progress + "%");
 				}
 			}
 		} finally {
