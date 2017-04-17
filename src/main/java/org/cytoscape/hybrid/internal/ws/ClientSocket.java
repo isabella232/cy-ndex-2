@@ -17,8 +17,6 @@ import javax.swing.SwingUtilities;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.hybrid.events.InterAppMessage;
 import org.cytoscape.hybrid.events.WSHandler;
-import org.cytoscape.hybrid.internal.login.Credential;
-import org.cytoscape.hybrid.internal.login.LoginManager;
 import org.cytoscape.property.CyProperty;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
@@ -56,17 +54,15 @@ public class ClientSocket {
 	private final CountDownLatch latch = new CountDownLatch(1);
 	
 	private String application;
-	private final LoginManager loginManager;
 
 	private final String cyrestPort;
 	
 
 	public ClientSocket(final CySwingApplication app, 
 			ExternalAppManager pm, 
-			final LoginManager loginManager, final CyProperty<Properties> props) {
+			final CyProperty<Properties> props) {
 		this.app = app;
 		this.pm = pm;
-		this.loginManager = loginManager;
 
 		this.mapper = new ObjectMapper();
 		this.handlers = new HashMap<>();
@@ -170,12 +166,6 @@ public class ClientSocket {
 			app.getJToolBar().setEnabled(false);	
 			desktop.setFocusable(false);
 					
-			final Credential cred = loginManager.getLogin();
-			if(cred != null) {
-				// Add login as optional param
-				reply.setOptions(cred);
-			}
-			
 			try {
 				sendMessage(mapper.writeValueAsString(reply));
 			} catch (JsonProcessingException e1) {

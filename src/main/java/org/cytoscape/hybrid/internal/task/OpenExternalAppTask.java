@@ -3,7 +3,6 @@ package org.cytoscape.hybrid.internal.task;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.naming.spi.DirStateFactory.Result;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
@@ -13,6 +12,11 @@ import org.cytoscape.hybrid.internal.ws.WSClient;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
+/**
+ * 
+ * Task to execute a command and open a new external application as a new process. 
+ *
+ */
 public class OpenExternalAppTask extends AbstractTask {
 
 	private final String appName;

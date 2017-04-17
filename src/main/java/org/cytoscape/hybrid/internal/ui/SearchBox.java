@@ -26,7 +26,6 @@ import javax.swing.border.EmptyBorder;
 import org.cytoscape.hybrid.events.InterAppMessage;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
 import org.cytoscape.hybrid.internal.ws.WSClient;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +60,6 @@ public class SearchBox extends JPanel {
 	private final JLabel iconLabel;
 	private final JTextField searchTextField;
 	private final JPanel searchButton;
-	private final JPanel settingButton;
 
 	// WS Client
 	private final WSClient client;
@@ -172,30 +170,18 @@ public class SearchBox extends JPanel {
 		
 
 		this.searchButton = new JPanel();
-		this.settingButton = new JPanel();
 		this.searchButton.setLayout(new BorderLayout());
-		this.settingButton.setLayout(new BorderLayout());
 		this.searchButton.setBorder(new EmptyBorder(3, 5, 3, 5));
-		this.settingButton.setBorder(new EmptyBorder(3, 5, 3, 5));
 		this.searchButton.setBackground(Color.WHITE);
-		this.settingButton.setBackground(Color.WHITE);
 		
 		final JLabel searchIconLabel = new JLabel(ICON_SEARCH);
 		final JLabel settingIconLabel = new JLabel(ICON_SETTINGS);
 		searchIconLabel.setOpaque(false);
 		settingIconLabel.setOpaque(false);
 		this.searchButton.add(searchIconLabel, BorderLayout.CENTER);
-		this.settingButton.add(settingIconLabel, BorderLayout.CENTER);
-		
-		this.settingButton.setSize(BUTTON_SIZE);
 		this.searchButton.setSize(BUTTON_SIZE);
-
 		this.searchButton.setBackground(Color.white);
-		this.settingButton.setBackground(Color.white);
-
 		this.searchButton.setToolTipText("Start NDEx search (opens new window)");
-		this.settingButton.setToolTipText("Open settings");
-		
 		this.searchButton.addMouseListener(new MouseAdapter() {
 			
 			@Override
@@ -208,23 +194,10 @@ public class SearchBox extends JPanel {
 				}
 			}
 		});
-		
-		this.settingButton.addMouseListener(new MouseAdapter() {
-			
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				try {
-					setting();
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
 
 		final JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new GridLayout(1, 2));
 		buttonPanel.add(searchButton);
-		buttonPanel.add(settingButton);
 
 		setLayout(new BorderLayout());
 		add(iconLabel, BorderLayout.WEST);
@@ -247,14 +220,6 @@ public class SearchBox extends JPanel {
 		
 		execute("ndex");
 	}	
-
-	private final void setting() {
-		try {
-			execute("ndex-login");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}		
-	}
 	
 	private final void execute(final String app) throws Exception {
 

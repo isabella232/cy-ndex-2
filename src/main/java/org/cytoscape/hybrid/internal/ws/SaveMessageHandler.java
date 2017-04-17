@@ -8,14 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.hybrid.events.InterAppMessage;
 import org.cytoscape.hybrid.events.WSHandler;
-import org.cytoscape.hybrid.internal.login.Credential;
-import org.cytoscape.hybrid.internal.login.LoginManager;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
 import org.cytoscape.model.subnetwork.CyRootNetworkManager;
@@ -30,16 +25,14 @@ public class SaveMessageHandler implements WSHandler {
 	private final CyApplicationManager appManager;
 	private final ObjectMapper mapper;
 	
-	private final LoginManager manager;
 	private final CyRootNetworkManager rootManager;
 	private final String cyrestPort;
 	
 	public SaveMessageHandler(CyApplicationManager appManager, 
-			final LoginManager manager, final CyRootNetworkManager rootManager,
+			final CyRootNetworkManager rootManager,
 			final CyProperty<Properties> props) {
 		this.appManager = appManager;
 		this.mapper = new ObjectMapper();
-		this.manager = manager;
 		this.rootManager = rootManager;
 		
 		this.cyrestPort = props.getProperties().get("rest.port").toString();
@@ -54,18 +47,6 @@ public class SaveMessageHandler implements WSHandler {
 			return;
 		}
 		
-		final Credential credential = manager.getLogin();
-		if(credential == null) {
-			final InterAppMessage errorReply = InterAppMessage.create()
-					.setType(NdexSaveMessage.TYPE_CLOSED)
-					.setFrom(InterAppMessage.FROM_CY3);
-			try {
-				sendMessage(mapper.writeValueAsString(errorReply), session);
-			} catch (JsonProcessingException e1) {
-				e1.printStackTrace();
-			}
-			return;
-		}
 
 		// This is the save message from NDEx Save
 
@@ -85,10 +66,6 @@ public class SaveMessageHandler implements WSHandler {
 		saveProps.put(CyNetwork.SUID, networkSUID.toString());
 		saveProps.put("root" + CyNetwork.NAME, rootNetName);
 		saveProps.put("root" + CyNetwork.SUID, root.getSUID().toString());
-		saveProps.put("userName", credential.getUserName());
-		saveProps.put("userPass", credential.getUserPass());
-		saveProps.put("serverName", credential.getServerName());
-		saveProps.put("serverAddress", credential.getServerAddress());
 		saveProps.put("cyrestPort", cyrestPort);
 		
 		final InterAppMessage reply = InterAppMessage.create()

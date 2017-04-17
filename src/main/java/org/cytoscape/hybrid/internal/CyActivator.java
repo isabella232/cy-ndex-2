@@ -27,8 +27,6 @@ import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.hybrid.events.WSHandler;
 import org.cytoscape.hybrid.internal.electron.NativeAppInstaller;
 import org.cytoscape.hybrid.internal.electron.NdexAppStateManager;
-import org.cytoscape.hybrid.internal.login.LoginManager;
-import org.cytoscape.hybrid.internal.login.NdexLoginMessageHandler;
 import org.cytoscape.hybrid.internal.task.OpenExternalAppTaskFactory;
 import org.cytoscape.hybrid.internal.ui.SearchBox;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
@@ -67,12 +65,10 @@ public class CyActivator extends AbstractCyActivator {
 		final CyProperty<Properties> cyProp = getService(bc,CyProperty.class,"(cyPropertyName=cytoscape3.props)");
 
 		// Local components
-		final LoginManager loginManager = new LoginManager();
-		final NdexAppStateManager appStateManager = new NdexAppStateManager(config, loginManager);
+		final NdexAppStateManager appStateManager = new NdexAppStateManager(config);
 		
 		final ExternalAppManager pm = new ExternalAppManager();
-		final WSClient client = new WSClient(desktop, pm, eventHelper, loginManager, cyProp);
-		
+		final WSClient client = new WSClient(desktop, pm, eventHelper, cyProp);
 		
 		final JProgressBar bar = new JProgressBar();
 		bar.setValue(0);
@@ -121,10 +117,8 @@ public class CyActivator extends AbstractCyActivator {
 	
 		// WebSocket event handlers
 		
-		final WSHandler saveHandler = new SaveMessageHandler(appManager, loginManager, rootManager, cyProp);
-		final WSHandler loginHandler = new NdexLoginMessageHandler(loginManager);
+		final WSHandler saveHandler = new SaveMessageHandler(appManager, rootManager, cyProp);
 		client.getSocket().addHandler(saveHandler);
-		client.getSocket().addHandler(loginHandler);
 		
 		// Export as service
 		panel = new SearchBox(client, pm, installer.getCommand());
