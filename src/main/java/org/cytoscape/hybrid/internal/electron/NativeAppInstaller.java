@@ -30,13 +30,15 @@ import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.swing.CySwingApplication;
 
 public final class NativeAppInstaller {
-	private static final String VERSION = "1.2.10";
+	private static final String VERSION = "2.0.0";
 	private static final String NATIVE_APP_LOCATION = "ndex-electron";
 	private static final String APP_DIR = NATIVE_APP_LOCATION + "-" + VERSION;
 	
 	private final String INSTALL_MAKER_FILE = "ndex-installed.txt";
 	
-	private final String BASE_URL = "https://github.com/idekerlab/cy-ndex-2/releases/download/new-installer1/";
+//	private final String BASE_URL = "https://github.com/idekerlab/cy-ndex-2/releases/download/new-installer1/";
+	
+	private final String BASE_URL = "http://chianti.ucsd.edu/~kono/ci/app/cyndex2/";
 
 	private static final int BUFFER_SIZE = 2048;
 	
@@ -46,18 +48,17 @@ public final class NativeAppInstaller {
 	private static final String PLATFORM_LINUX = "linux";
 
 	// Archive file names
-	private static final String ARCHIVE_MAC = "NDEx-Valet-mac.tar.gz";
+	private static final String ARCHIVE_MAC = "CyNDEx-2-mac.tar.gz";
 	private static final String ARCHIVE_LINUX = "NDEx-Valet-linux64.tar.gz";
 	private static final String ARCHIVE_WIN = "NDEx-Valet-win64.zip";
 
-	private static final String TEMPLATE_NAME = "ndex";
 
 	private static final Map<String, String> COMMANDS = new HashMap<>();
 	private static final Map<String, String> ARCHIVE = new HashMap<>();
 
 	static {
 		// Commands to execute native Electron App
-		COMMANDS.put(PLATFORM_MAC, "NDEx-Valet.app/Contents/MacOS/NDEx-Valet");
+		COMMANDS.put(PLATFORM_MAC, "CyNDEx-2.app/Contents/MacOS/CyNDEx-2");
 		COMMANDS.put(PLATFORM_WIN, "NDEx-Valet-win64/NDEx-Valet.exe");
 		COMMANDS.put(PLATFORM_LINUX, "NDEx-Valet/NDEx-Valet");
 

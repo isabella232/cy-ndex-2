@@ -1,8 +1,8 @@
 {
-  "name": "ndex-valet",
-  "productName": "NDEx-Valet",
-  "version": "1.2.10",
-  "description": "NDEx Valet Cytoscape App",
+  "name": "cy-ndex-2",
+  "productName": "CyNDEx-2",
+  "version": "2.0.0",
+  "description": "NDEx Client for Cytoscape",
   "main": "main.js",
   "scripts": {
     "start": "electron main.js",
@@ -26,14 +26,12 @@
   "license": "MIT",
   "homepage": "https://github.com/idekerlab/ndex-valet",
   "devDependencies": {
-    "devtron": "1.3.0",
-    "electron": "1.4.7",
-    "electron-packager": "8.2.0",
-    "eslint": "3.7.1",
-    "eslint-config-airbnb": "12.0.0",
-    "eslint-plugin-import": "2.0.0",
-    "eslint-plugin-jsx-a11y": "2.2.2",
-    "eslint-plugin-react": "6.3.0"
+    "devtron": "^1.4.0",
+    "electron": "^1.6.5",
+    "electron-packager": "^8.6.0",
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb": "^14.1.0",
+    "eslint-plugin-react": "^6.10.3"
   },
   "dependencies": {
     "file-url": "1.1.0",

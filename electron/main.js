@@ -3,22 +3,27 @@ const LOGGER = require('winston');
 
 const APP_NAME_VALET = 'ndex';
 const APP_NAME_SAVE = 'ndex-save';
-const APP_NAME_LOGIN = 'ndex-login';
 
 const APP_CONFIG_VALET = require('./webapp/ndex/config');
-const APP_CONFIG_SAVE = require('./webapp/ndex-save/config');
-const APP_CONFIG_LOGIN = require('./webapp/ndex-login/config');
 
 const APP_CONFIG_MAP = new Map();
 APP_CONFIG_MAP.set(APP_NAME_VALET, APP_CONFIG_VALET);
-APP_CONFIG_MAP.set(APP_NAME_SAVE, APP_CONFIG_SAVE);
-APP_CONFIG_MAP.set(APP_NAME_LOGIN, APP_CONFIG_LOGIN);
+
 
 // Required Electron components
 const { app, globalShortcut, BrowserWindow } = require('electron');
 
 global.sharedObj = { temp: app.getPath('temp') };
 console.log(global.sharedObj);
+
+// Current dir
+const dir = `${__dirname}`;
+global.sharedObj.dir = dir;
+
+// URL to be opened for the specified app
+const APP_URLS = new Map();
+APP_URLS.set(APP_NAME_SAVE, 'file://' + dir + '/webapp/ndex/save.html')
+
 
 // For duplex communication
 const WebSocket = require('ws');
@@ -89,18 +94,16 @@ const initWindow = appType => {
     mainWindow.webContents.send('ping', opts);
   });
 
-  const dir = `${__dirname}`;
-  global.sharedObj.dir = dir;
 
-  mainWindow.loadURL('file://' + dir + '/webapp/' + appType + '/index.html');
+  const url = APP_URLS.get(appType)
+  if(url === undefined || url === null) {
+    mainWindow.loadURL('file://' + dir + '/webapp/' + appType + '/index.html');
+  } else {
+    mainWindow.loadURL(url);
+  }
 
   // Event handlers:
   initEventHandlers();
-
-
-  if (appType === APP_NAME_SAVE) {
-    initSave();
-  }
 };
 
 
@@ -137,16 +140,10 @@ const initEventHandlers = () => {
     // TODO: Are there any better way to handle strange events from Windows system?
     setTimeout(()=> {
         ws.send(JSON.stringify(MSG_RESTORE));
-        console.log('sent2 restore message: ----------- ')
     }, 200);
   });
 
 };
-
-
-function initSave() {
-  ws.send(JSON.stringify(MSG_SAVE));
-}
 
 
 function initSocket() {
@@ -221,11 +218,6 @@ function initSocket() {
           } catch(ex) {
 
           }
-        case "save":
-          opts = msgObj.options;
-          // LOGGER.log("debug", 'Fire2: Got Save Params: ' + opts);
-          // mainWindow.setTitle('Save to NDEx: ' + opts.name);
-          break;
         case 'restored':
           console.log('######## RESTORE request: ----------- ')
           if(mainWindow.isMinimized() && !block) {
@@ -290,12 +282,12 @@ function addShortcuts() {
   });
 }
 
-
 app.on('ready', () => {
 
   if(isAppRunning) {
     return;
   }
+
   // Respond to only once.  One app == one instance.
   if(appName === null) {
     createWindow();
@@ -303,7 +295,6 @@ app.on('ready', () => {
     isAppRunning = true;
   }
 });
-
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {

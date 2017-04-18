@@ -24,8 +24,12 @@ import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 
 import org.cytoscape.hybrid.events.InterAppMessage;
+import org.cytoscape.hybrid.internal.task.OpenExternalAppTaskFactory;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
 import org.cytoscape.hybrid.internal.ws.WSClient;
+import org.cytoscape.util.swing.OpenBrowser;
+import org.cytoscape.work.TaskIterator;
+import org.cytoscape.work.TaskManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,26 +65,23 @@ public class SearchBox extends JPanel {
 	private final JTextField searchTextField;
 	private final JPanel searchButton;
 
-	// WS Client
-	private final WSClient client;
-	private final ObjectMapper mapper;
-
 	// States
 	private Boolean searchBoxClicked = false;
 
 	// For child process management
 	private final ExternalAppManager pm;
 
-	private final String command;
+	private final OpenExternalAppTaskFactory tf;
+	private final TaskManager tm;
 
-	public SearchBox(final WSClient client, final ExternalAppManager pm, String command) {
+	
+	public SearchBox(final ExternalAppManager pm, 
+			OpenExternalAppTaskFactory tf, TaskManager tm) {
 
-		this.mapper = new ObjectMapper();
-
-		this.client = client;
 		this.pm = pm;
-		this.command = command;
-
+		this.tf = tf;
+		this.tm = tm;
+		
 		this.setPreferredSize(PANEL_SIZE);
 		this.setSize(PANEL_SIZE);
 		this.setMaximumSize(PANEL_SIZE_MAX);
@@ -144,10 +145,6 @@ public class SearchBox extends JPanel {
 			}
 			
 			private final void processClick() {
-				if (!isEnabled()) {
-					MessageUtil.reauestExternalAppFocus(client);
-					return;
-				}
 
 				if (!searchBoxClicked) {
 					searchTextField.setText("");
@@ -218,32 +215,7 @@ public class SearchBox extends JPanel {
 
 		pm.setQuery(query);
 		
-		execute("ndex");
+		final TaskIterator itr = tf.createTaskIterator();
+		tm.execute(itr);
 	}	
-	
-	private final void execute(final String app) throws Exception {
-
-		final String dest = "ws://localhost:8025/ws/echo";
-		client.start(dest);
-
-		if (pm.isActive()) {
-			final InterAppMessage focus = InterAppMessage.create().setFrom(InterAppMessage.FROM_CY3)
-					.setType(InterAppMessage.TYPE_FOCUS);
-			this.client.getSocket().sendMessage(mapper.writeValueAsString(focus));
-			return;
-		}
-
-		final ExecutorService executor = Executors.newSingleThreadExecutor();
-		executor.submit(() -> {
-			try {
-				// Set application type:
-				this.client.getSocket().setApplication(app);
-				System.out.println("Command: " + command);
-				pm.setProcess(Runtime.getRuntime().exec(command));
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
-	}
-	
 }

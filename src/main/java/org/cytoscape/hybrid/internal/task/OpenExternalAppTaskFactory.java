@@ -1,6 +1,5 @@
 package org.cytoscape.hybrid.internal.task;
 
-import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
 import org.cytoscape.hybrid.internal.ws.WSClient;
 import org.cytoscape.work.AbstractTaskFactory;
@@ -12,19 +11,17 @@ public class OpenExternalAppTaskFactory extends AbstractTaskFactory {
 	private final WSClient client;
 	private final ExternalAppManager pm;
 	private final String command;
-	private final CyApplicationManager appManager;
 
 	public OpenExternalAppTaskFactory(final String appName, final WSClient client, 
-			final ExternalAppManager pm, String command, final CyApplicationManager appManager) {
+			final ExternalAppManager pm, String command) {
 		this.client = client;
 		this.pm = pm;
 		this.command = command;
 		this.appName = appName;
-		this.appManager = appManager;
 	}
 
 	@Override
 	public TaskIterator createTaskIterator() {
-		return new TaskIterator(new OpenExternalAppTask(appName, client, pm, command, appManager));
+		return new TaskIterator(new OpenExternalAppTask(appName, client, pm, command));
 	}
 }
