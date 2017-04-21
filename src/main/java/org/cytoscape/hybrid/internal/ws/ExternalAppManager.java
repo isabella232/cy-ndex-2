@@ -3,6 +3,8 @@ package org.cytoscape.hybrid.internal.ws;
 public class ExternalAppManager {
 
 	private Process currentProcess;
+	
+	
 	private String query;
 
 	public void setProcess(final Process process) {

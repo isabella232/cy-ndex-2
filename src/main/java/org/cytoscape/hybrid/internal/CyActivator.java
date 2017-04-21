@@ -13,6 +13,7 @@ import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.imageio.spi.RegisterableService;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -24,13 +25,28 @@ import org.cytoscape.application.swing.ActionEnableSupport;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.hybrid.internal.electron.NativeAppInstaller;
+import org.cytoscape.hybrid.internal.rest.NdexImportResource;
+import org.cytoscape.hybrid.internal.rest.NdexImportResourceImpl;
+import org.cytoscape.hybrid.internal.rest.NdexStatusResource;
+import org.cytoscape.hybrid.internal.rest.NdexStatusResourceImpl;
+import org.cytoscape.hybrid.internal.rest.reader.LoadNetworkStreamTaskFactoryImpl;
 import org.cytoscape.hybrid.internal.task.OpenExternalAppTaskFactory;
 import org.cytoscape.hybrid.internal.ui.SearchBox;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
 import org.cytoscape.hybrid.internal.ws.WSClient;
 import org.cytoscape.hybrid.internal.ws.WSServer;
+import org.cytoscape.io.read.InputStreamTaskFactory;
+import org.cytoscape.io.util.StreamUtil;
+import org.cytoscape.io.write.CyNetworkViewWriterFactory;
+import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
+import org.cytoscape.service.util.CyServiceRegistrar;
+import org.cytoscape.session.CyNetworkNaming;
+import org.cytoscape.view.model.CyNetworkViewFactory;
+import org.cytoscape.view.model.CyNetworkViewManager;
+import org.cytoscape.view.vizmap.VisualMappingManager;
+import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskManager;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
@@ -65,6 +81,24 @@ public class CyActivator extends AbstractCyActivator {
 		@SuppressWarnings("unchecked")
 		final CyProperty<Properties> cyProp = getService(bc, CyProperty.class, "(cyPropertyName=cytoscape3.props)");
 		
+		// For loading network
+		final CxTaskFactoryManager tfManager = new CxTaskFactoryManager();
+		registerServiceListener(bc, tfManager, "addReaderFactory", "removeReaderFactory",
+				InputStreamTaskFactory.class);
+		registerServiceListener(bc, tfManager, "addWriterFactory", "removeWriterFactory",
+				CyNetworkViewWriterFactory.class);
+		
+		
+		// For loading networks...
+		final CyNetworkManager netmgr = getService(bc, CyNetworkManager.class);
+		final CyNetworkViewManager networkViewManager = getService(bc, CyNetworkViewManager.class);
+		final CyNetworkNaming cyNetworkNaming = getService(bc, CyNetworkNaming.class);
+		final VisualMappingManager vmm = getService(bc, VisualMappingManager.class);
+		final CyNetworkViewFactory nullNetworkViewFactory = getService(bc, CyNetworkViewFactory.class);
+		final CyServiceRegistrar serviceRegistrar = getService(bc, CyServiceRegistrar.class);
+		TaskFactory loadNetworkTF = new LoadNetworkStreamTaskFactoryImpl(
+				netmgr, networkViewManager, cyProp, cyNetworkNaming, vmm, nullNetworkViewFactory, serviceRegistrar);
+		
 		// Start WS server
 		this.startServer(bc);
 		
@@ -93,6 +127,9 @@ public class CyActivator extends AbstractCyActivator {
 
 		// Export 
 		installer.executeInstaller(new SearchBox(pm, ndexTaskFactory, tm));
+		
+		// Expose CyREST endpoints
+		registerEndpoints(bc, tfManager, loadNetworkTF);
 	}
 	
 	private final void startServer(BundleContext bc) {
@@ -129,6 +166,12 @@ public class CyActivator extends AbstractCyActivator {
 		// This is the actual installer extracting binaries
 		return new NativeAppInstaller(config, bar, progress, toolBar, desktop);
 		
+	}
+	
+	private final void registerEndpoints(BundleContext bc, final CxTaskFactoryManager tfManager, TaskFactory loadNetworkTF) {
+		
+		registerService(bc, new NdexStatusResourceImpl(), NdexStatusResource.class, new Properties());
+		registerService(bc, new NdexImportResourceImpl(tfManager, loadNetworkTF), NdexImportResource.class, new Properties());
 	}
 
 	@Override
