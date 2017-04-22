@@ -25,12 +25,14 @@ public class NdexClientTest {
 
 	@Test
 	public void testLoad() throws Exception {
-		client.load("http://www.ndexbio.org/v2/network/fa2adf68-5363-11e6-b0a6-06603eb7f303");
+		client.load("http://www.ndexbio.org/v2/network/fa2adf68-5363-11e6-b0a6-06603eb7f303", "", "");
 	}
 	
 	@Test
 	public void testSummary() throws Exception {
-		final Map<String, ?> summary = client.getSummary(null, "fa2adf68-5363-11e6-b0a6-06603eb7f303", null, null);
+//		final Map<String, ?> summary = client.getSummary(null, 
+//				"fa2adf68-5363-11e6-b0a6-06603eb7f303", "", "");
+//		System.out.println(summary);
 	}
 
 }
