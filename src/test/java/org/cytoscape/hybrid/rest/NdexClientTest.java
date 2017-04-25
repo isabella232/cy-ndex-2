@@ -30,9 +30,24 @@ public class NdexClientTest {
 	
 	@Test
 	public void testSummary() throws Exception {
-//		final Map<String, ?> summary = client.getSummary(null, 
-//				"fa2adf68-5363-11e6-b0a6-06603eb7f303", "", "");
-//		System.out.println(summary);
+		final Map<String, ?> summary = client.getSummary(null, 
+				"fa2adf68-5363-11e6-b0a6-06603eb7f303");
+		System.out.println(summary);
+		
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public void testSummaryInvalid() throws Exception {
+		
+		final Map<String, ?> summary2 = client.getSummary(null, 
+				"invalid-uuid");
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public void testSummaryInvalid2() throws Exception {
+		
+		final Map<String, ?> summary = client.getSummary(null, 
+				"fa2adf68-5363-11e6-b0a6-06603eb7f301");
 	}
 
 }

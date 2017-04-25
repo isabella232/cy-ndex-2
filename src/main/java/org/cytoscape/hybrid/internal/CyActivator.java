@@ -21,6 +21,7 @@ import javax.swing.JToolBar;
 import javax.swing.border.EmptyBorder;
 
 import org.cytoscape.application.CyApplicationConfiguration;
+import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.ActionEnableSupport;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.event.CyEventHelper;
@@ -75,6 +76,7 @@ public class CyActivator extends AbstractCyActivator {
 		// Import dependencies
 		final CySwingApplication desktop = getService(bc, CySwingApplication.class);
 		final CyApplicationConfiguration config = getService(bc, CyApplicationConfiguration.class);
+		final CyApplicationManager appManager = getService(bc, CyApplicationManager.class);
 		final CyEventHelper eventHelper = getService(bc, CyEventHelper.class);
 		final TaskManager<?,?> tm = getService(bc, TaskManager.class);
 		
@@ -129,7 +131,8 @@ public class CyActivator extends AbstractCyActivator {
 		installer.executeInstaller(new SearchBox(pm, ndexTaskFactory, tm));
 		
 		// Expose CyREST endpoints
-		registerEndpoints(bc, tfManager, loadNetworkTF);
+		registerService(bc, new NdexStatusResourceImpl(), NdexStatusResource.class, new Properties());
+		registerService(bc, new NdexImportResourceImpl(appManager, netmgr, tfManager, loadNetworkTF), NdexImportResource.class, new Properties());
 	}
 	
 	private final void startServer(BundleContext bc) {
@@ -165,14 +168,8 @@ public class CyActivator extends AbstractCyActivator {
 
 		// This is the actual installer extracting binaries
 		return new NativeAppInstaller(config, bar, progress, toolBar, desktop);
-		
 	}
 	
-	private final void registerEndpoints(BundleContext bc, final CxTaskFactoryManager tfManager, TaskFactory loadNetworkTF) {
-		
-		registerService(bc, new NdexStatusResourceImpl(), NdexStatusResource.class, new Properties());
-		registerService(bc, new NdexImportResourceImpl(tfManager, loadNetworkTF), NdexImportResource.class, new Properties());
-	}
 
 	@Override
 	public void shutDown() {

@@ -27,4 +27,22 @@ public interface NdexImportResource {
 	@ApiResponses(value = {
 			@ApiResponse(code = 404, message = "Network does not exist", response = NdexImportResponse.class), })
 	public NdexImportResponse createNetworkFromNdex(NdexImportParams params);
+	
+	@POST
+	@Produces("application/json")
+	@Consumes("application/json")
+	@Path("/current")
+	@ApiOperation(value = "Save current network to NDEx", notes = "<br><br>Save to NDEx", response = NdexImportResponse.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 404, message = "Network does not exist", response = NdexSaveResponse.class), })
+	public NdexSaveResponse saveCurrentNetworkToNdex(final NdexImportParams params);
+	
+	@POST
+	@Produces("application/json")
+	@Consumes("application/json")
+	@Path("/{suid}")
+	@ApiOperation(value = "Save network to NDEx", notes = "<br><br>Save to NDEx", response = NdexSaveResponse.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 404, message = "Network does not exist", response = NdexImportResponse.class), })
+	public NdexSaveResponse saveNetworkToNdex(@PathParam("suid") Long suid, final NdexImportParams params);
 }

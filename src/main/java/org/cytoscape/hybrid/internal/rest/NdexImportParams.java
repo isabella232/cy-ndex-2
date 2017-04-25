@@ -4,13 +4,13 @@ public class NdexImportParams {
 
 	private String uuid;
 	private String userId;
-	private String token;
+	private String password;
 	private String ndexServerUrl;
 	
-	public NdexImportParams(String uuid, String userId, String token, String ndexServerUrl) {
+	public NdexImportParams(String uuid, String userId, String password, String ndexServerUrl) {
 		this.uuid = uuid;
 		this.ndexServerUrl = ndexServerUrl;
-		this.token = token;
+		this.password = password;
 		this.userId = userId;
 	}
 	
@@ -26,11 +26,11 @@ public class NdexImportParams {
 	public void setUserId(String userId) {
 		this.userId = userId;
 	}
-	public String getToken() {
-		return token;
+	public String getPassword() {
+		return password;
 	}
-	public void setToken(String token) {
-		this.token = token;
+	public void setToken(final String password) {
+		this.password = password;
 	}
 	public String getNdexServerUrl() {
 		return ndexServerUrl;
