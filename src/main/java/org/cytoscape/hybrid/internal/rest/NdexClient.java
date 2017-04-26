@@ -2,17 +2,20 @@ package org.cytoscape.hybrid.internal.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.websocket.Endpoint;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
@@ -20,8 +23,6 @@ import org.apache.http.util.EntityUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 /**
  * Minimalistic NDEx V2 client
@@ -30,6 +31,7 @@ import com.google.common.base.Strings;
 public class NdexClient {
 
 	private static final String PUBLIC_NDEX_URL = "http://www.ndexbio.org/v2";
+	private static final String CHARSET = "UTF-8";
 
 	private final ObjectMapper mapper;
 
@@ -41,13 +43,13 @@ public class NdexClient {
 		String credentials = id + ":" + pw;
 		return "Basic " + new String(new Base64().encode(credentials.getBytes()));
 	}
-	
+
 	private final CloseableHttpClient getClient(String id, String pw) {
-		
-		if(id == null || id.isEmpty() || pw == null || pw.isEmpty()) {
+
+		if (id == null || id.isEmpty() || pw == null || pw.isEmpty()) {
 			return HttpClients.custom().build();
 		}
-		
+
 		final Header header = new BasicHeader(HttpHeaders.AUTHORIZATION, getAuth(id, pw));
 		final List<Header> headers = new ArrayList<>();
 		headers.add(header);
@@ -57,13 +59,13 @@ public class NdexClient {
 	public InputStream load(String url) throws IOException {
 		return load(url, null, null);
 	}
-	
+
 	public InputStream load(String url, String id, String pw) throws IOException {
 
-		if(url == null || url.isEmpty()) {
+		if (url == null || url.isEmpty()) {
 			throw new IllegalArgumentException("URL is missing.");
 		}
-		
+
 		CloseableHttpClient client = getClient(id, pw);
 		HttpGet httpget = new HttpGet(url);
 		CloseableHttpResponse response = client.execute(httpget);
@@ -71,12 +73,11 @@ public class NdexClient {
 		// Get the response
 		return response.getEntity().getContent();
 	}
-	
-	
+
 	public Map<String, ?> getSummary(String url, String uuid) throws IOException {
 		return getSummary(url, uuid, null, null);
 	}
-	
+
 	public Map<String, ?> getSummary(String url, String uuid, String userId, String pw) throws IOException {
 
 		String serverUrl = null;
@@ -96,9 +97,9 @@ public class NdexClient {
 			e.printStackTrace();
 			throw new RuntimeException("Could not get response from NDEx.", e);
 		}
-		
-		if(response.getStatusLine().getStatusCode() != 200) {
-			throw new RuntimeException("Could not get response from NDEx: code " + response.getStatusLine());			
+
+		if (response.getStatusLine().getStatusCode() != 200) {
+			throw new RuntimeException("Could not get response from NDEx: code " + response.getStatusLine());
 		}
 
 		Map<String, ?> result = null;
@@ -109,33 +110,63 @@ public class NdexClient {
 		client.close();
 		return result;
 	}
-	
-	public void postNetworkAsMultipartObject(String route, String fileToUpload) throws JsonProcessingException, IOException {
 
-		Preconditions.checkState(!Strings.isNullOrEmpty(fileToUpload), "No file name specified.");
-		
-		String charset  = "UTF-8";
-		
-		Path p = Paths.get(fileToUpload);
-		String fileNameForPostRequest = p.getFileName().toString(); // get the filename only; remove the path
-		
-//		UploadUtil multipart = new UploadUtil(_baseroute + route, charset, getAuthenticationString());
-//		
-//        multipart.addFormJson("filename", fileNameForPostRequest);
-//	    multipart.addFilePart("fileUpload", uploadFile);
-//
-//	    List<String> response = multipart.finish();
-//	    
-//	    if (null == response) 
-//	    	return;
-//	             
-//	    for (String line : response) {
-//	        System.out.println(line);
-//	    }
+	public String postNetwork(String url, String networkName, InputStream cxis, String id, String pw)
+			throws IOException {
+		final UploadUtil multipart = new UploadUtil(url, CHARSET, getAuth(id, pw));
+		multipart.addFormJson("filename", networkName);
+		multipart.addFilePart("CXNetworkStream", cxis);
+		final List<String> response = multipart.finish();
+
+		if (response == null || response.isEmpty()) {
+			throw new IOException("Could not POST network.");
+		}
+
+		final String newUrl = response.get(0);
+		final String[] parts = newUrl.split("/");
+		return parts[parts.length - 1];
 	}
 
-	public void saveToNdex(String cx) {
+	public void setVisibility(String url, String uuid, Boolean isPublic, String id, String pw) {
+		final String endpoint = url + "/network/" + uuid + "/systemproperty";
+
+		String visibility;
+
+		if (isPublic) {
+			visibility = "PUBLIC";
+		} else {
+			visibility = "PRIVATE";
+		}
+
+		final Map<String, String> propMap = new HashMap<>();
+		propMap.put("visibility", visibility);
+
+		CloseableHttpClient client = getClient(id, pw);
+		HttpPut httpput = new HttpPut(endpoint);
 		
+		String props = null;
+		try {
+			props = mapper.writeValueAsString(propMap);
+		} catch (JsonProcessingException e1) {
+			e1.printStackTrace();
+		}
+		StringEntity params = new StringEntity(props, "UTF-8");
+		params.setContentType("application/json");
+		httpput.setEntity(params);
+
+		CloseableHttpResponse response = null;
+		
+		try {
+			response = client.execute(httpput);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Could not update visibility.", e);
+		}
+
+		final int statusCode = response.getStatusLine().getStatusCode();
+		if (statusCode != 200 && statusCode != 204) {
+			throw new RuntimeException("Could not get response from NDEx: code " + response.getStatusLine());
+		}
 	}
-	
+
 }

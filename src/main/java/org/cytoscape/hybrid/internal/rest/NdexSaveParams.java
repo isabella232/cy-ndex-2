@@ -1,25 +1,22 @@
 package org.cytoscape.hybrid.internal.rest;
 
-public class NdexImportParams {
+import java.util.Map;
 
-	private String uuid;
+public class NdexSaveParams {
+
 	private String userId;
 	private String password;
 	private String serverUrl;
+	private Map<String, String> metadata;
+	private Boolean isPublic;
+	
 
-	public NdexImportParams(String uuid, String userId, String password, String serverUrl) {
-		this.uuid = uuid;
+	public NdexSaveParams(String userId, String password, String serverUrl, Map<String, String> metadata) {
 		this.serverUrl = serverUrl;
 		this.password = password;
 		this.userId = userId;
-	}
-
-	public String getUuid() {
-		return uuid;
-	}
-
-	public void setUuid(String uuid) {
-		this.uuid = uuid;
+		this.setMetadata(metadata);
+		this.setIsPublic(false);
 	}
 
 	public String getUserId() {
@@ -44,5 +41,21 @@ public class NdexImportParams {
 
 	public void setServerUrl(String serverUrl) {
 		this.serverUrl = serverUrl;
+	}
+
+	public Map<String, String> getMetadata() {
+		return metadata;
+	}
+
+	public void setMetadata(Map<String, String> metadata) {
+		this.metadata = metadata;
+	}
+
+	public Boolean getIsPublic() {
+		return isPublic;
+	}
+
+	public void setIsPublic(Boolean isPublic) {
+		this.isPublic = isPublic;
 	}
 }

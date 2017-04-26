@@ -1,15 +1,15 @@
 package org.cytoscape.hybrid.internal.rest;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.InternalServerErrorException;
 
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.hybrid.internal.CxTaskFactoryManager;
@@ -19,8 +19,13 @@ import org.cytoscape.io.read.CyNetworkReader;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.io.write.CyNetworkViewWriterFactory;
 import org.cytoscape.io.write.CyWriter;
+import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
+import org.cytoscape.model.CyTable;
+import org.cytoscape.model.subnetwork.CyRootNetwork;
+import org.cytoscape.model.subnetwork.CySubNetwork;
+import org.cytoscape.task.create.NewNetworkSelectedNodesAndEdgesTaskFactory;
 import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskIterator;
@@ -49,12 +54,6 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		this.loadNetworkTF = (CxReaderFactory) loadNetworkTF;
 	}
 
-	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	@Path("{uuid}")
-	public NdexImportResponse importNetwork(@PathParam("uuid") String uuid) {
-		return new NdexImportResponse();
-	}
 
 	@Override
 	public NdexImportResponse createNetworkFromNdex(NdexImportParams params) {
@@ -64,7 +63,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		Map<String, ?> summary = null;
 		
 		try {
-			summary = client.getSummary(params.getNdexServerUrl(), params.getUuid(), params.getUserId(), params.getPassword());
+			summary = client.getSummary(params.getServerUrl(), params.getUuid(), params.getUserId(), params.getPassword());
 			System.out.println(summary);
 
 		} catch (IOException e) {
@@ -76,7 +75,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		// Load network from ndex
 		InputStream is;
 		try {
-			is = client.load(params.getNdexServerUrl() + "/network/" + params.getUuid(), params.getUserId(), params.getPassword());
+			is = client.load(params.getServerUrl() + "/network/" + params.getUuid(), params.getUserId(), params.getPassword());
 			InputStreamTaskFactory readerTF = this.tfManager.getCxReaderFactory();
 			TaskIterator itr = readerTF.createTaskIterator(is, "ndexCollection");
 			CyNetworkReader reader = (CyNetworkReader) itr.next();
@@ -101,7 +100,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 	}
 
 	@Override
-	public NdexSaveResponse saveNetworkToNdex(Long suid, NdexImportParams params) {
+	public NdexSaveResponse saveNetworkToNdex(Long suid, NdexSaveParams params) {
 		// TODO Auto-generated method stub
 		
 		System.out.println("######## SAVE SUID = " + suid);
@@ -130,18 +129,73 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		}
 		
 		// Upload to NDEx
+		String networkName = network.getDefaultNetworkTable().getRow(network.getSUID()).get(CyNetwork.NAME,String.class);
+		NdexClient client = new NdexClient();
+		final ByteArrayInputStream cxis = new ByteArrayInputStream(os.toByteArray());
+		String newUuid = null;
 		
+		try {
+			newUuid = client.postNetwork(params.getServerUrl() + "/network", networkName, cxis, params.getUserId(), params.getPassword());
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new InternalServerErrorException("Could not save", e);
+		}
 		
-		return new NdexSaveResponse(suid, "");
+		if(newUuid == null || newUuid.isEmpty()) {
+			throw new InternalServerErrorException("Could not save network.");
+		}
+		
+		// Update table
+		final Map<String, String> metadata = params.getMetadata();
+		final CyRootNetwork root = ((CySubNetwork)network).getRootNetwork();
+		final CyTable rootTable = root.getDefaultNetworkTable();
+		
+		metadata.keySet().stream().forEach(key->saveMetadata(key, metadata.get(key), rootTable, root.getSUID()));
+		
+		// Visibility
+		if(params.getIsPublic()) {
+			// This is a hack: NDEx does not respond immediately after creation.
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			client.setVisibility(params.getServerUrl(), newUuid, true, params.getUserId(), params.getPassword());
+		}
+		
+		return new NdexSaveResponse(suid, newUuid);
+	}
+	
+	
+	private final void saveMetadata(String columnName, String value, CyTable table, Long suid) {
+		final CyColumn col = table.getColumn(columnName);
+		
+		if(col == null) {
+			table.createColumn(columnName, String.class, false);
+		}
+		table.getRow(suid).set(columnName, value);
 	}
 
+
 	@Override
-	public NdexSaveResponse saveCurrentNetworkToNdex(NdexImportParams params) {
+	public NdexSaveResponse saveCurrentNetworkToNdex(NdexSaveParams params) {
 		final CyNetwork network = appManager.getCurrentNetwork();
 		if(network == null) {
 			throw new IllegalStateException("Current network is null.");
 		}
 		
 		return saveNetworkToNdex(network.getSUID(), params);
+	}
+
+
+	@Override
+	public SummaryResponse getCurrentNetworkSummary() {
+		CyNetwork network = appManager.getCurrentNetwork();
+		final CyRootNetwork root = ((CySubNetwork)network).getRootNetwork();
+		
+		final List<CySubNetwork> subnets = root.getSubNetworkList();
+		final List<Long> memberSUIDs = subnets.stream().map(net->net.getSUID()).collect(Collectors.toList());
+		
+		return new SummaryResponse(network.getSUID(), root.getSUID(), memberSUIDs);
 	}
 }
