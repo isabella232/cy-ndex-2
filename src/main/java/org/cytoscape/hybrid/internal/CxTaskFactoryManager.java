@@ -1,6 +1,5 @@
 package org.cytoscape.hybrid.internal;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.cytoscape.io.read.InputStreamTaskFactory;

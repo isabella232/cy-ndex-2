@@ -4,10 +4,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 import javax.ws.rs.InternalServerErrorException;
 
@@ -22,10 +23,10 @@ import org.cytoscape.io.write.CyWriter;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
+import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
 import org.cytoscape.model.subnetwork.CySubNetwork;
-import org.cytoscape.task.create.NewNetworkSelectedNodesAndEdgesTaskFactory;
 import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskIterator;
@@ -74,6 +75,8 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		
 		// Load network from ndex
 		InputStream is;
+		Long newSuid = null;
+		
 		try {
 			is = client.load(params.getServerUrl() + "/network/" + params.getUuid(), params.getUserId(), params.getPassword());
 			InputStreamTaskFactory readerTF = this.tfManager.getCxReaderFactory();
@@ -91,17 +94,20 @@ public class NdexImportResourceImpl implements NdexImportResource {
 				System.out.println("----------------- RUN: " + task);
 				task.run(tm);
 			}
+			
+			newSuid = reader.getNetworks()[0].getSUID();
 		} catch (Exception e) {
 			e.printStackTrace();
+			throw new RuntimeException("Could not load NDEx network: " + params.getUuid(), e);
 		}
+		
 		System.out.println("############################ DONE! #############################");
 
-		return new NdexImportResponse();
+		return new NdexImportResponse(newSuid, params.getUuid());
 	}
 
 	@Override
 	public NdexSaveResponse saveNetworkToNdex(Long suid, NdexSaveParams params) {
-		// TODO Auto-generated method stub
 		
 		System.out.println("######## SAVE SUID = " + suid);
 		System.out.println("######## SAVE params = " + params);
@@ -190,12 +196,43 @@ public class NdexImportResourceImpl implements NdexImportResource {
 
 	@Override
 	public SummaryResponse getCurrentNetworkSummary() {
-		CyNetwork network = appManager.getCurrentNetwork();
+		final CyNetwork network = appManager.getCurrentNetwork();
 		final CyRootNetwork root = ((CySubNetwork)network).getRootNetwork();
 		
-		final List<CySubNetwork> subnets = root.getSubNetworkList();
-		final List<Long> memberSUIDs = subnets.stream().map(net->net.getSUID()).collect(Collectors.toList());
+		return buildSummary(root, (CySubNetwork)network);
+	}
+	
+	private final SummaryResponse buildSummary(final CyRootNetwork root, final CySubNetwork network) {
+		final SummaryResponse summary = new SummaryResponse();
 		
-		return new SummaryResponse(network.getSUID(), root.getSUID(), memberSUIDs);
+		// Network local table
+		final NetworkSummary rootSummary = buildNetworkSummary(root);
+		summary.currentNetworkSuid = network.getSUID();
+		summary.currentRootNetwork = rootSummary;
+		List<NetworkSummary> members = new ArrayList<>();
+		root.getSubNetworkList().stream().forEach(subnet->members.add(buildNetworkSummary(subnet)));
+		summary.members = members;
+		
+		return summary;
+	}
+	private final NetworkSummary buildNetworkSummary(final CyNetwork network) {
+		CyTable table = network.getDefaultNetworkTable();
+		NetworkSummary summary = new NetworkSummary();
+		CyRow row = table.getRow(network.getSUID());
+		summary.setSuid(row.get(CyNetwork.SUID, Long.class));
+		summary.setName(network
+				.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS)
+				.getRow(network.getSUID())
+				.get(CyNetwork.NAME, String.class));
+		summary.setNdexUuid(row.get("ndex.uuid", String.class));
+		
+		final Collection<CyColumn> columns = table.getColumns();
+		final Map<String, Object> props = new HashMap<>();
+		
+		columns.stream().forEach(col->
+			props.put(col.getName(), row.get(col.getName(),col.getType())));
+		summary.setProps(props);
+		
+		return summary;
 	}
 }

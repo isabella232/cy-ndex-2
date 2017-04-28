@@ -1,18 +1,13 @@
 package org.cytoscape.hybrid.rest;
 
-import static org.junit.Assert.*;
-
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.util.Map;
 
 import org.cytoscape.hybrid.internal.rest.NdexClient;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.cglib.transform.impl.InterceptFieldFilter;
 
 public class NdexClientTest {
 

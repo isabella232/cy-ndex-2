@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
 
-import org.cytoscape.io.read.CyNetworkReaderManager;
 import org.cytoscape.io.util.StreamUtil;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
