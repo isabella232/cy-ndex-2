@@ -57,20 +57,23 @@ public class NdexImportResourceImpl implements NdexImportResource {
 
 
 	@Override
-	public NdexImportResponse createNetworkFromNdex(NdexImportParams params) {
+	public NdexResponse<NdexImportResponse> createNetworkFromNdex(final NdexImportParams params) {
 
-		System.out.println("############################\n\n **UUID = " + params.getUuid());
-
+		// Prepare base response
+		final NdexResponse<NdexImportResponse> response = new NdexResponse<>();
+		
+		// 1. Get summary of the network.
 		Map<String, ?> summary = null;
 		
 		try {
 			summary = client.getSummary(params.getServerUrl(), params.getUuid(), params.getUserId(), params.getPassword());
 			System.out.println(summary);
-
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			final CIError error = new CIError(500, "", e.getMessage(), "");
+			response.getErrors().add(error);
+			return response;
 		}
+		
 		System.out.println("############################\n\n SUMMARY = " + summary);
 		
 		// Load network from ndex
@@ -234,5 +237,19 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		summary.setProps(props);
 		
 		return summary;
+	}
+
+
+	@Override
+	public NdexSaveResponse updateNetworkInNdex(Long suid, NdexSaveParams params) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public NdexSaveResponse updateCurrentNetworkInNdex(NdexSaveParams params) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

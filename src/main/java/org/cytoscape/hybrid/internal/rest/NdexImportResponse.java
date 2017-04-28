@@ -1,16 +1,21 @@
 package org.cytoscape.hybrid.internal.rest;
 
-public class NdexImportResponse extends NdexResponse {
+public final class NdexImportResponse {
 
-	public Long suid;
-	public String uuid;
+	private final Long suid;
+	private final String uuid;
 
-	public NdexImportResponse() {
-	}
-
-	public NdexImportResponse(Long suid, String uuid) {
+	public NdexImportResponse(final Long suid, final String uuid) {
 		this.suid = suid;
 		this.uuid = uuid;
+	}
+
+	public String getUuid() {
+		return uuid;
+	}
+
+	public Long getSuid() {
+		return suid;
 	}
 
 }
