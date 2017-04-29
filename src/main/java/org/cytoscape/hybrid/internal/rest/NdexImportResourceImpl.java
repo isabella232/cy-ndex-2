@@ -106,14 +106,17 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		
 		System.out.println("############################ DONE! #############################");
 
-		return new NdexImportResponse(newSuid, params.getUuid());
+		response.setData(new NdexImportResponse(newSuid, params.getUuid()));
+		return response;
 	}
 
 	@Override
-	public NdexSaveResponse saveNetworkToNdex(Long suid, NdexSaveParams params) {
+	public NdexResponse<NdexSaveResponse> saveNetworkToNdex(Long suid, NdexSaveParams params) {
 		
 		System.out.println("######## SAVE SUID = " + suid);
 		System.out.println("######## SAVE params = " + params);
+		
+		final NdexResponse<NdexSaveResponse> response = new NdexResponse<>();
 		
 		if(suid == null) {
 			throw new NullPointerException("SUID is required.");
@@ -172,7 +175,8 @@ public class NdexImportResourceImpl implements NdexImportResource {
 			client.setVisibility(params.getServerUrl(), newUuid, true, params.getUserId(), params.getPassword());
 		}
 		
-		return new NdexSaveResponse(suid, newUuid);
+		response.setData(new NdexSaveResponse(suid, newUuid));
+		return response;
 	}
 	
 	
@@ -187,7 +191,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 
 
 	@Override
-	public NdexSaveResponse saveCurrentNetworkToNdex(NdexSaveParams params) {
+	public NdexResponse<NdexSaveResponse> saveCurrentNetworkToNdex(NdexSaveParams params) {
 		final CyNetwork network = appManager.getCurrentNetwork();
 		if(network == null) {
 			throw new IllegalStateException("Current network is null.");
@@ -241,14 +245,14 @@ public class NdexImportResourceImpl implements NdexImportResource {
 
 
 	@Override
-	public NdexSaveResponse updateNetworkInNdex(Long suid, NdexSaveParams params) {
+	public NdexResponse<NdexSaveResponse> updateNetworkInNdex(Long suid, NdexSaveParams params) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 
 	@Override
-	public NdexSaveResponse updateCurrentNetworkInNdex(NdexSaveParams params) {
+	public NdexResponse<NdexSaveResponse> updateCurrentNetworkInNdex(NdexSaveParams params) {
 		// TODO Auto-generated method stub
 		return null;
 	}
