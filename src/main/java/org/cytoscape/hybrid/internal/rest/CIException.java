@@ -2,6 +2,8 @@ package org.cytoscape.hybrid.internal.rest;
 
 import javax.ws.rs.WebApplicationException;
 
+import org.cytoscape.ci.model.CIError;
+
 public class CIException extends WebApplicationException {
 
 	private final CIError error;

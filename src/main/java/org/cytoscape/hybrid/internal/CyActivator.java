@@ -23,12 +23,16 @@ import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.ActionEnableSupport;
 import org.cytoscape.application.swing.CySwingApplication;
+import org.cytoscape.ci.CIErrorFactory;
+import org.cytoscape.ci.CIExceptionFactory;
 import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.hybrid.internal.electron.NativeAppInstaller;
+import org.cytoscape.hybrid.internal.rest.NdexClient;
 import org.cytoscape.hybrid.internal.rest.NdexImportResource;
 import org.cytoscape.hybrid.internal.rest.NdexImportResourceImpl;
 import org.cytoscape.hybrid.internal.rest.NdexStatusResource;
 import org.cytoscape.hybrid.internal.rest.NdexStatusResourceImpl;
+import org.cytoscape.hybrid.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.hybrid.internal.rest.reader.LoadNetworkStreamTaskFactoryImpl;
 import org.cytoscape.hybrid.internal.task.OpenExternalAppTaskFactory;
 import org.cytoscape.hybrid.internal.ui.SearchBox;
@@ -55,15 +59,14 @@ public class CyActivator extends AbstractCyActivator {
 
 	// Logger for this activator
 	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
-	
+
 	private static final Dimension PANEL_SIZE = new Dimension(400, 40);
 	private static final Dimension PANEL_SIZE_MAX = new Dimension(900, 100);
 
 	private WSServer server;
-	
+
 	private JToolBar toolBar;
 	private JPanel panel;
-	
 
 	public CyActivator() {
 		super();
@@ -76,19 +79,21 @@ public class CyActivator extends AbstractCyActivator {
 		final CyApplicationConfiguration config = getService(bc, CyApplicationConfiguration.class);
 		final CyApplicationManager appManager = getService(bc, CyApplicationManager.class);
 		final CyEventHelper eventHelper = getService(bc, CyEventHelper.class);
-		final TaskManager<?,?> tm = getService(bc, TaskManager.class);
-		
+		final TaskManager<?, ?> tm = getService(bc, TaskManager.class);
+
 		@SuppressWarnings("unchecked")
 		final CyProperty<Properties> cyProp = getService(bc, CyProperty.class, "(cyPropertyName=cytoscape3.props)");
-		
+
 		// For loading network
 		final CxTaskFactoryManager tfManager = new CxTaskFactoryManager();
-		registerServiceListener(bc, tfManager, "addReaderFactory", "removeReaderFactory",
-				InputStreamTaskFactory.class);
+		registerServiceListener(bc, tfManager, "addReaderFactory", "removeReaderFactory", InputStreamTaskFactory.class);
 		registerServiceListener(bc, tfManager, "addWriterFactory", "removeWriterFactory",
 				CyNetworkViewWriterFactory.class);
-		
-		
+
+		// CI Error handlers
+		CIExceptionFactory ciExceptionFactory = this.getService(bc, CIExceptionFactory.class);
+		CIErrorFactory ciErrorFactory = this.getService(bc, CIErrorFactory.class);
+
 		// For loading networks...
 		final CyNetworkManager netmgr = getService(bc, CyNetworkManager.class);
 		final CyNetworkViewManager networkViewManager = getService(bc, CyNetworkViewManager.class);
@@ -96,28 +101,28 @@ public class CyActivator extends AbstractCyActivator {
 		final VisualMappingManager vmm = getService(bc, VisualMappingManager.class);
 		final CyNetworkViewFactory nullNetworkViewFactory = getService(bc, CyNetworkViewFactory.class);
 		final CyServiceRegistrar serviceRegistrar = getService(bc, CyServiceRegistrar.class);
-		TaskFactory loadNetworkTF = new LoadNetworkStreamTaskFactoryImpl(
-				netmgr, networkViewManager, cyProp, cyNetworkNaming, vmm, nullNetworkViewFactory, serviceRegistrar);
-		
+		TaskFactory loadNetworkTF = new LoadNetworkStreamTaskFactoryImpl(netmgr, networkViewManager, cyProp,
+				cyNetworkNaming, vmm, nullNetworkViewFactory, serviceRegistrar);
+
 		// Start WS server
 		this.startServer(bc);
-		
+
 		// Initialize OSGi services
 		final ExternalAppManager pm = new ExternalAppManager();
 		final WSClient client = new WSClient(desktop, pm, eventHelper, cyProp);
 
 		final NativeAppInstaller installer = createInstaller(desktop, config);
-		
+
 		// TF for NDEx Save
 		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory("ndex-save", client, pm,
-				installer .getCommand());
+				installer.getCommand());
 		final Properties ndexSaveTaskFactoryProps = new Properties();
 		ndexSaveTaskFactoryProps.setProperty(ENABLE_FOR, ActionEnableSupport.ENABLE_FOR_NETWORK);
 		ndexSaveTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export");
 		ndexSaveTaskFactoryProps.setProperty(MENU_GRAVITY, "0.0");
 		ndexSaveTaskFactoryProps.setProperty(TITLE, "Network Collection to NDEx...");
 		registerAllServices(bc, ndexSaveTaskFactory, ndexSaveTaskFactoryProps);
-		
+
 		// TF for NDEx Load
 		final OpenExternalAppTaskFactory ndexTaskFactory = new OpenExternalAppTaskFactory("ndex", client, pm,
 				installer.getCommand());
@@ -125,14 +130,17 @@ public class CyActivator extends AbstractCyActivator {
 		ndexTaskFactoryProps.setProperty(IN_MENU_BAR, "false");
 		registerAllServices(bc, ndexTaskFactory, ndexTaskFactoryProps);
 
-		// Export 
+		// Export
 		installer.executeInstaller(new SearchBox(pm, ndexTaskFactory, tm));
-		
+
 		// Expose CyREST endpoints
+		final ErrorBuilder errorBuilder = new ErrorBuilder(ciErrorFactory);
+		final NdexClient ndexClient = new NdexClient(errorBuilder);
 		registerService(bc, new NdexStatusResourceImpl(), NdexStatusResource.class, new Properties());
-		registerService(bc, new NdexImportResourceImpl(appManager, netmgr, tfManager, loadNetworkTF), NdexImportResource.class, new Properties());
+		registerService(bc, new NdexImportResourceImpl(ndexClient, errorBuilder, appManager, netmgr, tfManager,
+				loadNetworkTF, ciExceptionFactory, ciErrorFactory), NdexImportResource.class, new Properties());
 	}
-	
+
 	private final void startServer(BundleContext bc) {
 		// Start server
 		this.server = new WSServer();
@@ -147,8 +155,8 @@ public class CyActivator extends AbstractCyActivator {
 		});
 	}
 
-	
-	private final NativeAppInstaller createInstaller(final CySwingApplication desktop, final CyApplicationConfiguration config) {
+	private final NativeAppInstaller createInstaller(final CySwingApplication desktop,
+			final CyApplicationConfiguration config) {
 		final JProgressBar bar = new JProgressBar();
 		bar.setValue(0);
 		JPanel progress = new JPanel();
@@ -167,7 +175,6 @@ public class CyActivator extends AbstractCyActivator {
 		// This is the actual installer extracting binaries
 		return new NativeAppInstaller(config, bar, progress, toolBar, desktop);
 	}
-	
 
 	@Override
 	public void shutDown() {

@@ -3,6 +3,8 @@ package org.cytoscape.hybrid.internal.rest;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.cytoscape.ci.model.CIError;
+
 public final class NdexResponse<T> {
 
 	// Errors reported from the called service(s)
