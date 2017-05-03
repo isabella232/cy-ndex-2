@@ -254,7 +254,12 @@
 			<version>1.5.7</version>
 			<scope>provided</scope>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>org.ndexbio.client</groupId>
+			<artifactId>ndex-java-client</artifactId>
+			<version>2.0.0</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
@@ -277,33 +282,33 @@
 			<version>1.10.19</version>
 			<scope>test</scope>
 		</dependency>
-			<dependency>
-				<groupId>org.glassfish.jersey.core</groupId>
-				<artifactId>jersey-common</artifactId>
-				<version>2.22</version>
-				<scope>test</scope>
-			</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-common</artifactId>
+			<version>2.22</version>
+			<scope>test</scope>
+		</dependency>
 
 
-			<dependency>
-				<groupId>org.cytoscape</groupId>
-				<artifactId>model-impl</artifactId>
-				<version>${cytoscape.api.version}</version>
-				<type>test-jar</type>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.cytoscape</groupId>
-				<artifactId>model-impl</artifactId>
-				<version>${cytoscape.api.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.cytoscape</groupId>
-				<artifactId>event-api</artifactId>
-				<version>${cytoscape.api.version}</version>
-				<type>test-jar</type>
-				<scope>test</scope>
-			</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>model-impl</artifactId>
+			<version>${cytoscape.api.version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>model-impl</artifactId>
+			<version>${cytoscape.api.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>event-api</artifactId>
+			<version>${cytoscape.api.version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>

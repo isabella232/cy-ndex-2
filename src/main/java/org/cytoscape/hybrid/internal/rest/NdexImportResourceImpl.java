@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.InternalServerErrorException;
@@ -35,6 +36,8 @@ import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
+import org.ndexbio.rest.client.NdexRestClient;
+import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -296,6 +299,11 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		final String uuid = root.getDefaultNetworkTable().getRow(root.getSUID()).get("ndex.uuid", String.class);
 		
 		System.out.println("============== Target UUID: "+ uuid);
+		
+		// Update table
+		final Map<String, String> metadata = params.getMetadata();
+		final CyTable rootTable = root.getDefaultNetworkTable();
+		metadata.keySet().stream().forEach(key -> saveMetadata(key, metadata.get(key), rootTable, root.getSUID()));
 
 		final CyNetworkViewWriterFactory writerFactory = tfManager.getCxWriterFactory();
 
@@ -317,16 +325,20 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		NdexClient client = new NdexClient();
 		final ByteArrayInputStream cxis = new ByteArrayInputStream(os.toByteArray());
 
-		client.updateNetwork(params.getServerUrl(), uuid, networkName, cxis, params.getUserId(),
-				params.getPassword());
+		NdexRestClient nc = new NdexRestClient(params.getUserId(), params.getPassword(), params.getServerUrl());
 
-		System.out.println("============== UPDATED: "+ uuid);
+		NdexRestClientModelAccessLayer ndex = new NdexRestClientModelAccessLayer(nc);
+		try {
+			ndex.updateCXNetwork(UUID.fromString(uuid), cxis);
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
 
-		// Update table
-		final Map<String, String> metadata = params.getMetadata();
-		final CyTable rootTable = root.getDefaultNetworkTable();
+//		client.updateNetwork(params.getServerUrl(), uuid, networkName, cxis, params.getUserId(),
+//				params.getPassword());
 
-		metadata.keySet().stream().forEach(key -> saveMetadata(key, metadata.get(key), rootTable, root.getSUID()));
+		System.out.println("============== UPDATED!!!!!!!: "+ uuid);
+
 
 		// Visibility
 		if (params.getIsPublic()) {
