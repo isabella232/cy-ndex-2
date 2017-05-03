@@ -2,7 +2,10 @@ package org.cytoscape.hybrid.rest;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Map;
+
+import javax.ws.rs.NotFoundException;
 
 import org.cytoscape.hybrid.internal.rest.NdexClient;
 import org.junit.After;
@@ -29,11 +32,14 @@ public class NdexClientTest {
 	}
 	
 	@Test
-	public void testSummary() throws Exception {
-		final Map<String, ?> summary = client.getSummary(null, 
-				"fa2adf68-5363-11e6-b0a6-06603eb7f303");
-		System.out.println(summary);
-		
+	public void testSummary() {
+		try {
+			final Map<String, ?> summary = client.getSummary(null, 
+					"4287db5a-2c43-11e7-8f50-0ac135e8bacf");
+		} catch (Exception e) {
+			e.printStackTrace();
+			
+		}
 	}
 	
 	@Test(expected=RuntimeException.class)

@@ -7,6 +7,7 @@ public class NdexSaveParams {
 	private String userId;
 	private String password;
 	private String serverUrl;
+	private String uuid;
 	private Map<String, String> metadata;
 	private Boolean isPublic;
 	
@@ -57,5 +58,13 @@ public class NdexSaveParams {
 
 	public void setIsPublic(Boolean isPublic) {
 		this.isPublic = isPublic;
+	}
+
+	public String getUuid() {
+		return uuid;
+	}
+
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
 	}
 }

@@ -1,14 +1,16 @@
 package org.cytoscape.hybrid.internal.rest.reader;
 
+import org.cytoscape.hybrid.internal.rest.NdexClient;
 import org.cytoscape.io.read.CyNetworkReader;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
+import org.cytoscape.model.subnetwork.CyRootNetwork;
+import org.cytoscape.model.subnetwork.CySubNetwork;
 import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskMonitor;
 
 public class UpdateTableTask implements Task {
 
-	private static final String UUID_COLUMN_NAME = "ndex.uuid";
 	private final CyNetworkReader reader;
 	
 	private String uuid;
@@ -35,13 +37,18 @@ public class UpdateTableTask implements Task {
 		System.out.println("NETWORk = " + networks[0].getSUID());
 		
 		CyNetwork network = networks[0];
-		CyTable table = network.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS);
-		
-		if(table.getColumn(UUID_COLUMN_NAME) == null) {
-			table.createColumn(UUID_COLUMN_NAME, String.class, true);
+		if(network instanceof CySubNetwork) {
+			CySubNetwork subnet = (CySubNetwork) network;
+			
+			final CyRootNetwork root = subnet.getRootNetwork();
+			CyTable table = root.getDefaultNetworkTable();
+
+			if (table.getColumn(NdexClient.UUID_COLUMN_NAME) == null) {
+				table.createColumn(NdexClient.UUID_COLUMN_NAME, String.class, true);
+			}
+
+			table.getRow(root.getSUID()).set(NdexClient.UUID_COLUMN_NAME, this.uuid);
 		}
-		
-		table.getRow(network.getSUID()).set(UUID_COLUMN_NAME, this.uuid);
 	}
 
 	@Override
