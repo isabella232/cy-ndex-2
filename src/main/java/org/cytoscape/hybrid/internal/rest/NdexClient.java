@@ -7,9 +7,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.NotAuthorizedException;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
+import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
@@ -18,6 +28,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
+import org.cytoscape.hybrid.internal.rest.errors.ErrorBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,6 +41,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class NdexClient {
 
+	private static final Logger logger = LoggerFactory.getLogger(NdexClient.class);
+
+	public static final String UUID_COLUMN_NAME = "ndex.uuid";
+	
 	private static final String PUBLIC_NDEX_URL = "http://www.ndexbio.org/v2";
 	private static final String CHARSET = "UTF-8";
 
@@ -58,7 +75,7 @@ public class NdexClient {
 		return load(url, null, null);
 	}
 
-	public InputStream load(String url, String id, String pw) throws IOException {
+	public InputStream load(String url, String id, String pw) {
 
 		if (url == null || url.isEmpty()) {
 			throw new IllegalArgumentException("URL is missing.");
@@ -66,17 +83,35 @@ public class NdexClient {
 
 		CloseableHttpClient client = getClient(id, pw);
 		HttpGet httpget = new HttpGet(url);
-		CloseableHttpResponse response = client.execute(httpget);
+		CloseableHttpResponse response = null;
+		try {
+			response = client.execute(httpget);
+		} catch (IOException e) {
+			logger.error(e.getMessage());
+			final Response res = buildErrorResponse(Status.INTERNAL_SERVER_ERROR, "Could not fetch network from NDEx");
+			throw new InternalServerErrorException(res);
+		}
 
 		// Get the response
-		return response.getEntity().getContent();
+		InputStream is = null;
+		try {
+			is = response.getEntity().getContent();
+		} catch (UnsupportedOperationException | IOException e) {
+			logger.error(e.getMessage());
+			final Response res = buildErrorResponse(Status.INTERNAL_SERVER_ERROR, "Failed to open stream from NDEx");
+			throw new InternalServerErrorException(res);
+		}
+		return is;
 	}
 
-	public Map<String, ?> getSummary(String url, String uuid) throws IOException {
+	public Map<String, ?> getSummary(String url, String uuid) throws Exception {
 		return getSummary(url, uuid, null, null);
 	}
 
-	public Map<String, ?> getSummary(String url, String uuid, String userId, String pw) throws IOException {
+	/**
+	 * Call network summary API
+	 */
+	public Map<String, ?> getSummary(String url, String uuid, String userId, String pw) throws WebApplicationException {
 
 		String serverUrl = null;
 		if (url == null || url.isEmpty()) {
@@ -92,37 +127,109 @@ public class NdexClient {
 		try {
 			response = client.execute(httpget);
 		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException("Could not get response from NDEx.", e);
+			logger.error(e.getMessage());
+			final Response res = buildErrorResponse(Status.INTERNAL_SERVER_ERROR,
+					"Could not get network summary from NDEx.");
+			throw new InternalServerErrorException(res);
 		}
 
-		if (response.getStatusLine().getStatusCode() != 200) {
-			throw new RuntimeException("Could not get response from NDEx: code " + response.getStatusLine());
-		}
+		// Check response
+		getError(response);
 
 		Map<String, ?> result = null;
-		String val = EntityUtils.toString(response.getEntity());
-		result = mapper.readValue(val, Map.class);
+		String val;
+		try {
+			val = EntityUtils.toString(response.getEntity());
+			result = mapper.readValue(val, Map.class);
+			response.close();
+			client.close();
+		} catch (ParseException | IOException e) {
+			e.printStackTrace();
+			logger.error(e.getMessage());
+			final Response res = buildErrorResponse(Status.INTERNAL_SERVER_ERROR,
+					"Could not build network summary object.");
+			throw new InternalServerErrorException(res);
+		}
 
-		response.close();
-		client.close();
 		return result;
 	}
 
-	public String postNetwork(String url, String networkName, InputStream cxis, String id, String pw)
-			throws IOException {
-		final UploadUtil multipart = new UploadUtil(url, CHARSET, getAuth(id, pw));
-		multipart.addFormJson("filename", networkName);
-		multipart.addFilePart("CXNetworkStream", cxis);
-		final List<String> response = multipart.finish();
+	private Response buildErrorResponse(Status status, String message) {
+		final CIError error = new CIError(status.getStatusCode(), "urn:cytoscape:ci:ndex:v1:networks:errors:2", message,
+				"/log");
+		NdexResponse<Object> ndexResponse = new NdexResponse<>();
+		ndexResponse.getErrors().add(error);
 
-		if (response == null || response.isEmpty()) {
-			throw new IOException("Could not POST network.");
+		final Response res = Response.status(status).type(MediaType.APPLICATION_JSON).entity(ndexResponse).build();
+
+		return res;
+	}
+
+	private final void getError(CloseableHttpResponse response) throws WebApplicationException {
+		final int code = response.getStatusLine().getStatusCode();
+
+		Response res = null;
+		if (code == Status.NOT_FOUND.getStatusCode()) {
+			res = buildErrorResponse(Status.NOT_FOUND, "Resource not found");
+			throw new NotFoundException(res);
 		}
 
-		final String newUrl = response.get(0);
-		final String[] parts = newUrl.split("/");
-		return parts[parts.length - 1];
+		if (code == Status.UNAUTHORIZED.getStatusCode()) {
+			throw new NotAuthorizedException(buildErrorResponse(Status.UNAUTHORIZED, "Autholization to failed"));
+		}
+
+		if (code == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+			res = buildErrorResponse(Status.INTERNAL_SERVER_ERROR, "Remote service call failed.");
+			throw new InternalServerErrorException(res);
+		}
+	}
+
+	public void updateNetwork(String baseUrl, String uuid, String networkName, InputStream cxis, String id, String pw) {
+		
+		String url = baseUrl + "/network/" + uuid;
+		
+		try {
+			final UploadUtil multipart = new UploadUtil(url, CHARSET, getAuth(id, pw));
+			multipart.addFormJson("filename", networkName);
+			multipart.addFilePart("CXNetworkStream", cxis);
+			List<String> response = multipart.finish();
+
+			if (response == null || response.isEmpty()) {
+
+				throw new IOException("Could not  network.");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			final String message = "Failed to update network to NDEx.";
+			logger.error(message, e);
+			Response res = ErrorBuilder.buildErrorResponse(Status.INTERNAL_SERVER_ERROR, message);
+			throw new InternalServerErrorException(res);
+		}
+	}
+
+	public String postNetwork(String url, String networkName, InputStream cxis, String id, String pw) {
+		List<String> response = null;
+
+		try {
+			final UploadUtil multipart = new UploadUtil(url, CHARSET, getAuth(id, pw));
+			multipart.addFormJson("filename", networkName);
+			multipart.addFilePart("CXNetworkStream", cxis);
+			response = multipart.finish();
+
+			if (response == null || response.isEmpty()) {
+
+				throw new IOException("Could not POST network.");
+			}
+
+			final String newUrl = response.get(0);
+			final String[] parts = newUrl.split("/");
+			return parts[parts.length - 1];
+		} catch (Exception e) {
+			final String message = "Failed to upload network to NDEx.";
+			logger.error(message, e);
+			Response res = ErrorBuilder.buildErrorResponse(Status.INTERNAL_SERVER_ERROR, message);
+			throw new InternalServerErrorException(res);
+		}
 	}
 
 	public void setVisibility(String url, String uuid, Boolean isPublic, String id, String pw) {
@@ -141,30 +248,32 @@ public class NdexClient {
 
 		CloseableHttpClient client = getClient(id, pw);
 		HttpPut httpput = new HttpPut(endpoint);
-		
+
 		String props = null;
 		try {
 			props = mapper.writeValueAsString(propMap);
 		} catch (JsonProcessingException e1) {
-			e1.printStackTrace();
+			final String message = "Given parameters are invalid";
+			logger.error(message, e1);
+			Response res = ErrorBuilder.buildErrorResponse(Status.BAD_REQUEST, message);
+			throw new BadRequestException(res);
 		}
 		StringEntity params = new StringEntity(props, "UTF-8");
 		params.setContentType("application/json");
 		httpput.setEntity(params);
 
 		CloseableHttpResponse response = null;
-		
+
 		try {
 			response = client.execute(httpput);
 		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException("Could not update visibility.", e);
+			final String message = "Could not update visibility.";
+			logger.error(message, e);
+			Response res = ErrorBuilder.buildErrorResponse(Status.INTERNAL_SERVER_ERROR, message);
+			throw new InternalServerErrorException(res);
 		}
 
-		final int statusCode = response.getStatusLine().getStatusCode();
-		if (statusCode != 200 && statusCode != 204) {
-			throw new RuntimeException("Could not get response from NDEx: code " + response.getStatusLine());
-		}
+		getError(response);
 	}
 
 }

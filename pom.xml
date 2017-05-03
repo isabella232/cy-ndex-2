@@ -254,15 +254,8 @@
 			<version>1.5.7</version>
 			<scope>provided</scope>
 		</dependency>
+		
 
-		<!-- HTTP Client -->
-		<dependency>
-			<groupId>com.squareup.okhttp3</groupId>
-			<artifactId>okhttp</artifactId>
-			<version>3.7.0</version>
-		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
@@ -284,26 +277,33 @@
 			<version>1.10.19</version>
 			<scope>test</scope>
 		</dependency>
+			<dependency>
+				<groupId>org.glassfish.jersey.core</groupId>
+				<artifactId>jersey-common</artifactId>
+				<version>2.22</version>
+				<scope>test</scope>
+			</dependency>
 
-		<dependency>
-			<groupId>org.cytoscape</groupId>
-			<artifactId>model-impl</artifactId>
-			<version>${cytoscape.api.version}</version>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.cytoscape</groupId>
-			<artifactId>model-impl</artifactId>
-			<version>${cytoscape.api.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.cytoscape</groupId>
-			<artifactId>event-api</artifactId>
-			<version>${cytoscape.api.version}</version>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
+
+			<dependency>
+				<groupId>org.cytoscape</groupId>
+				<artifactId>model-impl</artifactId>
+				<version>${cytoscape.api.version}</version>
+				<type>test-jar</type>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.cytoscape</groupId>
+				<artifactId>model-impl</artifactId>
+				<version>${cytoscape.api.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.cytoscape</groupId>
+				<artifactId>event-api</artifactId>
+				<version>${cytoscape.api.version}</version>
+				<type>test-jar</type>
+				<scope>test</scope>
+			</dependency>
 	</dependencies>
 </project>
