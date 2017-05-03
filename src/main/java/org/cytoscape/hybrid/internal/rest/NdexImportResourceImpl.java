@@ -3,6 +3,7 @@ package org.cytoscape.hybrid.internal.rest;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -12,11 +13,14 @@ import java.util.UUID;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.application.CyApplicationManager;
+import org.cytoscape.ci.CIErrorFactory;
+import org.cytoscape.ci.CIExceptionFactory;
+import org.cytoscape.ci.CIWrapping;
+import org.cytoscape.ci.model.CIError;
 import org.cytoscape.hybrid.internal.CxTaskFactoryManager;
 import org.cytoscape.hybrid.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.hybrid.internal.rest.reader.CxReaderFactory;
@@ -58,16 +62,25 @@ public class NdexImportResourceImpl implements NdexImportResource {
 	private final CyApplicationManager appManager;
 
 	private final ObjectMapper mapper;
+	private final CIExceptionFactory ciExceptionFactory;
+	private final CIErrorFactory ciErrorFactory;
 
-	public NdexImportResourceImpl(CyApplicationManager appManager, CyNetworkManager networkManager,
-			CxTaskFactoryManager tfManager, TaskFactory loadNetworkTF) {
+	private final ErrorBuilder errorBuilder;
+	
+	public NdexImportResourceImpl(final NdexClient client, final ErrorBuilder errorBuilder, CyApplicationManager appManager, CyNetworkManager networkManager,
+			CxTaskFactoryManager tfManager, TaskFactory loadNetworkTF,
+			CIExceptionFactory ciExceptionFactory, CIErrorFactory ciErrorFactory) { 
 
+		this.client = client;
+		this.ciErrorFactory = ciErrorFactory;
+		this.ciExceptionFactory = ciExceptionFactory;
+		this.errorBuilder = errorBuilder;
+		
 		this.mapper = new ObjectMapper();
 
 		this.networkManager = networkManager;
 		this.appManager = appManager;
 
-		this.client = new NdexClient();
 		this.tm = new HeadlessTaskMonitor();
 		this.tfManager = tfManager;
 		this.loadNetworkTF = (CxReaderFactory) loadNetworkTF;
@@ -112,7 +125,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 			newSuid = reader.getNetworks()[0].getSUID();
 		} catch (Exception e) {
 			logger.error("Failed to load network from NDEx", e);
-			Response res = ErrorBuilder.buildErrorResponse(Status.INTERNAL_SERVER_ERROR,
+			Response res = errorBuilder.buildErrorResponse(Status.INTERNAL_SERVER_ERROR,
 					"Failed to load network from NDEx.");
 			throw new InternalServerErrorException(res);
 		}
@@ -130,7 +143,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 
 		if (suid == null) {
 			logger.error("SUID is missing");
-			Response res = ErrorBuilder.buildErrorResponse(Status.BAD_REQUEST, "SUID is not specified.");
+			Response res = errorBuilder.buildErrorResponse(Status.BAD_REQUEST, "SUID is not specified.");
 			throw new InternalServerErrorException(res);
 		}
 
@@ -138,7 +151,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		if (network == null) {
 			final String message = "Network with SUID " + suid + " does not exist.";
 			logger.error(message);
-			Response res = ErrorBuilder.buildErrorResponse(Status.NOT_FOUND, message);
+			Response res = errorBuilder.buildErrorResponse(Status.NOT_FOUND, message);
 			throw new InternalServerErrorException(res);
 		}
 
@@ -152,14 +165,13 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		} catch (Exception e) {
 			final String message = "Failed to write network as CX";
 			logger.error(message, e);
-			Response res = ErrorBuilder.buildErrorResponse(Status.INTERNAL_SERVER_ERROR, message);
+			Response res = errorBuilder.buildErrorResponse(Status.INTERNAL_SERVER_ERROR, message);
 			throw new InternalServerErrorException(res);
 		}
 
 		// Upload to NDEx
 		String networkName = network.getDefaultNetworkTable().getRow(network.getSUID()).get(CyNetwork.NAME,
 				String.class);
-		NdexClient client = new NdexClient();
 		final ByteArrayInputStream cxis = new ByteArrayInputStream(os.toByteArray());
 		String newUuid = null;
 
@@ -169,7 +181,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		if (newUuid == null || newUuid.isEmpty()) {
 			final String message = "Failed to upload CX to NDEx.  (NDEx did not return UUID)";
 			logger.error(message);
-			Response res = ErrorBuilder.buildErrorResponse(Status.INTERNAL_SERVER_ERROR, message);
+			Response res = errorBuilder.buildErrorResponse(Status.INTERNAL_SERVER_ERROR, message);
 			throw new InternalServerErrorException(res);
 		}
 
@@ -194,7 +206,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 			} catch (InterruptedException e) {
 				final String message = "Failed to wait (This should not happen!)";
 				logger.error(message);
-				Response res = ErrorBuilder.buildErrorResponse(Status.INTERNAL_SERVER_ERROR, message);
+				Response res = errorBuilder.buildErrorResponse(Status.INTERNAL_SERVER_ERROR, message);
 				throw new InternalServerErrorException(res);
 			}
 
@@ -218,15 +230,24 @@ public class NdexImportResourceImpl implements NdexImportResource {
 	public NdexResponse<NdexSaveResponse> saveCurrentNetworkToNdex(NdexSaveParams params) {
 		final CyNetwork network = appManager.getCurrentNetwork();
 		if (network == null) {
-			final String message = "Current network does not exist";
+			// Current network is not available
+			final String message = "Current network does not exist.  You need to choose a network first.";
 			logger.error(message);
-			Response res = ErrorBuilder.buildErrorResponse(Status.BAD_REQUEST, message);
-			throw new BadRequestException(res);
+			final CIError ciError = 
+					ciErrorFactory.getCIError(
+							Status.BAD_REQUEST.getStatusCode(), 
+							"urn:cytoscape:ci:ndex:v1:errors:1", 
+							message,
+							URI.create("file:///log"));
+		    throw ciExceptionFactory.getCIException(
+		    		Status.BAD_REQUEST.getStatusCode(), 
+		    		new CIError[]{ciError});
 		}
 
 		return saveNetworkToNdex(network.getSUID(), params);
 	}
 
+	@CIWrapping
 	@Override
 	public SummaryResponse getCurrentNetworkSummary() {
 		final CyNetwork network = appManager.getCurrentNetwork();
@@ -234,7 +255,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		if (network == null) {
 			final String message = "Current network does not exist (No network is selected)";
 			logger.error(message);
-			Response res = ErrorBuilder.buildErrorResponse(Status.BAD_REQUEST, message);
+			Response res = errorBuilder.buildErrorResponse(Status.BAD_REQUEST, message);
 			throw new BadRequestException(res);
 		}
 		
@@ -282,7 +303,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 
 		if (suid == null) {
 			logger.error("SUID is missing");
-			Response res = ErrorBuilder.buildErrorResponse(Status.BAD_REQUEST, "SUID is not specified.");
+			Response res = errorBuilder.buildErrorResponse(Status.BAD_REQUEST, "SUID is not specified.");
 			throw new InternalServerErrorException(res);
 		}
 
@@ -290,7 +311,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		if (network == null) {
 			final String message = "Network with SUID " + suid + " does not exist.";
 			logger.error(message);
-			Response res = ErrorBuilder.buildErrorResponse(Status.NOT_FOUND, message);
+			Response res = errorBuilder.buildErrorResponse(Status.NOT_FOUND, message);
 			throw new InternalServerErrorException(res);
 		}
 		
@@ -315,23 +336,27 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		} catch (Exception e) {
 			final String message = "Failed to write network as CX";
 			logger.error(message, e);
-			Response res = ErrorBuilder.buildErrorResponse(Status.INTERNAL_SERVER_ERROR, message);
+			Response res = errorBuilder.buildErrorResponse(Status.INTERNAL_SERVER_ERROR, message);
 			throw new InternalServerErrorException(res);
 		}
 
 		// Upload to NDEx
 		String networkName = network.getDefaultNetworkTable().getRow(network.getSUID()).get(CyNetwork.NAME,
 				String.class);
-		NdexClient client = new NdexClient();
 		final ByteArrayInputStream cxis = new ByteArrayInputStream(os.toByteArray());
 
-		NdexRestClient nc = new NdexRestClient(params.getUserId(), params.getPassword(), params.getServerUrl());
-
-		NdexRestClientModelAccessLayer ndex = new NdexRestClientModelAccessLayer(nc);
 		try {
+			// Ndex client from NDEx Team
+			final NdexRestClient nc = new NdexRestClient(params.getUserId(), params.getPassword(),
+					params.getServerUrl());
+			final NdexRestClientModelAccessLayer ndex = new NdexRestClientModelAccessLayer(nc);
 			ndex.updateCXNetwork(UUID.fromString(uuid), cxis);
 		} catch (Exception e1) {
 			e1.printStackTrace();
+			final String message = "Failed to update network from CX";
+			logger.error(message, e1);
+			Response res = errorBuilder.buildErrorResponse(Status.INTERNAL_SERVER_ERROR, message);
+			throw new InternalServerErrorException(res);
 		}
 
 //		client.updateNetwork(params.getServerUrl(), uuid, networkName, cxis, params.getUserId(),
@@ -348,7 +373,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 			} catch (InterruptedException e) {
 				final String message = "Failed to wait (This should not happen!)";
 				logger.error(message);
-				Response res = ErrorBuilder.buildErrorResponse(Status.INTERNAL_SERVER_ERROR, message);
+				Response res = errorBuilder.buildErrorResponse(Status.INTERNAL_SERVER_ERROR, message);
 				throw new InternalServerErrorException(res);
 			}
 
@@ -366,7 +391,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		if (network == null) {
 			final String message = "Current network does not exist (No network is selected)";
 			logger.error(message);
-			Response res = ErrorBuilder.buildErrorResponse(Status.BAD_REQUEST, message);
+			Response res = errorBuilder.buildErrorResponse(Status.BAD_REQUEST, message);
 			throw new BadRequestException(res);
 		}
 		
