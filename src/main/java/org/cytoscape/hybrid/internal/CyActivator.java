@@ -134,7 +134,7 @@ public class CyActivator extends AbstractCyActivator {
 		installer.executeInstaller(new SearchBox(pm, ndexTaskFactory, tm));
 
 		// Expose CyREST endpoints
-		final ErrorBuilder errorBuilder = new ErrorBuilder(ciErrorFactory);
+		final ErrorBuilder errorBuilder = new ErrorBuilder(ciErrorFactory, ciExceptionFactory, config);
 		final NdexClient ndexClient = new NdexClient(errorBuilder);
 		registerService(bc, new NdexStatusResourceImpl(), NdexStatusResource.class, new Properties());
 		registerService(bc, new NdexImportResourceImpl(ndexClient, errorBuilder, appManager, netmgr, tfManager,
