@@ -30,7 +30,7 @@ public interface NdexImportResource {
 	@ApiOperation(value = "Import network from NDEx", notes = "<br><br>Import from NDEx", response = NdexImportResponse.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = 404, message = "Network does not exist", response = NdexImportResponse.class), })
-	public NdexResponse<NdexImportResponse> createNetworkFromNdex(NdexImportParams params);
+	public NdexImportResponse createNetworkFromNdex(NdexImportParams params);
 	
 	@POST
 	@Produces("application/json")
@@ -39,7 +39,7 @@ public interface NdexImportResource {
 	@ApiOperation(value = "Save current network to NDEx", notes = "<br><br>Save to NDEx", response = NdexImportResponse.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = 404, message = "Network does not exist", response = NdexSaveResponse.class), })
-	public NdexResponse<NdexSaveResponse> saveCurrentNetworkToNdex(final NdexSaveParams params);
+	public NdexSaveResponse saveCurrentNetworkToNdex(final NdexSaveParams params);
 	
 	@POST
 	@Produces("application/json")
@@ -48,7 +48,7 @@ public interface NdexImportResource {
 	@ApiOperation(value = "Save network to NDEx", notes = "<br><br>Save to NDEx", response = NdexSaveResponse.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = 404, message = "Network does not exist", response = NdexImportResponse.class), })
-	public NdexResponse<NdexSaveResponse> saveNetworkToNdex(@PathParam("suid") Long suid, final NdexSaveParams params);
+	public NdexSaveResponse saveNetworkToNdex(@PathParam("suid") Long suid, final NdexSaveParams params);
 	
 	@PUT
 	@Produces("application/json")
@@ -57,7 +57,7 @@ public interface NdexImportResource {
 	@ApiOperation(value = "Save network to NDEx", notes = "<br><br>Save to NDEx", response = NdexSaveResponse.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = 404, message = "Network does not exist", response = NdexImportResponse.class), })
-	public NdexResponse<NdexSaveResponse> updateNetworkInNdex(@PathParam("suid") Long suid, final NdexSaveParams params);
+	public NdexSaveResponse updateNetworkInNdex(@PathParam("suid") Long suid, final NdexSaveParams params);
 	
 	@PUT
 	@Produces("application/json")
@@ -66,5 +66,5 @@ public interface NdexImportResource {
 	@ApiOperation(value = "Save current network to NDEx", notes = "<br><br>Save to NDEx", response = NdexImportResponse.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = 404, message = "Network does not exist", response = NdexSaveResponse.class), })
-	public NdexResponse<NdexSaveResponse> updateCurrentNetworkInNdex(final NdexSaveParams params);
+	public NdexSaveResponse updateCurrentNetworkInNdex(final NdexSaveParams params);
 }
