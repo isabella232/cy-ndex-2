@@ -94,6 +94,9 @@ ipcRenderer.on('ping', (event, arg) => {
   console.log(loginInfo);
 
   const gl = remote.getGlobal('sharedObj');
+  console.log('############ GLOBAL OBJ')
+  console.log(gl)
+
   tempDir = gl.temp;
 
   if (loginInfo === undefined || loginInfo === null || loginInfo === {}) {
@@ -584,4 +587,3 @@ function showLoading() {
     child.show();
   });
 }
-

@@ -2,10 +2,10 @@
   "name": "cy-ndex-2",
   "productName": "CyNDEx-2",
   "version": "2.0.0",
-  "description": "NDEx Client for Cytoscape",
+  "description": "NDEx client for Cytoscape",
   "main": "main.js",
   "scripts": {
-    "start": "electron main.js",
+    "start": "electron main.js test_arg1 'aaaaaaaaaa aaaaaaaaaa aaaaaaaaaaaa'",
     "update": "./scripts/update.sh",
     "build-clients": "./scripts/build-clients.sh",
     "build": "./scripts/build.sh",
@@ -28,7 +28,7 @@
   "devDependencies": {
     "devtron": "^1.4.0",
     "electron": "^1.6.5",
-    "electron-packager": "^8.6.0",
+    "electron-packager": "^8.7.0",
     "eslint": "^3.19.0",
     "eslint-config-airbnb": "^14.1.0",
     "eslint-plugin-react": "^6.10.3"

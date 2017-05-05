@@ -31,9 +31,14 @@ import org.cytoscape.application.swing.CySwingApplication;
 
 public final class NativeAppInstaller {
 	
+	private static final String APP_URL_PROP_NAME = "cyndex.";
+	public static final String LOAD_URL_PROP_NAME = APP_URL_PROP_NAME + "url.load";
+	public static final String SAVE_URL_PROP_NAME = APP_URL_PROP_NAME + "url.save";
+	
 	private static final String VERSION = "2.0.0";
 	private static final String NATIVE_APP_LOCATION = "ndex-electron";
 	private static final String APP_DIR = NATIVE_APP_LOCATION + "-" + VERSION;
+	
 	
 	private final String INSTALL_MAKER_FILE = "ndex-installed.txt";
 	
@@ -53,13 +58,12 @@ public final class NativeAppInstaller {
 	private static final String ARCHIVE_LINUX = "NDEx-Valet-linux64.tar.gz";
 	private static final String ARCHIVE_WIN = "NDEx-Valet-win64.zip";
 
-
 	private static final Map<String, String> COMMANDS = new HashMap<>();
 	private static final Map<String, String> ARCHIVE = new HashMap<>();
 
 	static {
 		// Commands to execute native Electron App
-		COMMANDS.put(PLATFORM_MAC, "CyNDEx-2.app/Contents/MacOS/CyNDEx-2");
+		COMMANDS.put(PLATFORM_MAC, "CyNDEx-2.app/Contents/MacOS/CyNDEx-2 http://www.cytoscape.org/");
 		COMMANDS.put(PLATFORM_WIN, "NDEx-Valet-win64/NDEx-Valet.exe");
 		COMMANDS.put(PLATFORM_LINUX, "NDEx-Valet/NDEx-Valet");
 

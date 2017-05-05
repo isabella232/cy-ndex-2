@@ -56,6 +56,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CyActivator extends AbstractCyActivator {
+	
 
 	// Logger for this activator
 	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
@@ -114,7 +115,7 @@ public class CyActivator extends AbstractCyActivator {
 		final NativeAppInstaller installer = createInstaller(desktop, config);
 
 		// TF for NDEx Save
-		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory("ndex-save", client, pm,
+		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory(ExternalAppManager.APP_NAME_SAVE, client, pm,
 				installer.getCommand());
 		final Properties ndexSaveTaskFactoryProps = new Properties();
 		ndexSaveTaskFactoryProps.setProperty(ENABLE_FOR, ActionEnableSupport.ENABLE_FOR_NETWORK);
@@ -124,7 +125,7 @@ public class CyActivator extends AbstractCyActivator {
 		registerAllServices(bc, ndexSaveTaskFactory, ndexSaveTaskFactoryProps);
 
 		// TF for NDEx Load
-		final OpenExternalAppTaskFactory ndexTaskFactory = new OpenExternalAppTaskFactory("ndex", client, pm,
+		final OpenExternalAppTaskFactory ndexTaskFactory = new OpenExternalAppTaskFactory(ExternalAppManager.APP_NAME_LOAD, client, pm,
 				installer.getCommand());
 		final Properties ndexTaskFactoryProps = new Properties();
 		ndexTaskFactoryProps.setProperty(IN_MENU_BAR, "false");
@@ -136,7 +137,7 @@ public class CyActivator extends AbstractCyActivator {
 		// Expose CyREST endpoints
 		final ErrorBuilder errorBuilder = new ErrorBuilder(ciErrorFactory, ciExceptionFactory, config);
 		final NdexClient ndexClient = new NdexClient(errorBuilder);
-		registerService(bc, new NdexStatusResourceImpl(), NdexStatusResource.class, new Properties());
+		registerService(bc, new NdexStatusResourceImpl(pm, errorBuilder, appManager), NdexStatusResource.class, new Properties());
 		registerService(bc, new NdexImportResourceImpl(ndexClient, errorBuilder, appManager, netmgr, tfManager,
 				loadNetworkTF, ciExceptionFactory, ciErrorFactory), NdexImportResource.class, new Properties());
 	}

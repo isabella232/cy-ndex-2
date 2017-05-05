@@ -81,7 +81,16 @@ const MSG_SAVE = {
 const initLogger = () => {
   LOGGER.add(LOGGER.transports.File, { filename: 'electron-app.log' });
   LOGGER.level = 'debug';
-  LOGGER.log('debug', 'Starting app');
+  LOGGER.log('debug', 'Starting app-------------------2');
+  processArgs()
+}
+
+const processArgs = () => {
+  LOGGER.log('debug', 'ARG==============-------------------2');
+  for(var i = 0; i < process.argv.length; i++) {
+    console.log("argv[" + i + "] = " + process.argv[i]);
+    global.sharedObj.url = process.argv[i];
+  }
 }
 
 const initWindow = appType => {
@@ -94,8 +103,10 @@ const initWindow = appType => {
     mainWindow.webContents.send('ping', opts);
   });
 
+  // const url = APP_URLS.get(appType)
+  const url = global.sharedObj.url;
+  console.log('## Opening: ' + url)
 
-  const url = APP_URLS.get(appType)
   if(url === undefined || url === null) {
     mainWindow.loadURL('file://' + dir + '/webapp/' + appType + '/index.html');
   } else {
@@ -153,6 +164,9 @@ function initSocket() {
 
     ws.onopen = () => {
       ws.send(JSON.stringify(MSG_SELECT_APP));
+
+      // Start the app
+      initWindow({});
     };
 
     // Listen for messages
@@ -168,12 +182,12 @@ function initSocket() {
       }
 
       switch (msgObj.type) {
-        case 'app':
-          LOGGER.log("debug", "==== APP Type Message ====");
-          LOGGER.log("debug", msgObj);
-          opts = msgObj.options;
-          initWindow(msgObj.body);
-          break;
+        // case 'app':
+        //   LOGGER.log("debug", "==== APP Type Message ====");
+        //   LOGGER.log("debug", msgObj);
+        //   opts = msgObj.options;
+        //   initWindow(msgObj.body);
+        //   break;
         case 'minimized':
           if (mainWindow === undefined || mainWindow === null) {
             break;
