@@ -12,5 +12,5 @@ public interface NdexStatusResource {
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Map<String, String> status();
+	public Map<String, Object> getAppStatus();
 }

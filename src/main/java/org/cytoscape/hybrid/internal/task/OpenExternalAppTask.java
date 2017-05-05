@@ -45,6 +45,8 @@ public class OpenExternalAppTask extends AbstractTask {
 			client.start(WS_LOCATION);
 		}
 
+		pm.setAppName(appName);
+		
 		final ExecutorService executor = Executors.newSingleThreadExecutor();
 		executor.submit(() -> {
 			try {
