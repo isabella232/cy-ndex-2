@@ -1,4 +1,4 @@
-package org.cytoscape.hybrid.internal.rest;
+package org.cytoscape.hybrid.internal.rest.endpoints;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -9,19 +9,31 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import org.cytoscape.ci.CIWrapping;
+import org.cytoscape.hybrid.internal.rest.NdexImportParams;
+import org.cytoscape.hybrid.internal.rest.NdexImportResponse;
+import org.cytoscape.hybrid.internal.rest.NdexSaveParams;
+import org.cytoscape.hybrid.internal.rest.NdexSaveResponse;
+import org.cytoscape.hybrid.internal.rest.SummaryResponse;
 
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
-@Path("/ndex/v1/networks")
+
+@Api(tags="Apps: CyNDEx-2")
+@Path("/cyndex2/v1/networks")
 public interface NdexImportResource {
 
+	@ApiOperation(
+			value = "Get the summary of current network and collection.",
+			notes = "Returns summary of collection contains current network.",
+			response = SummaryResponse.class)
 	@GET
 	@Path("/current")
 	@Produces(MediaType.APPLICATION_JSON)
 	public SummaryResponse getCurrentNetworkSummary();
+
 
 	@POST
 	@Produces("application/json")

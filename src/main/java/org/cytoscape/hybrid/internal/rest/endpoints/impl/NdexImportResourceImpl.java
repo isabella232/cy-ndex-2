@@ -1,4 +1,4 @@
-package org.cytoscape.hybrid.internal.rest;
+package org.cytoscape.hybrid.internal.rest.endpoints.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -19,6 +19,16 @@ import org.cytoscape.ci.CIExceptionFactory;
 import org.cytoscape.ci.CIWrapping;
 import org.cytoscape.ci.model.CIError;
 import org.cytoscape.hybrid.internal.CxTaskFactoryManager;
+import org.cytoscape.hybrid.internal.rest.HeadlessTaskMonitor;
+import org.cytoscape.hybrid.internal.rest.NdexClient;
+import org.cytoscape.hybrid.internal.rest.NdexImportParams;
+import org.cytoscape.hybrid.internal.rest.NdexImportResponse;
+import org.cytoscape.hybrid.internal.rest.NdexResponse;
+import org.cytoscape.hybrid.internal.rest.NdexSaveParams;
+import org.cytoscape.hybrid.internal.rest.NdexSaveResponse;
+import org.cytoscape.hybrid.internal.rest.NetworkSummary;
+import org.cytoscape.hybrid.internal.rest.SummaryResponse;
+import org.cytoscape.hybrid.internal.rest.endpoints.NdexImportResource;
 import org.cytoscape.hybrid.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.hybrid.internal.rest.errors.ErrorType;
 import org.cytoscape.hybrid.internal.rest.reader.CxReaderFactory;
@@ -265,16 +275,16 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		CyTable table = network.getDefaultNetworkTable();
 		NetworkSummary summary = new NetworkSummary();
 		CyRow row = table.getRow(network.getSUID());
-		summary.setSuid(row.get(CyNetwork.SUID, Long.class));
-		summary.setName(network.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS).getRow(network.getSUID())
-				.get(CyNetwork.NAME, String.class));
-		summary.setNdexUuid(row.get("ndex.uuid", String.class));
+		summary.suid = row.get(CyNetwork.SUID, Long.class);
+		summary.name = network.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS).getRow(network.getSUID())
+				.get(CyNetwork.NAME, String.class);
+		summary.uuid = row.get("uuid", String.class);
 
 		final Collection<CyColumn> columns = table.getColumns();
 		final Map<String, Object> props = new HashMap<>();
 
 		columns.stream().forEach(col -> props.put(col.getName(), row.get(col.getName(), col.getType())));
-		summary.setProps(props);
+		summary.props = props;
 
 		return summary;
 	}
