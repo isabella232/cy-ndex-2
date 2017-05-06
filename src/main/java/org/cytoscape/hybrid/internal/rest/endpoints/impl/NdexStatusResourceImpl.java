@@ -1,7 +1,5 @@
-package org.cytoscape.hybrid.internal.rest;
+package org.cytoscape.hybrid.internal.rest.endpoints.impl;
 
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -9,10 +7,11 @@ import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.ci.CIWrapping;
+import org.cytoscape.hybrid.internal.rest.SaveProps;
+import org.cytoscape.hybrid.internal.rest.endpoints.NdexStatusResource;
 import org.cytoscape.hybrid.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.hybrid.internal.rest.errors.ErrorType;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
-import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
@@ -52,7 +51,6 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 		
 		final CyRootNetwork root = ((CySubNetwork) network).getRootNetwork();
 		parameters = buildProps(root);
-
 	}
 	
 	private final SaveProps buildProps(final CyRootNetwork root) {

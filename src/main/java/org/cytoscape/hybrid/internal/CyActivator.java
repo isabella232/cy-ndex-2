@@ -28,10 +28,12 @@ import org.cytoscape.ci.CIExceptionFactory;
 import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.hybrid.internal.electron.NativeAppInstaller;
 import org.cytoscape.hybrid.internal.rest.NdexClient;
-import org.cytoscape.hybrid.internal.rest.NdexImportResource;
-import org.cytoscape.hybrid.internal.rest.NdexImportResourceImpl;
-import org.cytoscape.hybrid.internal.rest.NdexStatusResource;
-import org.cytoscape.hybrid.internal.rest.NdexStatusResourceImpl;
+import org.cytoscape.hybrid.internal.rest.endpoints.NdexBaseResource;
+import org.cytoscape.hybrid.internal.rest.endpoints.NdexImportResource;
+import org.cytoscape.hybrid.internal.rest.endpoints.NdexStatusResource;
+import org.cytoscape.hybrid.internal.rest.endpoints.impl.NdexBaseResourceImpl;
+import org.cytoscape.hybrid.internal.rest.endpoints.impl.NdexImportResourceImpl;
+import org.cytoscape.hybrid.internal.rest.endpoints.impl.NdexStatusResourceImpl;
 import org.cytoscape.hybrid.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.hybrid.internal.rest.reader.LoadNetworkStreamTaskFactoryImpl;
 import org.cytoscape.hybrid.internal.task.OpenExternalAppTaskFactory;
@@ -137,7 +139,16 @@ public class CyActivator extends AbstractCyActivator {
 		// Expose CyREST endpoints
 		final ErrorBuilder errorBuilder = new ErrorBuilder(ciErrorFactory, ciExceptionFactory, config);
 		final NdexClient ndexClient = new NdexClient(errorBuilder);
+		
+		// Status endpoint
+
+		// Base
+		registerService(bc, new NdexBaseResourceImpl(), NdexBaseResource.class, new Properties());
+		
+		// Status
 		registerService(bc, new NdexStatusResourceImpl(pm, errorBuilder, appManager), NdexStatusResource.class, new Properties());
+		
+		// Network IO
 		registerService(bc, new NdexImportResourceImpl(ndexClient, errorBuilder, appManager, netmgr, tfManager,
 				loadNetworkTF, ciExceptionFactory, ciErrorFactory), NdexImportResource.class, new Properties());
 	}

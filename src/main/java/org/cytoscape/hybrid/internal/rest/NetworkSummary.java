@@ -2,36 +2,22 @@ package org.cytoscape.hybrid.internal.rest;
 
 import java.util.Map;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+@ApiModel(description = "Summary of a network.")
 public class NetworkSummary {
-	
-	private Long suid;
-	private String name;
-	private String ndexUuid;
-	private Map<String, ?> props;
-	
-	
-	public Long getSuid() {
-		return suid;
-	}
-	public void setSuid(Long suid) {
-		this.suid = suid;
-	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
-	public String getNdexUuid() {
-		return ndexUuid;
-	}
-	public void setNdexUuid(String ndexUuid) {
-		this.ndexUuid = ndexUuid;
-	}
-	public Map<String, ?> getProps() {
-		return props;
-	}
-	public void setProps(Map<String, ?> props) {
-		this.props = props;
-	}
+
+	@ApiModelProperty(value = "SUID of the current network")
+	public Long suid;
+
+	@ApiModelProperty(value = "NDEx UUID of the current network")
+	public String uuid;
+
+	@ApiModelProperty(value = "Name of the current network")
+	public String name;
+
+	@ApiModelProperty(value = "Network properties (attributes) in current network's table")
+	public Map<String, Object> props;
+
 }
