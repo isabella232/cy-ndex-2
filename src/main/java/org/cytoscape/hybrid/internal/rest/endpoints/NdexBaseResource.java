@@ -5,7 +5,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import org.cytoscape.hybrid.internal.rest.AppInfoResponse;
+import org.cytoscape.hybrid.internal.rest.response.AppInfoResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

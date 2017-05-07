@@ -1,6 +1,8 @@
-package org.cytoscape.hybrid.internal.rest;
+package org.cytoscape.hybrid.internal.rest.response;
 
 import java.util.Collection;
+
+import org.cytoscape.hybrid.internal.rest.NetworkSummary;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;

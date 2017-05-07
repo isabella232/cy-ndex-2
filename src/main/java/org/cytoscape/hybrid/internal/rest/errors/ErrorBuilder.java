@@ -10,7 +10,6 @@ import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.ci.CIErrorFactory;
 import org.cytoscape.ci.CIExceptionFactory;
 import org.cytoscape.ci.model.CIError;
-import org.cytoscape.hybrid.internal.rest.CIException;
 
 public class ErrorBuilder {
 

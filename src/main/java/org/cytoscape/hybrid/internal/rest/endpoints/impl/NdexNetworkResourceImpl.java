@@ -21,18 +21,16 @@ import org.cytoscape.ci.model.CIError;
 import org.cytoscape.hybrid.internal.CxTaskFactoryManager;
 import org.cytoscape.hybrid.internal.rest.HeadlessTaskMonitor;
 import org.cytoscape.hybrid.internal.rest.NdexClient;
-import org.cytoscape.hybrid.internal.rest.NdexImportParams;
-import org.cytoscape.hybrid.internal.rest.NdexImportResponse;
-import org.cytoscape.hybrid.internal.rest.NdexResponse;
-import org.cytoscape.hybrid.internal.rest.NdexSaveParams;
-import org.cytoscape.hybrid.internal.rest.NdexSaveResponse;
 import org.cytoscape.hybrid.internal.rest.NetworkSummary;
-import org.cytoscape.hybrid.internal.rest.SummaryResponse;
-import org.cytoscape.hybrid.internal.rest.endpoints.NdexImportResource;
+import org.cytoscape.hybrid.internal.rest.endpoints.NdexNetworkResource;
 import org.cytoscape.hybrid.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.hybrid.internal.rest.errors.ErrorType;
+import org.cytoscape.hybrid.internal.rest.parameter.NdexImportParams;
+import org.cytoscape.hybrid.internal.rest.parameter.NdexSaveParameters;
 import org.cytoscape.hybrid.internal.rest.reader.CxReaderFactory;
 import org.cytoscape.hybrid.internal.rest.reader.UpdateTableTask;
+import org.cytoscape.hybrid.internal.rest.response.NdexBaseResponse;
+import org.cytoscape.hybrid.internal.rest.response.SummaryResponse;
 import org.cytoscape.io.read.CyNetworkReader;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.io.write.CyNetworkViewWriterFactory;
@@ -53,9 +51,9 @@ import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NdexImportResourceImpl implements NdexImportResource {
+public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
-	private static final Logger logger = LoggerFactory.getLogger(NdexImportResourceImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(NdexNetworkResourceImpl.class);
 
 	private final NdexClient client;
 	private final TaskMonitor tm;
@@ -72,7 +70,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 
 	private final ErrorBuilder errorBuilder;
 	
-	public NdexImportResourceImpl(final NdexClient client, final ErrorBuilder errorBuilder, CyApplicationManager appManager, CyNetworkManager networkManager,
+	public NdexNetworkResourceImpl(final NdexClient client, final ErrorBuilder errorBuilder, CyApplicationManager appManager, CyNetworkManager networkManager,
 			CxTaskFactoryManager tfManager, TaskFactory loadNetworkTF,
 			CIExceptionFactory ciExceptionFactory, CIErrorFactory ciErrorFactory) { 
 
@@ -91,12 +89,12 @@ public class NdexImportResourceImpl implements NdexImportResource {
 
 	@Override
 	@CIWrapping
-	public NdexImportResponse createNetworkFromNdex(final NdexImportParams params) {
+	public NdexBaseResponse createNetworkFromNdex(final NdexImportParams params) {
 
 		// 1. Get summary of the network.
 		Map<String, ?> summary = null;
 
-		summary = client.getSummary(params.getServerUrl(), params.getUuid(), params.getUserId(), params.getPassword());
+		summary = client.getSummary(params.serverUrl, params.uuid, params.userId, params.password);
 
 		System.out.println("* Got summary: " + summary);
 
@@ -104,8 +102,8 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		InputStream is;
 		Long newSuid = null;
 
-		is = client.load(params.getServerUrl() + "/network/" + params.getUuid(), params.getUserId(),
-				params.getPassword());
+		is = client.load(params.serverUrl + "/network/" + params.uuid, params.userId,
+				params.password);
 
 		try {
 			InputStreamTaskFactory readerTF = this.tfManager.getCxReaderFactory();
@@ -115,7 +113,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 
 			// Update table AFTER loading
 			UpdateTableTask updateTableTask = new UpdateTableTask(reader);
-			updateTableTask.setUuid(params.getUuid());
+			updateTableTask.setUuid(params.uuid);
 			tasks.append(updateTableTask);
 
 			while (tasks.hasNext()) {
@@ -130,15 +128,13 @@ public class NdexImportResourceImpl implements NdexImportResource {
 					"Failed to load network from NDEx.", ErrorType.INTERNAL);
 		}
 
-		return new NdexImportResponse(newSuid, params.getUuid());
+		return new NdexBaseResponse(newSuid, params.uuid);
 	}
 
 	
 	@Override
 	@CIWrapping
-	public NdexSaveResponse saveNetworkToNdex(Long suid, NdexSaveParams params) {
-
-		final NdexResponse<NdexSaveResponse> response = new NdexResponse<>();
+	public NdexBaseResponse saveNetworkToNdex(Long suid, NdexSaveParameters params) {
 
 		if (suid == null) {
 			logger.error("SUID is missing");
@@ -171,8 +167,8 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		final ByteArrayInputStream cxis = new ByteArrayInputStream(os.toByteArray());
 		String newUuid = null;
 
-		newUuid = client.postNetwork(params.getServerUrl() + "/network", networkName, cxis, params.getUserId(),
-				params.getPassword());
+		newUuid = client.postNetwork(params.serverUrl + "/network", networkName, cxis, params.userId,
+				params.password);
 
 		if (newUuid == null || newUuid.isEmpty()) {
 			final String message = "Failed to upload CX to NDEx.  (NDEx did not return UUID)";
@@ -180,10 +176,8 @@ public class NdexImportResourceImpl implements NdexImportResource {
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.NDEX_API);
 		}
 
-		System.out.println("============== New UUID: "+ newUuid);
-		
 		// Update table
-		final Map<String, String> metadata = params.getMetadata();
+		final Map<String, String> metadata = params.metadata;
 		// Set New UUID
 		metadata.put(NdexClient.UUID_COLUMN_NAME, newUuid);
 		
@@ -194,7 +188,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		metadata.keySet().stream().forEach(key -> saveMetadata(key, metadata.get(key), rootTable, root.getSUID()));
 
 		// Visibility
-		if (params.getIsPublic()) {
+		if (params.isPublic) {
 			// This is a hack: NDEx does not respond immediately after creation.
 			try {
 				Thread.sleep(500);
@@ -204,10 +198,10 @@ public class NdexImportResourceImpl implements NdexImportResource {
 				throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 			}
 
-			client.setVisibility(params.getServerUrl(), newUuid, true, params.getUserId(), params.getPassword());
+			client.setVisibility(params.serverUrl, newUuid, true, params.userId, params.password);
 		}
 
-		return new NdexSaveResponse(suid, newUuid);
+		return new NdexBaseResponse(suid, newUuid);
 	}
 
 	private final void saveMetadata(String columnName, String value, CyTable table, Long suid) {
@@ -221,7 +215,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 
 	@Override
 	@CIWrapping
-	public NdexSaveResponse saveCurrentNetworkToNdex(NdexSaveParams params) {
+	public NdexBaseResponse saveCurrentNetworkToNdex(NdexSaveParameters params) {
 		final CyNetwork network = appManager.getCurrentNetwork();
 		if (network == null) {
 			// Current network is not available
@@ -291,10 +285,8 @@ public class NdexImportResourceImpl implements NdexImportResource {
 
 	@Override
 	@CIWrapping
-	public NdexSaveResponse updateNetworkInNdex(Long suid, NdexSaveParams params) {
+	public NdexBaseResponse updateNetworkInNdex(Long suid, NdexSaveParameters params) {
 		
-		final NdexResponse<NdexSaveResponse> response = new NdexResponse<>();
-
 		if (suid == null) {
 			logger.error("SUID is missing");
 			throw errorBuilder.buildException(Status.BAD_REQUEST, "SUID is not specified.", ErrorType.INVALID_PARAMETERS);
@@ -314,7 +306,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		System.out.println("============== Target UUID: "+ uuid);
 		
 		// Update table
-		final Map<String, String> metadata = params.getMetadata();
+		final Map<String, String> metadata = params.metadata;
 		final CyTable rootTable = root.getDefaultNetworkTable();
 		metadata.keySet().stream().forEach(key -> saveMetadata(key, metadata.get(key), rootTable, root.getSUID()));
 
@@ -338,8 +330,8 @@ public class NdexImportResourceImpl implements NdexImportResource {
 
 		try {
 			// Ndex client from NDEx Team
-			final NdexRestClient nc = new NdexRestClient(params.getUserId(), params.getPassword(),
-					params.getServerUrl());
+			final NdexRestClient nc = new NdexRestClient(params.userId, params.password,
+					params.serverUrl);
 			final NdexRestClientModelAccessLayer ndex = new NdexRestClientModelAccessLayer(nc);
 			ndex.updateCXNetwork(UUID.fromString(uuid), cxis);
 
@@ -351,7 +343,7 @@ public class NdexImportResourceImpl implements NdexImportResource {
 		}
 
 		// Visibility
-		if (params.getIsPublic()) {
+		if (params.isPublic) {
 			// This is a hack: NDEx does not respond immediately after creation.
 			try {
 				Thread.sleep(500);
@@ -360,16 +352,15 @@ public class NdexImportResourceImpl implements NdexImportResource {
 				logger.error(message);
 				throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 			}
-
-			client.setVisibility(params.getServerUrl(), uuid, true, params.getUserId(), params.getPassword());
+			client.setVisibility(params.serverUrl, uuid, true, params.userId, params.password);
 		}
 
-		return new NdexSaveResponse(suid, uuid);
+		return new NdexBaseResponse(suid, uuid);
 	}
 
 	@Override
 	@CIWrapping
-	public NdexSaveResponse updateCurrentNetworkInNdex(NdexSaveParams params) {
+	public NdexBaseResponse updateCurrentNetworkInNdex(NdexSaveParameters params) {
 		final CyNetwork network = appManager.getCurrentNetwork();
 		
 		if (network == null) {
