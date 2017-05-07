@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<properties>
-		<bundle.symbolicName>org.cytoscape.hybrid.ndex</bundle.symbolicName>
+		<bundle.symbolicName>org.cytoscape.hybrid.cyndex2</bundle.symbolicName>
 		<bundle.namespace>org.cytoscape.hybrid</bundle.namespace>
 
 		<maven-compiler-plugin.version>3.6.1</maven-compiler-plugin.version>
@@ -12,7 +12,7 @@
 		<junit.version>4.12</junit.version>
 		<jetty.version>9.3.9.v20160517</jetty.version>
 
-		<cytoscape.api.version>3.3.0</cytoscape.api.version>
+		<cytoscape.api.version>3.5.0</cytoscape.api.version>
 		<osgi.api.version>4.2.0</osgi.api.version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -107,12 +107,6 @@
 		<!-- Cytoscape 3 Dependencies -->
 		<dependency>
 			<groupId>org.cytoscape</groupId>
-			<artifactId>event-api</artifactId>
-			<version>${cytoscape.api.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.cytoscape</groupId>
 			<artifactId>property-api</artifactId>
 			<version>${cytoscape.api.version}</version>
 			<scope>provided</scope>
@@ -131,12 +125,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.cytoscape</groupId>
-			<artifactId>layout-api</artifactId>
-			<version>${cytoscape.api.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.cytoscape</groupId>
 			<artifactId>core-task-api</artifactId>
 			<version>${cytoscape.api.version}</version>
 			<scope>provided</scope>
@@ -144,36 +132,6 @@
 		<dependency>
 			<groupId>org.cytoscape</groupId>
 			<artifactId>work-api</artifactId>
-			<version>${cytoscape.api.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.cytoscape</groupId>
-			<artifactId>service-api</artifactId>
-			<version>${cytoscape.api.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.cytoscape</groupId>
-			<artifactId>group-api</artifactId>
-			<version>${cytoscape.api.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.cytoscape</groupId>
-			<artifactId>vizmap-api</artifactId>
-			<version>${cytoscape.api.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.cytoscape</groupId>
-			<artifactId>command-executor-api</artifactId>
-			<version>${cytoscape.api.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.cytoscape</groupId>
-			<artifactId>swing-util-api</artifactId>
 			<version>${cytoscape.api.version}</version>
 			<scope>provided</scope>
 		</dependency>
@@ -237,12 +195,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>2.8.1</version>
-		</dependency>
-
-		<dependency>
 			<groupId>javax.ws.rs</groupId>
 			<artifactId>javax.ws.rs-api</artifactId>
 			<version>2.0</version>
@@ -260,27 +212,19 @@
 			<artifactId>ndex-java-client</artifactId>
 			<version>2.0.0</version>
 		</dependency>
-		
-		<dependency>
-              <groupId>org.cytoscape</groupId>
-              <artifactId>work-json-api</artifactId>
-              <version>0.1.0-SNAPSHOT</version>
-              <scope>provided</scope>
-        </dependency>
-        <dependency>
-              <groupId>org.cytoscape</groupId>
-              <artifactId>ci-api</artifactId>
-              <version>0.1.0-SNAPSHOT</version>
-              <scope>provided</scope>
-        </dependency>
 
 		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<version>4.5.3</version>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>work-json-api</artifactId>
+			<version>0.1.0-SNAPSHOT</version>
+			<scope>provided</scope>
 		</dependency>
-
-
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>ci-api</artifactId>
+			<version>0.1.0-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
 
 		<!-- Testing -->
 		<dependency>
@@ -302,25 +246,5 @@
 			<scope>test</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>org.cytoscape</groupId>
-			<artifactId>model-impl</artifactId>
-			<version>${cytoscape.api.version}</version>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.cytoscape</groupId>
-			<artifactId>model-impl</artifactId>
-			<version>${cytoscape.api.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.cytoscape</groupId>
-			<artifactId>event-api</artifactId>
-			<version>${cytoscape.api.version}</version>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 </project>

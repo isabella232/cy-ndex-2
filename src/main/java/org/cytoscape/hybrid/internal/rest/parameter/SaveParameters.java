@@ -1,6 +1,6 @@
-package org.cytoscape.hybrid.internal.rest;
+package org.cytoscape.hybrid.internal.rest.parameter;
 
-public class SaveProps {
+public class SaveParameters implements AppStatusParameters {
 	public Long suid;
 	public String uuid;
 	public String name;

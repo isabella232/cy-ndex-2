@@ -1,8 +1,8 @@
 package org.cytoscape.hybrid.internal.rest.endpoints.impl;
 
 import org.cytoscape.ci.CIWrapping;
-import org.cytoscape.hybrid.internal.rest.AppInfoResponse;
 import org.cytoscape.hybrid.internal.rest.endpoints.NdexBaseResource;
+import org.cytoscape.hybrid.internal.rest.response.AppInfoResponse;
 
 public class NdexBaseResourceImpl implements NdexBaseResource {
 	

@@ -1,11 +1,12 @@
 package org.cytoscape.hybrid.internal.rest.endpoints;
 
-import java.util.Map;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+
+import org.cytoscape.hybrid.internal.rest.parameter.AppStatusParameters;
+import org.cytoscape.hybrid.internal.rest.response.AppStatusResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -19,8 +20,8 @@ public interface NdexStatusResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/")
 	@ApiOperation(
-			value = "Get current state of the app.",
-			notes = "Application state (choose or save) and other properties will be returned.",
-			response = Map.class)
-	public Map<String, Object> getAppStatus();
+			value = "Get current status of the CyNDEx app.",
+			notes = "Application status (choose or save) and other properties will be returned.",
+			response = AppStatusResponse.class)
+	public AppStatusResponse<AppStatusParameters> getAppStatus();
 }

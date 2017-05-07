@@ -7,10 +7,13 @@ import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.ci.CIWrapping;
-import org.cytoscape.hybrid.internal.rest.SaveProps;
 import org.cytoscape.hybrid.internal.rest.endpoints.NdexStatusResource;
 import org.cytoscape.hybrid.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.hybrid.internal.rest.errors.ErrorType;
+import org.cytoscape.hybrid.internal.rest.parameter.AppStatusParameters;
+import org.cytoscape.hybrid.internal.rest.parameter.LoadParameters;
+import org.cytoscape.hybrid.internal.rest.parameter.SaveParameters;
+import org.cytoscape.hybrid.internal.rest.response.AppStatusResponse;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyRow;
@@ -21,40 +24,38 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class NdexStatusResourceImpl implements NdexStatusResource {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(NdexStatusResourceImpl.class);
 
-	private static final String NDEX_PREFIX = "ndex.";
-	
 	private final ExternalAppManager pm;
 	private final ErrorBuilder errorBuilder;
 	private final CyApplicationManager appManager;
-	
-	private Map<String, Object> status;
-	private Object parameters;
 
+	private AppStatusResponse<AppStatusParameters> status;
+	private AppStatusParameters parameters;
 
-	public NdexStatusResourceImpl(final ExternalAppManager pm, ErrorBuilder errorBuilder, CyApplicationManager appManager) {
+	public NdexStatusResourceImpl(final ExternalAppManager pm, ErrorBuilder errorBuilder,
+			CyApplicationManager appManager) {
 		this.pm = pm;
 		this.errorBuilder = errorBuilder;
 		this.appManager = appManager;
 	}
 
-	private void setSaveProps() {
+	private AppStatusParameters setSaveProps() {
 		final CyNetwork network = appManager.getCurrentNetwork();
-		
+
 		if (network == null) {
 			final String message = "Current network does not exist (No network is selected)";
 			logger.error(message);
 			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INTERNAL);
 		}
-		
+
 		final CyRootNetwork root = ((CySubNetwork) network).getRootNetwork();
-		parameters = buildProps(root);
+		return buildProps(root);
 	}
-	
-	private final SaveProps buildProps(final CyRootNetwork root) {
-		final SaveProps summary = new SaveProps();
+
+	private final AppStatusParameters buildProps(final CyRootNetwork root) {
+		final SaveParameters summary = new SaveParameters();
 		final CyTable table = root.getDefaultNetworkTable();
 
 		// Network local table
@@ -74,33 +75,32 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 		return summary;
 	}
 
-	private void setLoadProps() {
-		parameters = new TreeMap<String, Object>();
-		((Map<String, Object>)parameters).put("searchTerm", pm.getQuery());
+	private AppStatusParameters setLoadProps() {
+		final LoadParameters loadParameters = new LoadParameters();
+		loadParameters.searchTerm = pm.getQuery();
+		return loadParameters;
 	}
 
 	@Override
 	@CIWrapping
-	public Map<String, Object> getAppStatus() {
+	public AppStatusResponse<AppStatusParameters> getAppStatus() {
 
 		final String widget = pm.getAppName();
-		if(widget == null) {
+		if (widget == null) {
 			final String message = "Application type is not set yet.";
 			logger.error(message);
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 		}
 
-		status = new TreeMap<>();
-
-		status.put("widget", widget);
+		status = new AppStatusResponse<>();
+		status.widget = widget;
 
 		if (widget.equals(ExternalAppManager.APP_NAME_LOAD)) {
-			setLoadProps();
+			status.parameters = setLoadProps();
 		} else {
-			setSaveProps();
+			status.parameters = setSaveProps();
 		}
 
-		status.put("parameters", parameters);
 		return status;
 	}
 }

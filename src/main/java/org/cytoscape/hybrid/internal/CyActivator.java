@@ -29,10 +29,10 @@ import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.hybrid.internal.electron.NativeAppInstaller;
 import org.cytoscape.hybrid.internal.rest.NdexClient;
 import org.cytoscape.hybrid.internal.rest.endpoints.NdexBaseResource;
-import org.cytoscape.hybrid.internal.rest.endpoints.NdexImportResource;
+import org.cytoscape.hybrid.internal.rest.endpoints.NdexNetworkResource;
 import org.cytoscape.hybrid.internal.rest.endpoints.NdexStatusResource;
 import org.cytoscape.hybrid.internal.rest.endpoints.impl.NdexBaseResourceImpl;
-import org.cytoscape.hybrid.internal.rest.endpoints.impl.NdexImportResourceImpl;
+import org.cytoscape.hybrid.internal.rest.endpoints.impl.NdexNetworkResourceImpl;
 import org.cytoscape.hybrid.internal.rest.endpoints.impl.NdexStatusResourceImpl;
 import org.cytoscape.hybrid.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.hybrid.internal.rest.reader.LoadNetworkStreamTaskFactoryImpl;
@@ -59,7 +59,6 @@ import org.slf4j.LoggerFactory;
 
 public class CyActivator extends AbstractCyActivator {
 	
-
 	// Logger for this activator
 	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
 
@@ -149,8 +148,8 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, new NdexStatusResourceImpl(pm, errorBuilder, appManager), NdexStatusResource.class, new Properties());
 		
 		// Network IO
-		registerService(bc, new NdexImportResourceImpl(ndexClient, errorBuilder, appManager, netmgr, tfManager,
-				loadNetworkTF, ciExceptionFactory, ciErrorFactory), NdexImportResource.class, new Properties());
+		registerService(bc, new NdexNetworkResourceImpl(ndexClient, errorBuilder, appManager, netmgr, tfManager,
+				loadNetworkTF, ciExceptionFactory, ciErrorFactory), NdexNetworkResource.class, new Properties());
 	}
 
 	private final void startServer(BundleContext bc) {
