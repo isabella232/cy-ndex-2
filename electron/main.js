@@ -1,29 +1,20 @@
-// Logging
+const { app, globalShortcut, BrowserWindow } = require('electron');
+const {MSG_FOCUS, MSG_MINIMIZE, MSG_RESTORE, DESKTOP_SETTINGS} = require('./config')
+
+// Electron app logging
 const LOGGER = require('winston');
 
-const APP_NAME_VALET = 'ndex';
-const APP_NAME_SAVE = 'ndex-save';
-
-const APP_CONFIG_VALET = require('./webapp/ndex/config');
-
-const APP_CONFIG_MAP = new Map();
-APP_CONFIG_MAP.set(APP_NAME_VALET, APP_CONFIG_VALET);
-
+// TODO: Add logging config
 
 // Required Electron components
-const { app, globalShortcut, BrowserWindow } = require('electron');
 
+// Remove this...
 global.sharedObj = { temp: app.getPath('temp') };
 console.log(global.sharedObj);
 
-// Current dir
+// Current electron dir
 const dir = `${__dirname}`;
 global.sharedObj.dir = dir;
-
-// URL to be opened for the specified app
-const APP_URLS = new Map();
-APP_URLS.set(APP_NAME_SAVE, 'file://' + dir + '/webapp/ndex/save.html')
-
 
 // For duplex communication
 const WebSocket = require('ws');
@@ -33,82 +24,37 @@ const WS_ADDRESS = 'ws://localhost:8025/ws/echo';
 
 let ws; // Web socket server
 let mainWindow; // The browser window for showing app.
-
 let opts;
 
-// Type of the app for this instance.
-let appName = null;
 
 let block = false;
-
 let minimized = false;
 let isDevEnabled = false;
-
 let isAppRunning = false;
 
 
-const MSG_SELECT_APP = {
-  from: 'ndex',
-  type: 'app',
-  body: ''
-};
-
-const MSG_FOCUS = {
-  from: 'ndex',
-  type: 'focus',
-  body: 'Ndex focused'
-};
-
-const MSG_MINIMIZE = {
-  from: 'ndex',
-  type: 'minimized',
-  body: 'Ndex window minimized'
-};
-
-const MSG_RESTORE = {
-  from: 'ndex',
-  type: 'restored',
-  body: 'Ndex window restored'
-};
-
-const MSG_SAVE = {
-  from: 'ndex',
-  type: 'save',
-  body: ''
-};
-
+// Basic setup for the application
 
 const initLogger = () => {
-  LOGGER.add(LOGGER.transports.File, { filename: 'electron-app.log' });
+  LOGGER.add(LOGGER.transports.File, { filename: 'cyndex-2.log' });
   LOGGER.level = 'debug';
-  LOGGER.log('debug', 'Starting app-------------------2');
-  processArgs()
 }
 
-const processArgs = () => {
-  LOGGER.log('debug', 'ARG==============-------------------2');
-  for(var i = 0; i < process.argv.length; i++) {
-    console.log("argv[" + i + "] = " + process.argv[i]);
-    global.sharedObj.url = process.argv[i];
-  }
-}
-
-const initWindow = appType => {
+/**
+  Initialize the application window
+*/
+const initWindow = () => {
   // Create the browser window.
-  LOGGER.log('debug', 'Target app = ' + appType);
-  appName = appType;
-
-  mainWindow = new BrowserWindow(APP_CONFIG_MAP.get(appType));
+  mainWindow = new BrowserWindow(DESKTOP_SETTINGS);
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.send('ping', opts);
   });
 
-  // const url = APP_URLS.get(appType)
   const url = global.sharedObj.url;
   console.log('## Opening: ' + url)
 
   if(url === undefined || url === null) {
-    mainWindow.loadURL('file://' + dir + '/webapp/' + appType + '/index.html');
+    mainWindow.loadURL('file://' + dir + '/webapp/ndex/index.html');
   } else {
     mainWindow.loadURL(url);
   }
@@ -157,15 +103,14 @@ const initEventHandlers = () => {
 };
 
 
-function initSocket() {
+const initSocket = () => {
   try {
     // Try Connection to server...
     ws = new WebSocket(WS_ADDRESS);
 
     ws.onopen = () => {
-      ws.send(JSON.stringify(MSG_SELECT_APP));
 
-      // Start the app
+      // Start the app once WS connection is established
       initWindow({});
     };
 
@@ -182,12 +127,6 @@ function initSocket() {
       }
 
       switch (msgObj.type) {
-        // case 'app':
-        //   LOGGER.log("debug", "==== APP Type Message ====");
-        //   LOGGER.log("debug", msgObj);
-        //   opts = msgObj.options;
-        //   initWindow(msgObj.body);
-        //   break;
         case 'minimized':
           if (mainWindow === undefined || mainWindow === null) {
             break;
@@ -211,7 +150,6 @@ function initSocket() {
             break;
           }
 
-          console.log('######## Focus request: ----------- ')
           block = true;
 
           try {
@@ -233,7 +171,6 @@ function initSocket() {
 
           }
         case 'restored':
-          console.log('######## RESTORE request: ----------- ')
           if(mainWindow.isMinimized() && !block) {
             block = true;
             mainWindow.restore();
@@ -266,6 +203,7 @@ function initSocket() {
 
   } catch (e) {
     console.log(e);
+    LOGGER.log('error', e);
   }
 }
 
@@ -302,12 +240,9 @@ app.on('ready', () => {
     return;
   }
 
-  // Respond to only once.  One app == one instance.
-  if(appName === null) {
-    createWindow();
-    addShortcuts();
-    isAppRunning = true;
-  }
+  createWindow();
+  addShortcuts();
+  isAppRunning = true;
 });
 
 // Quit when all windows are closed.
