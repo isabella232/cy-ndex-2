@@ -1,18 +1,18 @@
 {
   "name": "cy-ndex-2",
   "productName": "CyNDEx-2",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Electron-based NDEx client for Cytoscape",
   "main": "main.js",
   "scripts": {
-    "start": "electron main.js test_arg1 'aaaaaaaaaa aaaaaaaaaa aaaaaaaaaaaa'",
+    "start": "electron main.js 1234",
     "update": "./scripts/update.sh",
     "build": "./scripts/build.sh",
     "all": "./scripts/all.sh"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/idekerlab/ndex-valet.git"
+    "url": "https://github.com/idekerlab/cy-ndex-2.git"
   },
   "keywords": [
     "electron",
@@ -23,23 +23,17 @@
   ],
   "author": "Keiichiro Ono",
   "license": "MIT",
-  "homepage": "https://github.com/idekerlab/ndex-valet",
+  "homepage": "https://github.com/idekerlab/cy-ndex-2",
   "devDependencies": {
     "devtron": "^1.4.0",
-    "electron": "^1.6.7",
+    "electron": "^1.7.0",
     "electron-packager": "^8.7.0",
     "eslint": "^3.19.0",
     "eslint-config-airbnb": "^14.1.0",
     "eslint-plugin-react": "^6.10.3"
   },
   "dependencies": {
-    "file-url": "1.1.0",
-    "immutable": "3.8.1",
-    "jsonfile": "2.3.1",
-    "plist": "2.0.1",
-    "request": "2.78.0",
-    "winston": "2.2.0",
-    "ws": "1.1.1",
-    "xmlbuilder": "4.2.1"
+    "winston": "^2.3.1",
+    "ws": "^2.3.1"
   }
 }

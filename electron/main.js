@@ -1,66 +1,80 @@
-const { app, globalShortcut, BrowserWindow } = require('electron');
-const {MSG_FOCUS, MSG_MINIMIZE, MSG_RESTORE, DESKTOP_SETTINGS} = require('./config')
+/**
+  main.js - The main server-side code for CyNDEx-2
+*/
 
 // Electron app logging
 const LOGGER = require('winston');
 
-// TODO: Add logging config
-
-// Required Electron components
-
-// Remove this...
-global.sharedObj = { temp: app.getPath('temp') };
-console.log(global.sharedObj);
-
-// Current electron dir
-const dir = `${__dirname}`;
-global.sharedObj.dir = dir;
-
-// For duplex communication
+// For duplex communication via WebSocket
 const WebSocket = require('ws');
 
-// TODO: make this injectable
+// Required Electron classes
+const {
+  app,
+  globalShortcut,
+  BrowserWindow,
+} = require('electron')
+
+// Constants are stored in this file
+const {
+  MSG_FOCUS,
+  MSG_MINIMIZE,
+  MSG_RESTORE,
+  DESKTOP_SETTINGS
+} = require('./config')
+
+
 const WS_ADDRESS = 'ws://localhost:8025/ws/echo';
 
-let ws; // Web socket server
-let mainWindow; // The browser window for showing app.
-let opts;
-
+let ws // Web socket server
+let mainWindow // The browser window for showing app.
 
 let block = false;
 let minimized = false;
 let isDevEnabled = false;
 let isAppRunning = false;
 
-
-// Basic setup for the application
-
+/**
+  Initialize logger
+*/
 const initLogger = () => {
-  LOGGER.add(LOGGER.transports.File, { filename: 'cyndex-2.log' });
-  LOGGER.level = 'debug';
+  LOGGER.add(LOGGER.transports.File, {
+    filename: 'cyndex-2.log'
+  })
+  LOGGER.level = 'debug'
 }
+
 
 /**
   Initialize the application window
 */
 const initWindow = () => {
   // Create the browser window.
-  mainWindow = new BrowserWindow(DESKTOP_SETTINGS);
+  mainWindow = new BrowserWindow(DESKTOP_SETTINGS)
+
+  // Send settings to the renderer
   mainWindow.webContents.on('did-finish-load', () => {
-    mainWindow.webContents.send('ping', opts);
-  });
 
-  const url = global.sharedObj.url;
-  console.log('## Opening: ' + url)
+    // Check port number
+    let cyrestPortNumber = '1234'
+    const argLen = process.argv.length
 
-  if(url === undefined || url === null) {
-    mainWindow.loadURL('file://' + dir + '/webapp/ndex/index.html');
-  } else {
-    mainWindow.loadURL(url);
-  }
+    if(argLen >= 3) {
+      cyrestPortNumber = process.argv[2]
+    }
+
+    LOGGER.log('debug', 'Got CyREST port from Cy3: ' + cyrestPortNumber)
+    mainWindow.webContents.send('initialized', {
+      cyrestPort: cyrestPortNumber
+    })
+  })
+
+  // Load app from local directory.
+  const dir = `${__dirname}`
+  mainWindow.loadURL('file://' + dir + '/webapp/ndex/index.html')
 
   // Event handlers:
-  initEventHandlers();
+  initEventHandlers()
 };
 
 
@@ -68,61 +82,57 @@ const initEventHandlers = () => {
 
   // Focus: the window clicked.
   mainWindow.on('focus', (e) => {
-    console.log("event restore:")
+
     if (block || mainWindow === null || mainWindow === undefined) {
-      return;
+      return
     }
 
-    if(!mainWindow.isDestroyed() && !mainWindow.isAlwaysOnTop()) {
+    if (!mainWindow.isDestroyed() && !mainWindow.isAlwaysOnTop()) {
       mainWindow.setAlwaysOnTop(true);
-
       ws.send(JSON.stringify(MSG_FOCUS));
 
-      setTimeout(()=> {
+      setTimeout(() => {
         mainWindow.setAlwaysOnTop(false);
-        console.log('DISABLE Always on top: ----------- ')
       }, 200);
     }
   });
 
+  // Window minimized
   mainWindow.on('minimize', (e) => {
     e.preventDefault();
     ws.send(JSON.stringify(MSG_MINIMIZE));
-
   });
 
+  // Restored from minimized state
   mainWindow.on('restore', (e) => {
-    e.preventDefault();
+    e.preventDefault()
 
     // TODO: Are there any better way to handle strange events from Windows system?
-    setTimeout(()=> {
-        ws.send(JSON.stringify(MSG_RESTORE));
+    setTimeout(() => {
+      ws.send(JSON.stringify(MSG_RESTORE));
     }, 200);
-  });
+  })
 
-};
-
+  // closed
+  mainWindow.on('closed', () => { mainWindow = null })
+}
 
 const initSocket = () => {
   try {
     // Try Connection to server...
-    ws = new WebSocket(WS_ADDRESS);
+    ws = new WebSocket(WS_ADDRESS)
 
     ws.onopen = () => {
-
       // Start the app once WS connection is established
       initWindow({});
     };
 
     // Listen for messages
-    ws.onmessage = function (event) {
+    ws.onmessage = function(event) {
       let msgObj = JSON.parse(event.data);
 
-      LOGGER.log("debug", '$$$$$$$$MSG: ');
-      LOGGER.log('debug', msgObj);
-
       // Filter: ignore ndex messages
-      if (msgObj.from === "ndex") {
+      if (msgObj.from === 'ndex') {
         return;
       }
 
@@ -132,34 +142,30 @@ const initSocket = () => {
             break;
           }
 
-          if(mainWindow.isMinimized() || block) {
+          if (mainWindow.isMinimized() || block) {
             break;
           }
 
-          console.log('######## MINIMIZE request')
           block = true;
           mainWindow.minimize();
           block = false;
           break;
 
-        case "focus":
-          if(mainWindow === undefined || mainWindow === null) {
-              break;
+        case 'focus':
+          if (mainWindow === undefined || mainWindow === null) {
+            break;
           }
-          if(mainWindow.isFocused() || block) {
+          if (mainWindow.isFocused() || block) {
             break;
           }
 
           block = true;
 
           try {
-
-
-            if(!mainWindow.isAlwaysOnTop()) {
-              console.log('######## ALWAYS on top')
+            if (!mainWindow.isAlwaysOnTop()) {
               mainWindow.setAlwaysOnTop(true);
               mainWindow.showInactive();
-              setTimeout(()=> {
+              setTimeout(() => {
                 mainWindow.setAlwaysOnTop(false);
               }, 550);
             }
@@ -167,11 +173,11 @@ const initSocket = () => {
             block = false;
             break;
 
-          } catch(ex) {
-
+          } catch (ex) {
+            LOGGER.log('error', ex)
           }
         case 'restored':
-          if(mainWindow.isMinimized() && !block) {
+          if (mainWindow.isMinimized() && !block) {
             block = true;
             mainWindow.restore();
             block = false;
@@ -181,49 +187,36 @@ const initSocket = () => {
       }
     };
 
-    ws.onclose = function () {
-      if(mainWindow !== undefined && mainWindow !== null && !mainWindow.isDestroyed()) {
+    ws.onclose = function() {
+      if (mainWindow !== undefined && mainWindow !== null && !mainWindow.isDestroyed()) {
         mainWindow.close()
         mainWindow = null
       }
-
       app.quit()
     };
 
     setInterval(function() {
-      "use strict";
-      let alive = {
-        from: "ndex",
-        type: "alive",
-        body: "NDEx Main alive"
-      };
-
+      const alive = {
+        from: 'ndex',
+        type: 'alive',
+        body: 'NDEx Main alive'
+      }
       ws.send(JSON.stringify(alive));
     }, 120000);
-
   } catch (e) {
     console.log(e);
     LOGGER.log('error', e);
   }
 }
 
+const addShortcuts = () => {
 
-function createWindow() {
-  initLogger();
-  // Establish WS connection
-  initSocket();
-}
-
-
-function addShortcuts() {
-  globalShortcut.register('CommandOrControl+w', function () {
-    console.log('Close (w) is pressed');
+  globalShortcut.register('CommandOrControl+w', () => {
     app.quit()
-  });
+  })
 
   // For dev tool
-  globalShortcut.register('CommandOrControl+d', function () {
-    console.log('Devtool');
+  globalShortcut.register('CommandOrControl+d', () => {
     if (isDevEnabled) {
       mainWindow.webContents.closeDevTools();
       isDevEnabled = false;
@@ -231,21 +224,26 @@ function addShortcuts() {
       mainWindow.webContents.openDevTools();
       isDevEnabled = true;
     }
-  });
+  })
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Start the app
+////////////////////////////////////////////////////////////////////////////////
+
 app.on('ready', () => {
-
-  if(isAppRunning) {
-    return;
+  if (isAppRunning) {
+    return
   }
+  initLogger()
+  initSocket()
 
-  createWindow();
-  addShortcuts();
-  isAppRunning = true;
+  addShortcuts()
+  isAppRunning = true
 });
 
-// Quit when all windows are closed.
-app.on('window-all-closed', function () {
+// Quit the app when all windows are closed
+app.on('window-all-closed', () => {
   app.quit()
-});
+})
