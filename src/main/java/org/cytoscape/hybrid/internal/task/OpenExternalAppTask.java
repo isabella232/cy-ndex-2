@@ -1,10 +1,12 @@
 package org.cytoscape.hybrid.internal.task;
 
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
 import org.cytoscape.hybrid.internal.ws.WSClient;
+import org.cytoscape.property.CyProperty;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
@@ -22,15 +24,17 @@ public class OpenExternalAppTask extends AbstractTask {
 	private final WSClient client;
 	private final ExternalAppManager pm;
 	private final String command;
+	private final CyProperty<Properties> props;
 
 	final String WS_LOCATION = "ws://localhost:8025/ws/echo";
 
 	public OpenExternalAppTask(final String appName, final WSClient client, final ExternalAppManager pm,
-			final String command) {
+			final String command, final CyProperty<Properties> props) {
 		this.client = client;
 		this.command = command;
 		this.pm = pm;
 		this.appName = appName;
+		this.props = props;
 	}
 	
 	public void configure(Object config) {
@@ -40,6 +44,8 @@ public class OpenExternalAppTask extends AbstractTask {
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
 
+		final String cyrestPort = props.getProperties().get("rest.port").toString();
+		
 		// Make sure WS server is running.
 		if (client.isStopped()) {
 			client.start(WS_LOCATION);
@@ -61,7 +67,7 @@ public class OpenExternalAppTask extends AbstractTask {
 
 				// Set application type:
 				this.client.getSocket().setApplication(appName);
-				pm.setProcess(Runtime.getRuntime().exec(command));
+				pm.setProcess(Runtime.getRuntime().exec(command + " " + cyrestPort));
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw new RuntimeException("Could not start the application: " + appName, e);

@@ -63,7 +63,7 @@ public final class NativeAppInstaller {
 
 	static {
 		// Commands to execute native Electron App
-		COMMANDS.put(PLATFORM_MAC, "CyNDEx-2.app/Contents/MacOS/CyNDEx-2 http://www.cytoscape.org/");
+		COMMANDS.put(PLATFORM_MAC, "CyNDEx-2.app/Contents/MacOS/CyNDEx-2");
 		COMMANDS.put(PLATFORM_WIN, "NDEx-Valet-win64/NDEx-Valet.exe");
 		COMMANDS.put(PLATFORM_LINUX, "NDEx-Valet/NDEx-Valet");
 
