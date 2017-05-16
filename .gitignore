@@ -8,3 +8,6 @@ src/main/resources/ndex/*.zip
 src/main/resources/ndex/*.gz
 
 .ipynb_checkpoints
+.log
+
+.vscode

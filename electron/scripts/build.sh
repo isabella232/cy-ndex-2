@@ -10,7 +10,8 @@ mkdir ./build
 
 # For Mac (Universal)
 APP_NAME="CyNDEx-2"
-electron-packager . --platform=darwin --arch=x64 --overwrite --prune --ignore=external-modules --ignore=build --ignore=.idea --icon=icon256.icns --out=./build
+
+electron-packager . --platform=darwin --arch=x64 --overwrite --prune --ignore=external-modules --ignore=build --ignore=scripts --ignore=.idea --icon=icon256.icns --out=./build
 cd ./build/${APP_NAME}-darwin-x64
 
 cd ./${APP_NAME}.app/Contents/Resources/app

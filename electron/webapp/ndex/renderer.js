@@ -58,7 +58,7 @@ const getAppState = cyrestPort => {
   const url = 'http://localhost:' + cyrestPort + '/cyndex2/v1/status'
   const headers = {
     Accept: 'application/json',
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json'
   }
 
   const param = {
