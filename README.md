@@ -1,5 +1,5 @@
-# CyNDEx 2
-The Cytoscape client App for NDEx database
+# CyNDEx-2
+The Cytoscape client for NDEx database
 
 ## Introduction
 (TBD)

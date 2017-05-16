@@ -29,7 +29,7 @@
     "electron": "^1.7.0",
     "electron-packager": "^8.7.0",
     "eslint": "^3.19.0",
-    "eslint-config-airbnb": "^14.1.0",
+    "eslint-plugin-node": "^4.2.2",
     "eslint-plugin-react": "^6.10.3"
   },
   "dependencies": {

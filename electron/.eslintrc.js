@@ -1,13 +1,22 @@
 module.exports = {
-    "extends": "airbnb",
-    "installedESLint": true,
     "plugins": [
         "react"
     ],
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "jsx": true
+        }
+    },
+    "env": {
+        "browser": true,
+        "node": true
+    },
     "rules": {
-        "semi": ["error", "always"],
+        "semi": ["off", "always"],
         "quotes": ["error", "single"],
         "comma-dangle": ["error", "never"],
         "arrow-body-style": ["error", "as-needed"]
     }
-};
+}
