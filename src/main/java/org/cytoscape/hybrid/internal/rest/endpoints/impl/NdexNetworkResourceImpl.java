@@ -134,22 +134,37 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	
 	@Override
 	@CIWrapping
-	public NdexBaseResponse saveNetworkToNdex(Long suid, NdexSaveParameters params) {
+	public NdexBaseResponse saveNetworkToNdex(final Long suid, final NdexSaveParameters params) {
 
+		// Return error if SUID of the network is not available
 		if (suid == null) {
 			logger.error("SUID is missing");
 			throw errorBuilder.buildException(Status.BAD_REQUEST, "SUID is not specified.", ErrorType.INVALID_PARAMETERS);
 		}
 
 		final CyNetwork network = networkManager.getNetwork(suid);
+		
+		// Invalid SUID
 		if (network == null) {
 			final String message = "Network with SUID " + suid + " does not exist.";
 			logger.error(message);
 			throw errorBuilder.buildException(Status.NOT_FOUND, message, ErrorType.INVALID_PARAMETERS);
 		}
+		
+		// Need to update the local table BEFORE saving it
+		
+		// Metadata provided from the web UI
+		final Map<String, String> metadata = params.metadata;
+		final CyRootNetwork root = ((CySubNetwork) network).getRootNetwork();
+		final CyTable rootTable = root.getDefaultNetworkTable();
+		
+		// Set Metadata to collection's table
+		metadata.keySet().stream()
+			.forEach(key -> saveMetadata(key, metadata.get(key), rootTable, root.getSUID()));
+		
 
+		// Get writer to convert collection into CX
 		final CyNetworkViewWriterFactory writerFactory = tfManager.getCxWriterFactory();
-
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		final CyWriter writer = writerFactory.createWriter(os, network);
 
@@ -165,27 +180,19 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		String networkName = network.getDefaultNetworkTable().getRow(network.getSUID()).get(CyNetwork.NAME,
 				String.class);
 		final ByteArrayInputStream cxis = new ByteArrayInputStream(os.toByteArray());
+		
 		String newUuid = null;
-
 		newUuid = client.postNetwork(params.serverUrl + "/network", networkName, cxis, params.userId,
 				params.password);
-
+		
 		if (newUuid == null || newUuid.isEmpty()) {
 			final String message = "Failed to upload CX to NDEx.  (NDEx did not return UUID)";
 			logger.error(message);
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.NDEX_API);
 		}
 
-		// Update table
-		final Map<String, String> metadata = params.metadata;
-		// Set New UUID
-		metadata.put(NdexClient.UUID_COLUMN_NAME, newUuid);
-		
-		final CyRootNetwork root = ((CySubNetwork) network).getRootNetwork();
-		final CyTable rootTable = root.getDefaultNetworkTable();
-		
-
-		metadata.keySet().stream().forEach(key -> saveMetadata(key, metadata.get(key), rootTable, root.getSUID()));
+		// Assign new UUID to the network collection
+		saveMetadata(NdexClient.UUID_COLUMN_NAME, newUuid, rootTable, root.getSUID());
 
 		// Visibility
 		if (params.isPublic) {
@@ -303,9 +310,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		final CyRootNetwork root = ((CySubNetwork)network).getRootNetwork();
 		final String uuid = root.getDefaultNetworkTable().getRow(root.getSUID()).get("ndex.uuid", String.class);
 		
-		System.out.println("============== Target UUID: "+ uuid);
-		
-		// Update table
+		// Update Cytoscape table first
 		final Map<String, String> metadata = params.metadata;
 		final CyTable rootTable = root.getDefaultNetworkTable();
 		metadata.keySet().stream().forEach(key -> saveMetadata(key, metadata.get(key), rootTable, root.getSUID()));
@@ -324,8 +329,6 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		}
 
 		// Upload to NDEx
-		String networkName = network.getDefaultNetworkTable().getRow(network.getSUID()).get(CyNetwork.NAME,
-				String.class);
 		final ByteArrayInputStream cxis = new ByteArrayInputStream(os.toByteArray());
 
 		try {
@@ -337,7 +340,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 		} catch (Exception e1) {
 			e1.printStackTrace();
-			final String message = "Failed to update network from CX";
+			final String message = "Failed to update network. Please check UUID and make sure it exists in NDEx.";
 			logger.error(message, e1);
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.NDEX_API);
 		}
