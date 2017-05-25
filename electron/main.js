@@ -74,7 +74,8 @@ const initWindow = () => {
 
   // Load app from local directory.
   const dir = `${__dirname}`
-  mainWindow.loadURL('file://' + dir + '/webapp/ndex/index.html')
+  // mainWindow.loadURL('file://' + dir + '/webapp/ndex/index.html')
+  mainWindow.loadURL('http://localhost:2222/index.html')
 
   // Event handlers:
   initEventHandlers()
@@ -165,7 +166,7 @@ const initSocket = () => {
 
               mainWindow.setAlwaysOnTop(true)
               mainWindow.showInactive()
-              
+
               setTimeout(() => {
                 mainWindow.setAlwaysOnTop(false)
               }, 550)
@@ -210,7 +211,7 @@ const initSocket = () => {
 
 /**
  * A shortcut key combinations
- * 
+ *
  */
 const addShortcuts = () => {
 
@@ -239,7 +240,7 @@ app.on('ready', () => {
   if (isAppRunning) {
     return
   }
-  
+
   initLogger()
   initSocket()
   addShortcuts()

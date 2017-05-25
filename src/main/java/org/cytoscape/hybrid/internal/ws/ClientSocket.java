@@ -174,6 +174,10 @@ public class ClientSocket {
 		} else if (msg.getType().equals(InterAppMessage.TYPE_CLOSED)) {
 			pm.kill();
 			
+			
+			// Reset status
+			pm.setAppName(null);
+			
 			EventQueue.invokeLater(new Runnable() {
 
 				@Override

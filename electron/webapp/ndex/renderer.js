@@ -72,11 +72,17 @@ const getAppState = cyrestPort => {
       console.log(json)
 
       document.getElementById('appType').innerHTML = 'Widget Type: ' + json.data.widget
+
+      const lsVal = localStorage.getItem('localStorageSample')
+      document.getElementById('ls').innerHTML = 'Value from localStorage: ' + lsVal
+
       remote.getCurrentWindow().setTitle('CyNDEx-2: ' + json.data.widget)
     })
 }
 
 const init = cyrestPort => {
+
+  localStorage.setItem('localStorageSample', 'localVal1')
 
   // Here is how to add close button in the app
   const close = document.getElementById('close')

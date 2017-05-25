@@ -9,6 +9,7 @@ import static org.cytoscape.work.ServiceProperties.TITLE;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.io.File;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,6 +20,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JToolBar;
 import javax.swing.border.EmptyBorder;
 
+import org.apache.http.HttpServerConnection;
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.ActionEnableSupport;
@@ -27,6 +29,7 @@ import org.cytoscape.ci.CIErrorFactory;
 import org.cytoscape.ci.CIExceptionFactory;
 import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.hybrid.internal.electron.NativeAppInstaller;
+import org.cytoscape.hybrid.internal.electron.StaticContentsServer;
 import org.cytoscape.hybrid.internal.rest.NdexClient;
 import org.cytoscape.hybrid.internal.rest.endpoints.NdexBaseResource;
 import org.cytoscape.hybrid.internal.rest.endpoints.NdexNetworkResource;
@@ -108,6 +111,17 @@ public class CyActivator extends AbstractCyActivator {
 
 		// Start WS server
 		this.startServer(bc);
+		
+		// Start static content delivery server
+		final File configRoot = config.getConfigurationDirectoryLocation();
+		final String staticContentPath = configRoot.getAbsolutePath() + File.separator + "cyndex-2";
+		// Create dir
+		final File webappDir = new File(staticContentPath);
+		if(!webappDir.exists()) {
+			webappDir.mkdirs();
+		}
+		
+		this.startHttpServer(bc, staticContentPath);
 
 		// Initialize OSGi services
 		final ExternalAppManager pm = new ExternalAppManager();
@@ -162,6 +176,18 @@ public class CyActivator extends AbstractCyActivator {
 				server.start();
 			} catch (Exception e) {
 				throw new RuntimeException("Could not start WS server in separate thread.", e);
+			}
+		});
+	}
+	private final void startHttpServer(BundleContext bc, String path) {
+		
+		final StaticContentsServer httpServer = new StaticContentsServer(path);
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		executor.submit(() -> {
+			try {
+				httpServer.startServer();
+			} catch (Exception e) {
+				throw new RuntimeException("Could not start Static Content server in separate thread.", e);
 			}
 		});
 	}
