@@ -1,13 +1,7 @@
 module.exports = {
-    "plugins": [
-        "react"
-    ],
     "parserOptions": {
         "ecmaVersion": 6,
-        "sourceType": "module",
-        "ecmaFeatures": {
-            "jsx": true
-        }
+        "sourceType": "module"
     },
     "env": {
         "browser": true,

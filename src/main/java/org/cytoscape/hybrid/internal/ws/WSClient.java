@@ -17,7 +17,7 @@ public class WSClient {
 
 	public WSClient(final CySwingApplication app, final ExternalAppManager pm, CyEventHelper eventHelper,
 		final CyProperty<Properties> props) {
-		socket = new ClientSocket(app, pm, props);
+		socket = new ClientSocket(app, pm, props, eventHelper);
 		client = new WebSocketClient();
 		client.getPolicy().setIdleTimeout(1000000000);
 		client.setMaxIdleTimeout(1000000000);

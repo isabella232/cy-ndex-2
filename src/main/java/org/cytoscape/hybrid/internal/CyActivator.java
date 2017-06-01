@@ -20,7 +20,6 @@ import javax.swing.JProgressBar;
 import javax.swing.JToolBar;
 import javax.swing.border.EmptyBorder;
 
-import org.apache.http.HttpServerConnection;
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.ActionEnableSupport;
@@ -28,6 +27,8 @@ import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.ci.CIErrorFactory;
 import org.cytoscape.ci.CIExceptionFactory;
 import org.cytoscape.event.CyEventHelper;
+import org.cytoscape.hybrid.events.ExternalAppClosedEventListener;
+import org.cytoscape.hybrid.events.ExternalAppStartedEventListener;
 import org.cytoscape.hybrid.internal.electron.NativeAppInstaller;
 import org.cytoscape.hybrid.internal.electron.StaticContentsServer;
 import org.cytoscape.hybrid.internal.rest.NdexClient;
@@ -128,10 +129,12 @@ public class CyActivator extends AbstractCyActivator {
 		final WSClient client = new WSClient(desktop, pm, eventHelper, cyProp);
 
 		final NativeAppInstaller installer = createInstaller(desktop, config);
+		
+		installer.copyWebApp("cyndex-2");
 
 		// TF for NDEx Save
 		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory(ExternalAppManager.APP_NAME_SAVE, client, pm,
-				installer.getCommand(), cyProp);
+				installer.getCommand(), cyProp, eventHelper);
 		final Properties ndexSaveTaskFactoryProps = new Properties();
 		ndexSaveTaskFactoryProps.setProperty(ENABLE_FOR, ActionEnableSupport.ENABLE_FOR_NETWORK);
 		ndexSaveTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export");
@@ -141,13 +144,16 @@ public class CyActivator extends AbstractCyActivator {
 
 		// TF for NDEx Load
 		final OpenExternalAppTaskFactory ndexTaskFactory = new OpenExternalAppTaskFactory(ExternalAppManager.APP_NAME_LOAD, client, pm,
-				installer.getCommand(), cyProp);
+				installer.getCommand(), cyProp, eventHelper);
 		final Properties ndexTaskFactoryProps = new Properties();
 		ndexTaskFactoryProps.setProperty(IN_MENU_BAR, "false");
 		registerAllServices(bc, ndexTaskFactory, ndexTaskFactoryProps);
 
 		// Export
-		installer.executeInstaller(new SearchBox(pm, ndexTaskFactory, tm));
+		final SearchBox searchPanel = new SearchBox(pm, ndexTaskFactory, tm);
+		registerService(bc, searchPanel, ExternalAppClosedEventListener.class);
+		registerService(bc, searchPanel, ExternalAppStartedEventListener.class);
+		installer.executeInstaller(searchPanel);
 
 		// Expose CyREST endpoints
 		final ErrorBuilder errorBuilder = new ErrorBuilder(ciErrorFactory, ciExceptionFactory, config);
