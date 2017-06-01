@@ -15,6 +15,8 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
 import org.cytoscape.application.swing.CySwingApplication;
+import org.cytoscape.event.CyEventHelper;
+import org.cytoscape.hybrid.events.ExternalAppClosedEvent;
 import org.cytoscape.hybrid.events.InterAppMessage;
 import org.cytoscape.hybrid.events.WSHandler;
 import org.cytoscape.property.CyProperty;
@@ -57,12 +59,15 @@ public class ClientSocket {
 
 	private final String cyrestPort;
 	
+	private final CyEventHelper eventHelper;
+	
 
 	public ClientSocket(final CySwingApplication app, 
 			ExternalAppManager pm, 
-			final CyProperty<Properties> props) {
+			final CyProperty<Properties> props, CyEventHelper eventHelper) {
 		this.app = app;
 		this.pm = pm;
+		this.eventHelper = eventHelper;
 
 		this.mapper = new ObjectMapper();
 		this.handlers = new HashMap<>();
@@ -182,6 +187,9 @@ public class ClientSocket {
 
 				@Override
 				public void run() {
+					
+					eventHelper.fireEvent(new ExternalAppClosedEvent(this));
+					
 					final JFrame desktop = app.getJFrame();
 					desktop.setEnabled(true);
 					desktop.setFocusable(true);

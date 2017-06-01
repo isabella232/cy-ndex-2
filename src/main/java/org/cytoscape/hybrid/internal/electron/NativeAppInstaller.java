@@ -42,8 +42,6 @@ public final class NativeAppInstaller {
 	
 	private final String INSTALL_MAKER_FILE = "ndex-installed.txt";
 	
-//	private final String BASE_URL = "https://github.com/idekerlab/cy-ndex-2/releases/download/new-installer1/";
-	
 	private final String BASE_URL = "http://chianti.ucsd.edu/~kono/ci/app/cyndex2/";
 
 	private static final int BUFFER_SIZE = 2048;
@@ -55,8 +53,8 @@ public final class NativeAppInstaller {
 
 	// Archive file names
 	private static final String ARCHIVE_MAC = "CyNDEx-2-mac.tar.gz";
-	private static final String ARCHIVE_LINUX = "NDEx-Valet-linux64.tar.gz";
-	private static final String ARCHIVE_WIN = "NDEx-Valet-win64.zip";
+	private static final String ARCHIVE_LINUX = "CyNDEx-2-linux64.tar.gz";
+	private static final String ARCHIVE_WIN = "CyNDEx-2-win64.zip";
 
 	private static final Map<String, String> COMMANDS = new HashMap<>();
 	private static final Map<String, String> ARCHIVE = new HashMap<>();
@@ -64,8 +62,8 @@ public final class NativeAppInstaller {
 	static {
 		// Commands to execute native Electron App
 		COMMANDS.put(PLATFORM_MAC, "CyNDEx-2.app/Contents/MacOS/CyNDEx-2");
-		COMMANDS.put(PLATFORM_WIN, "NDEx-Valet-win64/NDEx-Valet.exe");
-		COMMANDS.put(PLATFORM_LINUX, "NDEx-Valet/NDEx-Valet");
+		COMMANDS.put(PLATFORM_WIN, "CyNDEx-2-win64/CyNDEx-2.exe");
+		COMMANDS.put(PLATFORM_LINUX, "CyNDEx-2-linux-x64/CyNDEx-2");
 
 		ARCHIVE.put(PLATFORM_MAC, ARCHIVE_MAC);
 		ARCHIVE.put(PLATFORM_WIN, ARCHIVE_WIN);
@@ -109,7 +107,6 @@ public final class NativeAppInstaller {
 		this.markerFile = new File(configLocation, INSTALL_MAKER_FILE);
 	
 		checkVersion(configLocation.toString(), electronAppDir.toString());
-		
 
 		this.command = getPlatformDependentCommand(electronAppDir);
 	}
@@ -121,7 +118,10 @@ public final class NativeAppInstaller {
 		executor.submit(() -> {
 			install(electronAppDir);
 		});
-		
+	}
+	
+	public void copyWebApp(final String dirName) {
+		final URL source = this.getClass().getClassLoader().getResource("webapp");
 	}
 	
 	
@@ -130,7 +130,6 @@ public final class NativeAppInstaller {
 		
 		// 1. no directory --> force to install everything
 		if(!electronAppDirectory.exists()) {
-			
 			return false;
 		}
 		

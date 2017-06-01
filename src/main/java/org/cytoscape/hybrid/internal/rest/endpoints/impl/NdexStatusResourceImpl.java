@@ -1,8 +1,5 @@
 package org.cytoscape.hybrid.internal.rest.endpoints.impl;
 
-import java.util.Map;
-import java.util.TreeMap;
-
 import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.application.CyApplicationManager;
@@ -32,7 +29,6 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 	private final CyApplicationManager appManager;
 
 	private AppStatusResponse<AppStatusParameters> status;
-	private AppStatusParameters parameters;
 
 	public NdexStatusResourceImpl(final ExternalAppManager pm, ErrorBuilder errorBuilder,
 			CyApplicationManager appManager) {

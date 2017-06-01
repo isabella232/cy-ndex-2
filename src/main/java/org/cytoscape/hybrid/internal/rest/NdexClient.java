@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.codec.binary.Base64;
@@ -110,6 +109,7 @@ public class NdexClient {
 	/**
 	 * Call network summary API
 	 */
+	@SuppressWarnings("unchecked")
 	public Map<String, ?> getSummary(String url, String uuid, String userId, String pw) throws WebApplicationException {
 
 		String serverUrl = null;
@@ -154,7 +154,6 @@ public class NdexClient {
 	private final void getError(CloseableHttpResponse response) throws WebApplicationException {
 		final int code = response.getStatusLine().getStatusCode();
 
-		Response res = null;
 		if (code == Status.NOT_FOUND.getStatusCode()) {
 			throw errorBuilder.buildException(Status.NOT_FOUND, "Resource not found", ErrorType.INVALID_PARAMETERS);
 		}

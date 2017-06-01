@@ -21,6 +21,10 @@ import javax.swing.JToolTip;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 
+import org.cytoscape.hybrid.events.ExternalAppClosedEvent;
+import org.cytoscape.hybrid.events.ExternalAppClosedEventListener;
+import org.cytoscape.hybrid.events.ExternalAppStartedEvent;
+import org.cytoscape.hybrid.events.ExternalAppStartedEventListener;
 import org.cytoscape.hybrid.internal.task.OpenExternalAppTaskFactory;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
 import org.cytoscape.work.TaskIterator;
@@ -28,7 +32,7 @@ import org.cytoscape.work.TaskManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SearchBox extends JPanel {
+public class SearchBox extends JPanel implements ExternalAppClosedEventListener, ExternalAppStartedEventListener {
 
 	private static final long serialVersionUID = 5216512744558942600L;
 
@@ -176,7 +180,12 @@ public class SearchBox extends JPanel {
 			
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				System.out.println("Search start!----------");
+				
+				// Ignore if already open.
+				if(!searchButton.isEnabled()) {
+					return;
+				}
+				
 				try {
 					search(searchTextField.getText());
 				} catch (Exception e1) {
@@ -210,5 +219,18 @@ public class SearchBox extends JPanel {
 		
 		final TaskIterator itr = tf.createTaskIterator();
 		tm.execute(itr);
-	}	
+	}
+
+
+	@Override
+	public void handleEvent(ExternalAppClosedEvent event) {
+		searchButton.setEnabled(true);
+		searchTextField.setEnabled(true);
+	}
+
+	@Override
+	public void handleEvent(ExternalAppStartedEvent event) {
+		searchButton.setEnabled(false);
+		searchTextField.setEnabled(false);
+	}
 }
