@@ -96,8 +96,6 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 		summary = client.getSummary(params.serverUrl, params.uuid, params.userId, params.password);
 
-		System.out.println("* Got summary: " + summary);
-
 		// Load network from ndex
 		InputStream is;
 		Long newSuid = null;
