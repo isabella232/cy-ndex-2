@@ -134,7 +134,7 @@ public class CyActivator extends AbstractCyActivator {
 
 		// TF for NDEx Save
 		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory(ExternalAppManager.APP_NAME_SAVE, client, pm,
-				installer.getCommand(), cyProp, eventHelper);
+				installer.getCommand(), cyProp, eventHelper, appManager);
 		final Properties ndexSaveTaskFactoryProps = new Properties();
 		ndexSaveTaskFactoryProps.setProperty(ENABLE_FOR, ActionEnableSupport.ENABLE_FOR_NETWORK);
 		ndexSaveTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export");
@@ -144,7 +144,7 @@ public class CyActivator extends AbstractCyActivator {
 
 		// TF for NDEx Load
 		final OpenExternalAppTaskFactory ndexTaskFactory = new OpenExternalAppTaskFactory(ExternalAppManager.APP_NAME_LOAD, client, pm,
-				installer.getCommand(), cyProp, eventHelper);
+				installer.getCommand(), cyProp, eventHelper, appManager);
 		final Properties ndexTaskFactoryProps = new Properties();
 		ndexTaskFactoryProps.setProperty(IN_MENU_BAR, "false");
 		registerAllServices(bc, ndexTaskFactory, ndexTaskFactoryProps);
@@ -223,7 +223,9 @@ public class CyActivator extends AbstractCyActivator {
 	public void shutDown() {
 		logger.info("Shutting down NDEx Valet...");
 		server.stop();
-		toolBar.remove(panel);
+		if(toolBar != null && panel != null) {
+			toolBar.remove(panel);
+		}
 		panel = null;
 		server = null;
 	}

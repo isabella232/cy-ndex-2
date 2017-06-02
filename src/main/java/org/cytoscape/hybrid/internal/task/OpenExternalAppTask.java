@@ -43,7 +43,9 @@ public class OpenExternalAppTask extends AbstractTask {
 	
 	public void configure(Object config) {
 		
+		
 	}
+	
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
