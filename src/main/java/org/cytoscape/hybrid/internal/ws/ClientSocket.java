@@ -12,6 +12,8 @@ import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
 
 import javax.swing.JFrame;
+import javax.swing.JMenuBar;
+import javax.swing.MenuSelectionManager;
 import javax.swing.SwingUtilities;
 
 import org.cytoscape.application.swing.CySwingApplication;
@@ -102,6 +104,7 @@ public class ClientSocket {
 
 			@Override
 			public void windowActivated(WindowEvent e) {
+				
 				final InterAppMessage msg = InterAppMessage.create().setType(InterAppMessage.TYPE_FOCUS)
 						.setFrom(InterAppMessage.FROM_CY3);
 				try {
@@ -157,28 +160,8 @@ public class ClientSocket {
 
 		final String from = msg.getFrom();
 
-		if (msg.getType().equals(InterAppMessage.TYPE_APP)) {
-			appStarted = false;
-			final InterAppMessage reply = InterAppMessage.create()
-					.setType(InterAppMessage.TYPE_APP)
-					.setFrom(InterAppMessage.FROM_CY3)
-					.setBody(application);
-			
-			// Make the window disabled.
-			final JFrame desktop = app.getJFrame();
-			
-			desktop.setEnabled(false);
-			app.getJToolBar().setEnabled(false);	
-			desktop.setFocusable(false);
-					
-			try {
-				sendMessage(mapper.writeValueAsString(reply));
-			} catch (JsonProcessingException e1) {
-				e1.printStackTrace();
-			}
-		} else if (msg.getType().equals(InterAppMessage.TYPE_CLOSED)) {
-			pm.kill();
-			
+		if (msg.getType().equals(InterAppMessage.TYPE_CLOSED)) {
+			pm.kill();			
 			
 			// Reset status
 			pm.setAppName(null);
@@ -189,21 +172,27 @@ public class ClientSocket {
 				public void run() {
 					
 					eventHelper.fireEvent(new ExternalAppClosedEvent(this));
-					
 					final JFrame desktop = app.getJFrame();
 					desktop.setEnabled(true);
+					app.getJToolBar().setEnabled(true);
+					final JMenuBar menuBar = app.getJMenuBar();
+					menuBar.setEnabled(true);
+					
 					desktop.setFocusable(true);
 					desktop.setAlwaysOnTop(true);
-					desktop.requestFocus();
-					desktop.toFront();
-					desktop.repaint();
+					
 					try {
 						Thread.sleep(40);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 					desktop.setAlwaysOnTop(false);
-					app.getJToolBar().setEnabled(true);
+					desktop.requestFocus();
+					desktop.toFront();
+					desktop.repaint();
+					
+					menuBar.updateUI();
+					
 				}
 			});
 		} else if (msg.getType().equals(InterAppMessage.TYPE_CONNECTED)) {
@@ -223,6 +212,9 @@ public class ClientSocket {
 				return;
 			}
 			final JFrame desktop = app.getJFrame();
+			desktop.setEnabled(false);
+			app.getJMenuBar().setEnabled(false);	
+			app.getJToolBar().setEnabled(false);	
 			
 			if(!appStarted) {
 				appStarted = true;
@@ -314,7 +306,7 @@ public class ClientSocket {
 		app.getJMenuBar().setEnabled(true);	
 		app.getJToolBar().setEnabled(true);	
 		
-		System.out.println("--------------------- SOK closed");;
+		System.out.println("--------------------- WS connection closed");;
 	}
 
 	public void sendMessage(String str) {

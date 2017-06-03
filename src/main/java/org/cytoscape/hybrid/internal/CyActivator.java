@@ -9,7 +9,12 @@ import static org.cytoscape.work.ServiceProperties.TITLE;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Enumeration;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -57,6 +62,7 @@ import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskManager;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,12 +121,12 @@ public class CyActivator extends AbstractCyActivator {
 		
 		// Start static content delivery server
 		final File configRoot = config.getConfigurationDirectoryLocation();
-		final String staticContentPath = configRoot.getAbsolutePath() + File.separator + "cyndex-2";
+		final String staticContentPath = configRoot.getAbsolutePath();
 		// Create dir
-		final File webappDir = new File(staticContentPath);
-		if(!webappDir.exists()) {
-			webappDir.mkdirs();
-		}
+		final File webappDir = new File(staticContentPath, "cyndex-2");
+		webappDir.mkdir();
+		extractWebapp(bc.getBundle(), "cyndex-2", staticContentPath);
+		
 		
 		this.startHttpServer(bc, staticContentPath);
 
@@ -130,8 +136,6 @@ public class CyActivator extends AbstractCyActivator {
 
 		final NativeAppInstaller installer = createInstaller(desktop, config);
 		
-		installer.copyWebApp("cyndex-2");
-
 		// TF for NDEx Save
 		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory(ExternalAppManager.APP_NAME_SAVE, client, pm,
 				installer.getCommand(), cyProp, eventHelper, appManager);
@@ -170,6 +174,38 @@ public class CyActivator extends AbstractCyActivator {
 		// Network IO
 		registerService(bc, new NdexNetworkResourceImpl(ndexClient, errorBuilder, appManager, netmgr, tfManager,
 				loadNetworkTF, ciExceptionFactory, ciErrorFactory), NdexNetworkResource.class, new Properties());
+	}
+	
+	private final void extractWebapp(final Bundle bundle, final String path, String targetDir) {
+		
+		Enumeration<String> ress = bundle.getEntryPaths(path);
+		
+		while(ress.hasMoreElements()) {
+			String fileName = ress.nextElement();
+			
+			File f = new File(targetDir, fileName);
+			if(fileName.endsWith("/")) {
+				f.mkdir();
+				extractWebapp(bundle, fileName, targetDir);
+			} else {
+				// Extract
+				try {
+					copyEntry(bundle.getEntry(fileName).openStream(), f.getAbsolutePath());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	private final void copyEntry(final InputStream zis, final String filePath) throws IOException {
+		final byte[] buffer = new byte[4096];
+		final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
+		int read = 0;
+		while ((read = zis.read(buffer)) != -1) {
+			bos.write(buffer, 0, read);
+		}
+		bos.close();
 	}
 
 	private final void startServer(BundleContext bc) {

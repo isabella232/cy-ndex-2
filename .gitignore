@@ -11,3 +11,5 @@ src/main/resources/ndex/*.gz
 .log
 
 .vscode
+
+src/main/resources/cyndex-2
