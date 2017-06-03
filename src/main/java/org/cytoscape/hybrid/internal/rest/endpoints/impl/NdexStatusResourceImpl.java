@@ -60,12 +60,12 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 		summary.uuid = row.get("uuid", String.class);
 		summary.name = row.get(CyNetwork.NAME, String.class);
 		summary.author = row.get("author", String.class);
-		summary.descriptions = row.get("descriptions", String.class);
+		summary.description = row.get("description", String.class);
 		summary.disease = row.get("disease", String.class);
 		summary.organism = row.get("organism", String.class);
 		summary.reference = row.get("reference", String.class);
 		summary.rights = row.get("rights", String.class);
-		summary.rightsHolder = row.get("rightsHoulder", String.class);
+		summary.rightsHolder = row.get("rightsHolder", String.class);
 		summary.tissue = row.get("tissue", String.class);
 
 		return summary;

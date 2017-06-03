@@ -1,12 +1,16 @@
 package org.cytoscape.hybrid.internal.electron;
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -35,7 +39,7 @@ public final class NativeAppInstaller {
 	public static final String LOAD_URL_PROP_NAME = APP_URL_PROP_NAME + "url.load";
 	public static final String SAVE_URL_PROP_NAME = APP_URL_PROP_NAME + "url.save";
 	
-	private static final String VERSION = "2.0.0";
+	private static final String VERSION = "2.0.4";
 	private static final String NATIVE_APP_LOCATION = "ndex-electron";
 	private static final String APP_DIR = NATIVE_APP_LOCATION + "-" + VERSION;
 	
@@ -121,8 +125,33 @@ public final class NativeAppInstaller {
 	}
 	
 	public void copyWebApp(final String dirName) {
-		final URL source = this.getClass().getClassLoader().getResource("webapp");
-	}
+		final InputStream is = NativeAppInstaller.class.getClassLoader().getResourceAsStream("webapp");
+		try {
+			System.out.println(dirName);
+			final InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+	        final BufferedReader br = new BufferedReader(isr);
+	        
+	        br.lines().forEach(System.out::println);
+	
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	
+//        try {
+//        		InputStream stream = source.openStream();
+//            int readBytes;
+//            byte[] buffer = new byte[4096];
+//            resStreamOut = new FileOutputStream(dirName);
+//            while ((readBytes = stream.read(buffer)) > 0) {
+//                resStreamOut.write(buffer, 0, readBytes);
+//            }
+//            stream.close();
+//            resStreamOut.close();
+//        } catch (Exception ex) {
+//        		ex.printStackTrace();
+//        }
+    }
 	
 	
 	private final Boolean isInstalled(final File electronAppDirectory) {
@@ -364,6 +393,9 @@ public final class NativeAppInstaller {
 		final ZipInputStream zipIn = new ZipInputStream(source.openStream());
 
 		ZipEntry entry = zipIn.getNextEntry();
+		
+		System.out.println("ZIN = " + entry);
+		
 		while (entry != null) {
 			final String filePath = destDir.getPath() + File.separator + entry.getName();
 			if (!entry.isDirectory()) {
