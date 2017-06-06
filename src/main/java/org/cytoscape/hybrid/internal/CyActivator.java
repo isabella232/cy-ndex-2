@@ -31,6 +31,7 @@ import org.cytoscape.application.swing.ActionEnableSupport;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.ci.CIErrorFactory;
 import org.cytoscape.ci.CIExceptionFactory;
+import org.cytoscape.ci_bridge_impl.CIProvider;
 import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.hybrid.events.ExternalAppClosedEventListener;
 import org.cytoscape.hybrid.events.ExternalAppStartedEventListener;
@@ -64,6 +65,7 @@ import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskManager;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,8 +105,20 @@ public class CyActivator extends AbstractCyActivator {
 				CyNetworkViewWriterFactory.class);
 
 		// CI Error handlers
-		CIExceptionFactory ciExceptionFactory = this.getService(bc, CIExceptionFactory.class);
-		CIErrorFactory ciErrorFactory = this.getService(bc, CIErrorFactory.class);
+//		CIExceptionFactory ciExceptionFactory = this.getService(bc, CIExceptionFactory.class);
+//		CIErrorFactory ciErrorFactory = this.getService(bc, CIErrorFactory.class);
+		
+		CIExceptionFactory ciExceptionFactory = CIProvider.getCIExceptionFactory();
+		CIErrorFactory ciErrorFactory = null;
+		try {
+			ciErrorFactory = CIProvider.getCIErrorFactory(bc);
+		} catch (IOException e) {
+			throw new RuntimeException("Could not create CIErrorFactory.", e);
+		}
+		
+		if(ciErrorFactory == null) {
+			throw new RuntimeException("Could not create CIErrorFactory.");
+		}
 
 		// For loading networks...
 		final CyNetworkManager netmgr = getService(bc, CyNetworkManager.class);
@@ -122,11 +136,9 @@ public class CyActivator extends AbstractCyActivator {
 		// Start static content delivery server
 		final File configRoot = config.getConfigurationDirectoryLocation();
 		final String staticContentPath = configRoot.getAbsolutePath();
-		// Create dir
-		final File webappDir = new File(staticContentPath, "cyndex-2");
-		webappDir.mkdir();
-		extractWebapp(bc.getBundle(), "cyndex-2", staticContentPath);
 		
+		// Create web app dir
+		installWebApp(staticContentPath, bc);
 		
 		this.startHttpServer(bc, staticContentPath);
 
@@ -134,7 +146,7 @@ public class CyActivator extends AbstractCyActivator {
 		final ExternalAppManager pm = new ExternalAppManager();
 		final WSClient client = new WSClient(desktop, pm, eventHelper, cyProp);
 
-		final NativeAppInstaller installer = createInstaller(desktop, config);
+		final NativeAppInstaller installer = createInstaller(desktop, config, bc.getBundle().getVersion().toString());
 		
 		// TF for NDEx Save
 		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory(ExternalAppManager.APP_NAME_SAVE, client, pm,
@@ -166,7 +178,7 @@ public class CyActivator extends AbstractCyActivator {
 		// Status endpoint
 
 		// Base
-		registerService(bc, new NdexBaseResourceImpl(), NdexBaseResource.class, new Properties());
+		registerService(bc, new NdexBaseResourceImpl(bc.getBundle().getVersion().toString()), NdexBaseResource.class, new Properties());
 		
 		// Status
 		registerService(bc, new NdexStatusResourceImpl(pm, errorBuilder, appManager), NdexStatusResource.class, new Properties());
@@ -176,7 +188,34 @@ public class CyActivator extends AbstractCyActivator {
 				loadNetworkTF, ciExceptionFactory, ciErrorFactory), NdexNetworkResource.class, new Properties());
 	}
 	
+	private final void installWebApp(final String configDir, final BundleContext bc) {
+		
+		// This bundle's version
+		final Version version = bc.getBundle().getVersion();
+		
+		System.out.println("CYNDEX ver = " + version);
+
+		if(!isInstalled(configDir, version.toString())) {
+			final File webappDir = new File(configDir, "cyndex-2");
+			webappDir.mkdir();
+			extractWebapp(bc.getBundle(), "cyndex-2", configDir);
+		}
+	}
+	
+	private final boolean isInstalled(final String configDir, final String bundleVersion) {
+		final String markerFileName = NativeAppInstaller.INSTALL_MAKER_FILE_NAME + "-" + bundleVersion + ".txt";
+		final File markerFile = new File(configDir, markerFileName);
+		final File webappDir = new File(configDir, NativeAppInstaller.NATIVE_APP_LOCATION);
+		
+		if(markerFile.exists()) {
+			return true;
+		}
+		
+		return false;
+	}
+	
 	private final void extractWebapp(final Bundle bundle, final String path, String targetDir) {
+		
 		
 		Enumeration<String> ress = bundle.getEntryPaths(path);
 		
@@ -235,7 +274,7 @@ public class CyActivator extends AbstractCyActivator {
 	}
 
 	private final NativeAppInstaller createInstaller(final CySwingApplication desktop,
-			final CyApplicationConfiguration config) {
+			final CyApplicationConfiguration config, final String version) {
 		final JProgressBar bar = new JProgressBar();
 		bar.setValue(0);
 		JPanel progress = new JPanel();
@@ -252,7 +291,7 @@ public class CyActivator extends AbstractCyActivator {
 		toolBar = desktop.getJToolBar();
 
 		// This is the actual installer extracting binaries
-		return new NativeAppInstaller(config, bar, progress, toolBar, desktop);
+		return new NativeAppInstaller(config, bar, progress, toolBar, desktop, version);
 	}
 
 	@Override
