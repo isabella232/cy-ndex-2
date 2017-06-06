@@ -1,6 +1,6 @@
 package org.cytoscape.hybrid.internal.rest.reader;
 
-import org.cytoscape.hybrid.internal.rest.NdexClient;
+import org.cytoscape.hybrid.internal.rest.endpoints.NdexStatusResource;
 import org.cytoscape.io.read.CyNetworkReader;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
@@ -43,11 +43,11 @@ public class UpdateTableTask implements Task {
 			final CyRootNetwork root = subnet.getRootNetwork();
 			CyTable table = root.getDefaultNetworkTable();
 
-			if (table.getColumn(NdexClient.UUID_COLUMN_NAME) == null) {
-				table.createColumn(NdexClient.UUID_COLUMN_NAME, String.class, true);
+			if (table.getColumn(NdexStatusResource.NDEX_UUID_TAG) == null) {
+				table.createColumn(NdexStatusResource.NDEX_UUID_TAG, String.class, true);
 			}
 
-			table.getRow(root.getSUID()).set(NdexClient.UUID_COLUMN_NAME, this.uuid);
+			table.getRow(root.getSUID()).set(NdexStatusResource.NDEX_UUID_TAG, this.uuid);
 		}
 	}
 
