@@ -15,6 +15,9 @@ public class NdexBaseResourceImpl implements NdexBaseResource {
 		SUMMARY.description = "NDEx client for Cytoscape. This app supports NDEx API V2.";
 	}
 	
+	public NdexBaseResourceImpl(final String bundleVersion) {
+		SUMMARY.appVersion = bundleVersion;
+	}
 
 	@Override
 	@CIWrapping

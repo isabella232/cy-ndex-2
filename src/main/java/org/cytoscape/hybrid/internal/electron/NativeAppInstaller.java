@@ -7,7 +7,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -39,12 +38,9 @@ public final class NativeAppInstaller {
 	public static final String LOAD_URL_PROP_NAME = APP_URL_PROP_NAME + "url.load";
 	public static final String SAVE_URL_PROP_NAME = APP_URL_PROP_NAME + "url.save";
 	
-	private static final String VERSION = "2.0.4";
-	private static final String NATIVE_APP_LOCATION = "ndex-electron";
-	private static final String APP_DIR = NATIVE_APP_LOCATION + "-" + VERSION;
+	public static final String NATIVE_APP_LOCATION = "ndex-electron";
 	
-	
-	private final String INSTALL_MAKER_FILE = "ndex-installed.txt";
+	public static final String INSTALL_MAKER_FILE_NAME = "ndex-installed";
 	
 	private final String BASE_URL = "http://chianti.ucsd.edu/~kono/ci/app/cyndex2/";
 
@@ -97,7 +93,7 @@ public final class NativeAppInstaller {
 	private File markerFile;
 
 	public NativeAppInstaller(final CyApplicationConfiguration appConfig, JProgressBar bar, 
-			JPanel progressPanel, JToolBar toolBar, CySwingApplication desktop) {
+			JPanel progressPanel, JToolBar toolBar, CySwingApplication desktop, final String bundleVersion) {
 		this.appConfig = appConfig;
 		this.bar = bar;
 		this.progressPanel = progressPanel;
@@ -107,8 +103,9 @@ public final class NativeAppInstaller {
 		this.platform = detectPlatform();
 
 		final File configLocation = this.appConfig.getConfigurationDirectoryLocation();
-		this.electronAppDir = new File(configLocation, APP_DIR);
-		this.markerFile = new File(configLocation, INSTALL_MAKER_FILE);
+		final String appDir = NATIVE_APP_LOCATION + "-" + bundleVersion;
+		this.electronAppDir = new File(configLocation, appDir);
+		this.markerFile = new File(configLocation, INSTALL_MAKER_FILE_NAME + "-" + bundleVersion + ".txt");
 	
 		checkVersion(configLocation.toString(), electronAppDir.toString());
 

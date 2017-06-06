@@ -6,6 +6,7 @@ rm -rf ./webapp/build
 rm -rf ./src/main/resources/cyndex-2
 
 cd webapp
+npm install
 npm run build
 cd -
 
