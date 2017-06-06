@@ -4,6 +4,7 @@ import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.ci.CIWrapping;
+import org.cytoscape.ci_bridge_impl.CIProvider;
 import org.cytoscape.hybrid.internal.rest.endpoints.NdexStatusResource;
 import org.cytoscape.hybrid.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.hybrid.internal.rest.errors.ErrorType;
@@ -57,7 +58,7 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 		// Network local table
 		final CyRow row = table.getRow(root.getSUID());
 		summary.suid = root.getSUID();
-		summary.uuid = row.get("uuid", String.class);
+		summary.uuid = row.get(NdexStatusResource.NDEX_UUID_TAG, String.class);
 		summary.name = row.get(CyNetwork.NAME, String.class);
 		summary.author = row.get("author", String.class);
 		summary.description = row.get("description", String.class);
@@ -79,7 +80,7 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 
 	@Override
 	@CIWrapping
-	public AppStatusResponse<AppStatusParameters> getAppStatus() {
+	public CIAppStatusResponse getAppStatus() {
 
 		final String widget = pm.getAppName();
 		if (widget == null) {
@@ -97,6 +98,12 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 			status.parameters = setSaveProps();
 		}
 
-		return status;
+		try {
+			return CIProvider.getCIResponseFactory().getCIResponse(status, CIAppStatusResponse.class);
+		} catch (InstantiationException | IllegalAccessException e) {
+			final String message = "Could not create wrapped CI JSON.";
+			logger.error(message);
+			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
+		}
 	}
 }

@@ -9,12 +9,16 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.cytoscape.ci.model.CIResponse;
+import org.cytoscape.hybrid.internal.rest.parameter.AppStatusParameters;
 import org.cytoscape.hybrid.internal.rest.parameter.NdexImportParams;
 import org.cytoscape.hybrid.internal.rest.parameter.NdexSaveParameters;
+import org.cytoscape.hybrid.internal.rest.response.AppStatusResponse;
 import org.cytoscape.hybrid.internal.rest.response.NdexBaseResponse;
 import org.cytoscape.hybrid.internal.rest.response.SummaryResponse;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
@@ -24,17 +28,29 @@ import io.swagger.annotations.ApiResponses;
 @Api(tags="Apps: CyNDEx-2")
 @Path("/cyndex2/v1/networks")
 public interface NdexNetworkResource {
+	
+	@ApiModel(
+			value="Summary Response",
+			parent=CIResponse.class)
+    public static class CISummaryResponse extends CIResponse<SummaryResponse>{
+    }
 
 	@ApiOperation(
 			value = "Get the summary of current network and collection.",
 			notes = "Returns summary of collection contains current network.",
-			response = SummaryResponse.class)
+			response = CISummaryResponse.class)
 	@GET
 	@Path("/current")
 	@Produces(MediaType.APPLICATION_JSON)
-	public SummaryResponse getCurrentNetworkSummary();
+	public CISummaryResponse getCurrentNetworkSummary();
 
 
+	@ApiModel(
+			value="NDEx Base Response",
+			parent=CIResponse.class)
+    public static class CINdexBaseResponse extends CIResponse<NdexBaseResponse>{
+    }
+	
 	@POST
 	@Produces("application/json")
 	@Consumes("application/json")
@@ -42,33 +58,33 @@ public interface NdexNetworkResource {
 	@ApiOperation(
 			value = "Import network from NDEx",
 			notes = "Import network(s) from NDEx.",
-			response = NdexBaseResponse.class)
+			response = CINdexBaseResponse.class)
 	@ApiResponses(
 			value = {
-						@ApiResponse(code = 404, message = "Network does not exist", response = NdexBaseResponse.class)
+						@ApiResponse(code = 404, message = "Network does not exist", response = CINdexBaseResponse.class)
 					}
 			)
-	public NdexBaseResponse createNetworkFromNdex(
+	public CINdexBaseResponse createNetworkFromNdex(
 			 @ApiParam(value = "Properties required to import network from NDEx.", required = true) NdexImportParams params);
 	
 	@POST
 	@Produces("application/json")
 	@Consumes("application/json")
 	@Path("/current")
-	@ApiOperation(value = "Save current network to NDEx", notes = "Save current network to NDEx", response = NdexBaseResponse.class)
+	@ApiOperation(value = "Save current network to NDEx", notes = "Save current network to NDEx", response = CINdexBaseResponse.class)
 	@ApiResponses(value = {
-			@ApiResponse(code = 404, message = "Current network does not exist", response = NdexBaseResponse.class), })
-	public NdexBaseResponse saveCurrentNetworkToNdex(
+			@ApiResponse(code = 404, message = "Current network does not exist", response = CINdexBaseResponse.class), })
+	public CINdexBaseResponse saveCurrentNetworkToNdex(
 			@ApiParam(value = "Properties required to save current network to NDEx.", required = true) final NdexSaveParameters params);
 	
 	@POST
 	@Produces("application/json")
 	@Consumes("application/json")
 	@Path("/{suid}")
-	@ApiOperation(value = "Save network collection to NDEx", notes = "Save a collection to NDEx", response = NdexBaseResponse.class)
+	@ApiOperation(value = "Save network collection to NDEx", notes = "Save a collection to NDEx", response = CINdexBaseResponse.class)
 	@ApiResponses(value = {
-			@ApiResponse(code = 404, message = "Network does not exist", response = NdexBaseResponse.class), })
-	public NdexBaseResponse saveNetworkToNdex(
+			@ApiResponse(code = 404, message = "Network does not exist", response = CINdexBaseResponse.class), })
+	public CINdexBaseResponse saveNetworkToNdex(
 			@PathParam("suid") Long suid, 
 			@ApiParam(value = "Properties required to save network to NDEx.", required = true) final NdexSaveParameters params);
 	
@@ -76,10 +92,10 @@ public interface NdexNetworkResource {
 	@Produces("application/json")
 	@Consumes("application/json")
 	@Path("/{suid}")
-	@ApiOperation(value = "Update an existing NDEx network entry", notes = "Update an NDEx network.", response = NdexBaseResponse.class)
+	@ApiOperation(value = "Update an existing NDEx network entry", notes = "Update an NDEx network.", response = CINdexBaseResponse.class)
 	@ApiResponses(value = {
-			@ApiResponse(code = 404, message = "Network does not exist", response = NdexBaseResponse.class), })
-	public NdexBaseResponse updateNetworkInNdex(
+			@ApiResponse(code = 404, message = "Network does not exist", response = CINdexBaseResponse.class), })
+	public CINdexBaseResponse updateNetworkInNdex(
 			@PathParam("suid") Long suid,
 			@ApiParam(value = "Properties required to update a network record in NDEx.", required = true) final NdexSaveParameters params);
 	
@@ -90,10 +106,10 @@ public interface NdexNetworkResource {
 	@ApiOperation(
 			value = "Update current Cytoscape network record in NDEx", 
 			notes = "Update current netwprk's record in NDEx", 
-			response = NdexBaseResponse.class)
+			response = CINdexBaseResponse.class)
 	@ApiResponses(
 			value = {
-					@ApiResponse(code = 404, message = "Network does not exist", response = NdexBaseResponse.class), })
-	public NdexBaseResponse updateCurrentNetworkInNdex(
+					@ApiResponse(code = 404, message = "Network does not exist", response = CINdexBaseResponse.class), })
+	public CINdexBaseResponse updateCurrentNetworkInNdex(
 			@ApiParam(value = "Properties required to update a network record in NDEx.", required = true) final NdexSaveParameters params);
 }

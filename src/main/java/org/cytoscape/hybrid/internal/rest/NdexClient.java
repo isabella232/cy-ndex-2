@@ -38,8 +38,6 @@ public class NdexClient {
 
 	private static final Logger logger = LoggerFactory.getLogger(NdexClient.class);
 
-	public static final String UUID_COLUMN_NAME = "ndex.uuid";
-
 	private static final String PUBLIC_NDEX_URL = "http://www.ndexbio.org/v2";
 	private static final String CHARSET = "UTF-8";
 

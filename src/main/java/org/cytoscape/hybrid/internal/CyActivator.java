@@ -178,7 +178,7 @@ public class CyActivator extends AbstractCyActivator {
 		// Status endpoint
 
 		// Base
-		registerService(bc, new NdexBaseResourceImpl(bc.getBundle().getVersion().toString()), NdexBaseResource.class, new Properties());
+		registerService(bc, new NdexBaseResourceImpl(bc.getBundle().getVersion().toString(), errorBuilder), NdexBaseResource.class, new Properties());
 		
 		// Status
 		registerService(bc, new NdexStatusResourceImpl(pm, errorBuilder, appManager), NdexStatusResource.class, new Properties());
