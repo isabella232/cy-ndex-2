@@ -14,6 +14,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
@@ -69,6 +71,8 @@ import org.osgi.framework.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.deser.Deserializers.Base;
+
 public class CyActivator extends AbstractCyActivator {
 	
 	// Logger for this activator
@@ -77,13 +81,45 @@ public class CyActivator extends AbstractCyActivator {
 	private static final Dimension PANEL_SIZE = new Dimension(400, 40);
 	private static final Dimension PANEL_SIZE_MAX = new Dimension(900, 100);
 
+	private static final String CDN_SERVER_URL_TAG = "cyndex.cdn.url";
+	private final String BASE_URL = "http://chianti.ucsd.edu/~kono/ci/app/cyndex2";
+	
+	private static final String STATIC_CONTENT_DIR = "cyndex-2";
+	
 	private WSServer server;
 
 	private JToolBar toolBar;
 	private JPanel panel;
+	
+	private String cdnHost;
+	private String cdnUrl;
 
 	public CyActivator() {
 		super();
+	}
+	
+	private final void setURL(final CyProperty<Properties> cyProp) {
+		// Get remote file location
+		final Object url = cyProp.getProperties().get(CDN_SERVER_URL_TAG);
+		cdnUrl = BASE_URL;
+		
+		if(url != null) {
+			cdnUrl = url.toString();
+		}
+		
+		if(!cdnUrl.endsWith("/")) {
+			cdnUrl = cdnUrl + "/";
+		}
+		
+		try {
+			URL urlObj = new URL(cdnUrl);
+			cdnHost = urlObj.getHost();
+		} catch (MalformedURLException e) {
+			throw new RuntimeException("Invalid URL for the installer location.", e);
+		}
+		
+		System.out.println("* CDN HOST: " + cdnHost);
+		System.out.println("* CDN URL: " + cdnUrl);
 	}
 
 	public void start(BundleContext bc) {
@@ -97,7 +133,10 @@ public class CyActivator extends AbstractCyActivator {
 
 		@SuppressWarnings("unchecked")
 		final CyProperty<Properties> cyProp = getService(bc, CyProperty.class, "(cyPropertyName=cytoscape3.props)");
-
+		
+		// Create native package (Electron code) locations from properties
+		setURL(cyProp);
+		
 		// For loading network
 		final CxTaskFactoryManager tfManager = new CxTaskFactoryManager();
 		registerServiceListener(bc, tfManager, "addReaderFactory", "removeReaderFactory", InputStreamTaskFactory.class);
@@ -139,8 +178,8 @@ public class CyActivator extends AbstractCyActivator {
 		
 		// Create web app dir
 		installWebApp(staticContentPath, bc);
-		
-		this.startHttpServer(bc, staticContentPath);
+		File staticPath = new File(staticContentPath, STATIC_CONTENT_DIR);
+		this.startHttpServer(bc, staticPath.getAbsolutePath());
 
 		// Initialize OSGi services
 		final ExternalAppManager pm = new ExternalAppManager();
@@ -193,21 +232,20 @@ public class CyActivator extends AbstractCyActivator {
 		// This bundle's version
 		final Version version = bc.getBundle().getVersion();
 		
-		System.out.println("CYNDEX ver = " + version);
-
 		if(!isInstalled(configDir, version.toString())) {
-			final File webappDir = new File(configDir, "cyndex-2");
+			final File webappDir = new File(configDir, STATIC_CONTENT_DIR);
 			webappDir.mkdir();
-			extractWebapp(bc.getBundle(), "cyndex-2", configDir);
+			extractWebapp(bc.getBundle(), STATIC_CONTENT_DIR, configDir);
 		}
 	}
 	
 	private final boolean isInstalled(final String configDir, final String bundleVersion) {
+		// This is the indicator of installation.
 		final String markerFileName = NativeAppInstaller.INSTALL_MAKER_FILE_NAME + "-" + bundleVersion + ".txt";
 		final File markerFile = new File(configDir, markerFileName);
-		final File webappDir = new File(configDir, NativeAppInstaller.NATIVE_APP_LOCATION);
 		
 		if(markerFile.exists()) {
+			// Exact match required.  Otherwise, simply override the existing contents.
 			return true;
 		}
 		
@@ -215,8 +253,6 @@ public class CyActivator extends AbstractCyActivator {
 	}
 	
 	private final void extractWebapp(final Bundle bundle, final String path, String targetDir) {
-		
-		
 		Enumeration<String> ress = bundle.getEntryPaths(path);
 		
 		while(ress.hasMoreElements()) {
@@ -262,6 +298,7 @@ public class CyActivator extends AbstractCyActivator {
 	}
 	private final void startHttpServer(BundleContext bc, String path) {
 		
+		System.out.println("Web app root = " + path);
 		final StaticContentsServer httpServer = new StaticContentsServer(path);
 		ExecutorService executor = Executors.newSingleThreadExecutor();
 		executor.submit(() -> {
@@ -291,7 +328,7 @@ public class CyActivator extends AbstractCyActivator {
 		toolBar = desktop.getJToolBar();
 
 		// This is the actual installer extracting binaries
-		return new NativeAppInstaller(config, bar, progress, toolBar, desktop, version);
+		return new NativeAppInstaller(config, bar, progress, toolBar, desktop, version, cdnHost, cdnUrl);
 	}
 
 	@Override

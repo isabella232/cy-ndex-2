@@ -4,10 +4,13 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
@@ -22,17 +25,26 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
 
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.swing.CySwingApplication;
+import org.cytoscape.hybrid.internal.util.NetworkConnectionTester;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class NativeAppInstaller {
+	
+	private static final Logger logger = LoggerFactory.getLogger(NativeAppInstaller.class);
 	
 	private static final String APP_URL_PROP_NAME = "cyndex.";
 	public static final String LOAD_URL_PROP_NAME = APP_URL_PROP_NAME + "url.load";
@@ -40,9 +52,8 @@ public final class NativeAppInstaller {
 	
 	public static final String NATIVE_APP_LOCATION = "ndex-electron";
 	
+	// Marker file prefix.  "ndex-installed-2.x.x.txt" will be the actual file name.
 	public static final String INSTALL_MAKER_FILE_NAME = "ndex-installed";
-	
-	private final String BASE_URL = "http://chianti.ucsd.edu/~kono/ci/app/cyndex2/";
 
 	private static final int BUFFER_SIZE = 2048;
 	
@@ -86,19 +97,28 @@ public final class NativeAppInstaller {
 	private JPanel progressPanel;
 	private JToolBar toolBar;
 	private CySwingApplication desktop;
-
+	
+	private final String bundleVersion;
+	
+	private final String cdnHost;
+	private final String cdnUrl;
 
 	// Currently, this is an empty file just for checking installation.
 	// Maybe used as real config file in future.
 	private File markerFile;
 
 	public NativeAppInstaller(final CyApplicationConfiguration appConfig, JProgressBar bar, 
-			JPanel progressPanel, JToolBar toolBar, CySwingApplication desktop, final String bundleVersion) {
+			JPanel progressPanel, JToolBar toolBar, CySwingApplication desktop, final String bundleVersion,
+			final String cdnHost, final String cdnUrl) {
 		this.appConfig = appConfig;
 		this.bar = bar;
 		this.progressPanel = progressPanel;
 		this.toolBar = toolBar;
 		this.desktop = desktop;
+		
+		this.bundleVersion = bundleVersion;
+		this.cdnUrl = cdnUrl;
+		this.cdnHost = cdnHost;
 		
 		this.platform = detectPlatform();
 
@@ -117,44 +137,14 @@ public final class NativeAppInstaller {
 		// Extract binary from archive
 		ExecutorService executor = Executors.newSingleThreadExecutor();
 		executor.submit(() -> {
-			install(electronAppDir);
+			install(this.appConfig.getConfigurationDirectoryLocation().getAbsolutePath(), electronAppDir, cdnHost);
 		});
 	}
-	
-	public void copyWebApp(final String dirName) {
-		final InputStream is = NativeAppInstaller.class.getClassLoader().getResourceAsStream("webapp");
-		try {
-			System.out.println(dirName);
-			final InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
-	        final BufferedReader br = new BufferedReader(isr);
-	        
-	        br.lines().forEach(System.out::println);
-	
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	
-//        try {
-//        		InputStream stream = source.openStream();
-//            int readBytes;
-//            byte[] buffer = new byte[4096];
-//            resStreamOut = new FileOutputStream(dirName);
-//            while ((readBytes = stream.read(buffer)) > 0) {
-//                resStreamOut.write(buffer, 0, readBytes);
-//            }
-//            stream.close();
-//            resStreamOut.close();
-//        } catch (Exception ex) {
-//        		ex.printStackTrace();
-//        }
-    }
-	
 	
 	private final Boolean isInstalled(final File electronAppDirectory) {
 		// 1. Check status of the install from file
 		
-		// 1. no directory --> force to install everything
+		// 1. no Electron directory --> force to install everything
 		if(!electronAppDirectory.exists()) {
 			return false;
 		}
@@ -165,21 +155,55 @@ public final class NativeAppInstaller {
 		if(!markerFile.exists()) {
 			return false;
 		} else {
-			// 2.2 It's already installed!
-			return true;
+			// TODO: check version number here.
+			final String markerFileName = markerFile.getName();
+			final String regex = "[0-9]+\\.[0-9]+\\.[0-9]+";
+			Pattern p = Pattern.compile(regex);
+			Matcher m = p.matcher(markerFileName);
+			if(m.find()) {
+				final String match = m.group();
+				if(match.equals(bundleVersion)) {
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
 		}
 	}
 	
 	
-	private final void install(final File electronAppDirectory) {
+	private final void install(final String configDir, final File electronAppDirectory, final String hostName) {
 		if(isInstalled(electronAppDirectory)) {
 			// Directory already exists.  Simply add the NDEx Search box.
 			toolBar.add(uiPanel);
 		} else {
-			// Clean up unnecessary old files.
-			if(markerFile.exists()) {
-				markerFile.delete();
+			// Check network connection first.
+			final boolean isNetworkAvailable = NetworkConnectionTester.isReacheable(hostName);
+
+			if(!isNetworkAvailable) {
+				final String errorMessage = "Could not install CyNDEx-2 app due to a network problem.  "
+						+ "Please check your network connection and try again later.";
+				logger.error(errorMessage);
+				
+				SwingUtilities.invokeLater(new Runnable() {
+					
+					@Override
+					public void run() {	
+						JOptionPane.showMessageDialog(
+								desktop.getJFrame(),
+								errorMessage,
+								"Failed to Install CyNDEx-2",
+								JOptionPane.ERROR_MESSAGE);
+					}
+				});
+				throw new RuntimeException("Could not connect to the external server.");
 			}
+			
+			// Clean up unnecessary old files.
+
+			deleteMarkerFiles(configDir);
 			
 			if(electronAppDirectory.exists()) {
 				deleteAll(electronAppDirectory);
@@ -197,13 +221,25 @@ public final class NativeAppInstaller {
 				desktop.getJFrame().repaint();
 				toolBar.repaint();
 				toolBar.updateUI();
-				System.out.println("***CyNDEx is ready!!!!!!!!!!!");
+				
+				System.out.println("* CyNDEx-2 installed and ready to use!");
+				
 				markerFile.createNewFile();
-
 			} catch (IOException e) {
 				throw new RuntimeException("Failed to install native app", e);
 			}
 		}
+	}
+	
+	private final void deleteMarkerFiles(final String configDir) {
+		final File f = new File(configDir);
+		final File[] markerFiles = f.listFiles(new FilenameFilter() {
+		    public boolean accept(File dir, String name) {
+		        return name.startsWith(INSTALL_MAKER_FILE_NAME) && name.endsWith(".txt");
+		    }
+		});
+		
+		Arrays.asList(markerFiles).stream().forEach(file->file.delete());
 	}
 	
 	private final int checkSize(String fileURL) throws IOException {
@@ -282,8 +318,8 @@ public final class NativeAppInstaller {
 		switch (platform) {
 		case PLATFORM_MAC:
 			try {
-				int fileSize = checkSize(BASE_URL + ARCHIVE_MAC);
-				final URL sourceUrl = new URL(BASE_URL + ARCHIVE_MAC);
+				int fileSize = checkSize(cdnUrl + ARCHIVE_MAC);
+				final URL sourceUrl = new URL(cdnUrl + ARCHIVE_MAC);
 				extract(sourceUrl, archiveFile, fileSize);
 				unzip(archiveFile, electronAppDir);
 			} catch (Exception e) {
@@ -292,7 +328,7 @@ public final class NativeAppInstaller {
 			break;
 		case PLATFORM_WIN:
 //			final URL source = this.getClass().getClassLoader().getResource(TEMPLATE_NAME + "/" + ARCHIVE_WIN);
-			final URL sourceUrl = new URL(BASE_URL + ARCHIVE_WIN);
+			final URL sourceUrl = new URL(cdnUrl + ARCHIVE_WIN);
 			extractPreviewTemplate(sourceUrl, electronAppDir);
 			break;
 		case PLATFORM_LINUX:

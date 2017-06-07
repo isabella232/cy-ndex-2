@@ -166,9 +166,9 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		final CyTable rootTable = root.getDefaultNetworkTable();
 		
 		// Set Metadata to collection's table
-		metadata.keySet().stream()
-			.forEach(key -> saveMetadata(key, metadata.get(key), rootTable, root.getSUID()));
-		
+		for(String key: metadata.keySet()) {
+			saveMetadata(key, metadata.get(key), rootTable, root.getSUID());
+		}
 
 		// Get writer to convert collection into CX
 		final CyNetworkViewWriterFactory writerFactory = tfManager.getCxWriterFactory();
@@ -226,10 +226,12 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	}
 
 	private final void saveMetadata(String columnName, String value, CyTable table, Long suid) {
-		final CyColumn col = table.getColumn(columnName);
 
-		if (col == null) {
-			table.createColumn(columnName, String.class, false);
+		synchronized (table) {
+			final CyColumn col = table.getColumn(columnName);
+			if (col == null) {
+				table.createColumn(columnName, String.class, false);
+			}
 		}
 		table.getRow(suid).set(columnName, value);
 	}
@@ -334,8 +336,10 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		// Update Cytoscape table first
 		final Map<String, String> metadata = params.metadata;
 		final CyTable rootTable = root.getDefaultNetworkTable();
-		metadata.keySet().stream().forEach(key -> saveMetadata(key, metadata.get(key), rootTable, root.getSUID()));
 
+		for(String key: metadata.keySet()) {
+			saveMetadata(key, metadata.get(key), rootTable, root.getSUID());
+		}
 		final CyNetworkViewWriterFactory writerFactory = tfManager.getCxWriterFactory();
 
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
