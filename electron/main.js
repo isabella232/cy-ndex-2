@@ -1,285 +1,226 @@
-// Logging
-const LOGGER = require('winston');
+/**
+ * main.js - The main server-side code for CyNDEx-2
+*/
 
-const APP_NAME_VALET = 'ndex';
-const APP_NAME_SAVE = 'ndex-save';
-const APP_NAME_LOGIN = 'ndex-login';
+// For logging
+const LOGGER = require('winston')
 
-const APP_CONFIG_VALET = require('./webapp/ndex/config');
-const APP_CONFIG_SAVE = require('./webapp/ndex-save/config');
-const APP_CONFIG_LOGIN = require('./webapp/ndex-login/config');
+// For duplex communication via WebSocket
+const WebSocket = require('ws')
 
-const APP_CONFIG_MAP = new Map();
-APP_CONFIG_MAP.set(APP_NAME_VALET, APP_CONFIG_VALET);
-APP_CONFIG_MAP.set(APP_NAME_SAVE, APP_CONFIG_SAVE);
-APP_CONFIG_MAP.set(APP_NAME_LOGIN, APP_CONFIG_LOGIN);
+// Required Electron classes
+const {
+  app,
+  globalShortcut,
+  BrowserWindow
+} = require('electron')
 
-// Required Electron components
-const { app, globalShortcut, BrowserWindow } = require('electron');
+// Constants are stored in this file
+const {
+  MSG_FOCUS,
+  MSG_MINIMIZE,
+  MSG_RESTORE,
+  DESKTOP_SETTINGS
+} = require('./config')
 
-global.sharedObj = { temp: app.getPath('temp') };
-console.log(global.sharedObj);
+const WS_ADDRESS = 'ws://localhost:8025/ws/echo'
 
-// For duplex communication
-const WebSocket = require('ws');
+let ws // Web socket server
+let mainWindow // The browser window for showing app.
 
-// TODO: make this injectable
-const WS_ADDRESS = 'ws://localhost:8025/ws/echo';
+// Flag for show/hide Chromium dev tools
+let isDevEnabled = false
 
-let ws; // Web socket server
-let mainWindow; // The browser window for showing app.
+// Electron app is running or not
+let isAppRunning = false
 
-let opts;
+let block = false
 
-// Type of the app for this instance.
-let appName = null;
-
-let block = false;
-
-let minimized = false;
-let isDevEnabled = false;
-
-let isAppRunning = false;
-
-
-const MSG_SELECT_APP = {
-  from: 'ndex',
-  type: 'app',
-  body: ''
-};
-
-const MSG_FOCUS = {
-  from: 'ndex',
-  type: 'focus',
-  body: 'Ndex focused'
-};
-
-const MSG_MINIMIZE = {
-  from: 'ndex',
-  type: 'minimized',
-  body: 'Ndex window minimized'
-};
-
-const MSG_RESTORE = {
-  from: 'ndex',
-  type: 'restored',
-  body: 'Ndex window restored'
-};
-
-const MSG_SAVE = {
-  from: 'ndex',
-  type: 'save',
-  body: ''
-};
-
-
+/**
+  Initialize logger
+*/
 const initLogger = () => {
-  LOGGER.add(LOGGER.transports.File, { filename: 'electron-app.log' });
-  LOGGER.level = 'debug';
-  LOGGER.log('debug', 'Starting app');
+  LOGGER.add(LOGGER.transports.File, {
+    filename: 'cyndex-2.log'
+  })
+  LOGGER.level = 'debug'
 }
 
-const initWindow = appType => {
+
+/**
+  Initialize the application window
+*/
+const initWindow = () => {
   // Create the browser window.
-  LOGGER.log('debug', 'Target app = ' + appType);
-  appName = appType;
+  mainWindow = new BrowserWindow(DESKTOP_SETTINGS)
 
-  mainWindow = new BrowserWindow(APP_CONFIG_MAP.get(appType));
+  // Send settings to the renderer
   mainWindow.webContents.on('did-finish-load', () => {
-    mainWindow.webContents.send('ping', opts);
-  });
 
-  const dir = `${__dirname}`;
-  global.sharedObj.dir = dir;
+    // Check CyREST port number
+    let cyrestPortNumber = '1234'
+    const argLen = process.argv.length
 
-  mainWindow.loadURL('file://' + dir + '/webapp/' + appType + '/index.html');
+    if (argLen >= 3) {
+      cyrestPortNumber = process.argv[2]
+    }
+
+    LOGGER.log('Got CyREST port from Cy3: ' + cyrestPortNumber)
+
+    mainWindow.webContents.send('initialized', {
+      cyrestPort: cyrestPortNumber
+    })
+  })
+
+  // Load app from local directory.
+  const dir = `${__dirname}`
+  // mainWindow.loadURL('file://' + dir + '/webapp/ndex/index.html')
+  mainWindow.loadURL('http://localhost:2222/index.html')
 
   // Event handlers:
-  initEventHandlers();
-
-
-  if (appType === APP_NAME_SAVE) {
-    initSave();
-  }
-};
-
-
-const initEventHandlers = () => {
-
-  // Focus: the window clicked.
-  mainWindow.on('focus', (e) => {
-    console.log("event restore:")
-    if (block || mainWindow === null || mainWindow === undefined) {
-      return;
-    }
-
-    if(!mainWindow.isDestroyed() && !mainWindow.isAlwaysOnTop()) {
-      mainWindow.setAlwaysOnTop(true);
-
-      ws.send(JSON.stringify(MSG_FOCUS));
-
-      setTimeout(()=> {
-        mainWindow.setAlwaysOnTop(false);
-        console.log('DISABLE Always on top: ----------- ')
-      }, 200);
-    }
-  });
-
-  mainWindow.on('minimize', (e) => {
-    e.preventDefault();
-    ws.send(JSON.stringify(MSG_MINIMIZE));
-
-  });
-
-  mainWindow.on('restore', (e) => {
-    e.preventDefault();
-
-    // TODO: Are there any better way to handle strange events from Windows system?
-    setTimeout(()=> {
-        ws.send(JSON.stringify(MSG_RESTORE));
-        console.log('sent2 restore message: ----------- ')
-    }, 200);
-  });
-
-};
-
-
-function initSave() {
-  ws.send(JSON.stringify(MSG_SAVE));
+  initEventHandlers()
 }
 
+const initEventHandlers = () => {
+  // Focus: the window clicked.
+  mainWindow.on('focus', e => {
+    if (block || mainWindow === null || mainWindow === undefined) {
+      return
+    }
 
-function initSocket() {
+    if (!mainWindow.isDestroyed() && !mainWindow.isAlwaysOnTop()) {
+      mainWindow.setAlwaysOnTop(true);
+      ws.send(JSON.stringify(MSG_FOCUS));
+      setTimeout(() => {
+        mainWindow.setAlwaysOnTop(false);
+      }, 200)
+    }
+  })
+
+  // Window minimized
+  mainWindow.on('minimize', e => {
+    e.preventDefault()
+    ws.send(JSON.stringify(MSG_MINIMIZE));
+  })
+
+  // Restored from minimized state
+  mainWindow.on('restore', e => {
+    e.preventDefault()
+
+    // TODO: Are there any better way to handle strange events from Windows system?
+    setTimeout(() => {
+      ws.send(JSON.stringify(MSG_RESTORE))
+    }, 200)
+  })
+
+  // closed
+  mainWindow.on('closed', () => {
+    mainWindow = null
+  })
+}
+
+const initSocket = () => {
   try {
     // Try Connection to server...
-    ws = new WebSocket(WS_ADDRESS);
+    ws = new WebSocket(WS_ADDRESS)
 
     ws.onopen = () => {
-      ws.send(JSON.stringify(MSG_SELECT_APP));
-    };
+      // Start the app once WS connection is established
+      initWindow()
+    }
 
     // Listen for messages
     ws.onmessage = function (event) {
-      let msgObj = JSON.parse(event.data);
-
-      LOGGER.log("debug", '$$$$$$$$MSG: ');
-      LOGGER.log('debug', msgObj);
+      let msgObj = JSON.parse(event.data)
 
       // Filter: ignore ndex messages
-      if (msgObj.from === "ndex") {
-        return;
+      if (msgObj.from === 'ndex') {
+        return
       }
 
       switch (msgObj.type) {
-        case 'app':
-          LOGGER.log("debug", "==== APP Type Message ====");
-          LOGGER.log("debug", msgObj);
-          opts = msgObj.options;
-          initWindow(msgObj.body);
-          break;
         case 'minimized':
           if (mainWindow === undefined || mainWindow === null) {
-            break;
+            break
+          }
+          if (mainWindow.isMinimized() || block) {
+            break
           }
 
-          if(mainWindow.isMinimized() || block) {
-            break;
+          block = true
+          mainWindow.minimize()
+          block = false
+          break
+
+        case 'focus':
+          if (mainWindow === undefined || mainWindow === null) {
+            break
+          }
+          if (mainWindow.isFocused() || block) {
+            break
           }
 
-          console.log('######## MINIMIZE request')
-          block = true;
-          mainWindow.minimize();
-          block = false;
-          break;
-
-        case "focus":
-          if(mainWindow === undefined || mainWindow === null) {
-              break;
-          }
-          if(mainWindow.isFocused() || block) {
-            break;
-          }
-
-          console.log('######## Focus request: ----------- ')
-          block = true;
-
+          block = true
           try {
+            if (!mainWindow.isAlwaysOnTop()) {
 
+              mainWindow.setAlwaysOnTop(true)
+              mainWindow.showInactive()
 
-            if(!mainWindow.isAlwaysOnTop()) {
-              console.log('######## ALWAYS on top')
-              mainWindow.setAlwaysOnTop(true);
-              mainWindow.showInactive();
-              setTimeout(()=> {
-                mainWindow.setAlwaysOnTop(false);
-              }, 550);
+              setTimeout(() => {
+                mainWindow.setAlwaysOnTop(false)
+              }, 550)
             }
 
             block = false;
-            break;
-
-          } catch(ex) {
-
+            break
+          } catch (ex) {
+            LOGGER.log('error', ex)
           }
-        case "save":
-          opts = msgObj.options;
-          // LOGGER.log("debug", 'Fire2: Got Save Params: ' + opts);
-          // mainWindow.setTitle('Save to NDEx: ' + opts.name);
-          break;
         case 'restored':
-          console.log('######## RESTORE request: ----------- ')
-          if(mainWindow.isMinimized() && !block) {
-            block = true;
-            mainWindow.restore();
-            block = false;
+          if (mainWindow.isMinimized() && !block) {
+            block = true
+            mainWindow.restore()
+            block = false
           }
-          break;
+          break
         default:
       }
-    };
+    }
 
     ws.onclose = function () {
-      if(mainWindow !== undefined && mainWindow !== null && !mainWindow.isDestroyed()) {
+      if (mainWindow !== undefined && mainWindow !== null && !mainWindow.isDestroyed()) {
         mainWindow.close()
         mainWindow = null
       }
-
       app.quit()
-    };
+    }
 
-    setInterval(function() {
-      "use strict";
-      let alive = {
-        from: "ndex",
-        type: "alive",
-        body: "NDEx Main alive"
-      };
-
-      ws.send(JSON.stringify(alive));
-    }, 120000);
-
+    setInterval(() => {
+      const alive = {
+        from: 'ndex',
+        type: 'alive',
+        body: 'NDEx Main alive'
+      }
+      ws.send(JSON.stringify(alive))
+    }, 120000)
   } catch (e) {
-    console.log(e);
+    LOGGER.log('error', e);
   }
 }
 
+/**
+ * A shortcut key combinations
+ *
+ */
+const addShortcuts = () => {
 
-function createWindow() {
-  initLogger();
-  // Establish WS connection
-  initSocket();
-}
-
-
-function addShortcuts() {
-  globalShortcut.register('CommandOrControl+w', function () {
-    console.log('Close (w) is pressed');
+  globalShortcut.register('CommandOrControl+w', () => {
     app.quit()
-  });
+  })
 
   // For dev tool
-  globalShortcut.register('CommandOrControl+d', function () {
-    console.log('Devtool');
+  globalShortcut.register('CommandOrControl+d', () => {
     if (isDevEnabled) {
       mainWindow.webContents.closeDevTools();
       isDevEnabled = false;
@@ -287,25 +228,27 @@ function addShortcuts() {
       mainWindow.webContents.openDevTools();
       isDevEnabled = true;
     }
-  });
+  })
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+// Start the app
+////////////////////////////////////////////////////////////////////////////////
+
 app.on('ready', () => {
-
-  if(isAppRunning) {
-    return;
+  if (isAppRunning) {
+    return
   }
-  // Respond to only once.  One app == one instance.
-  if(appName === null) {
-    createWindow();
-    addShortcuts();
-    isAppRunning = true;
-  }
-});
 
+  initLogger()
+  initSocket()
+  addShortcuts()
 
-// Quit when all windows are closed.
-app.on('window-all-closed', function () {
+  isAppRunning = true
+})
+
+// Quit the app when all windows are closed
+app.on('window-all-closed', () => {
   app.quit()
-});
+})

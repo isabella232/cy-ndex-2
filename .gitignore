@@ -6,3 +6,10 @@ target
 
 src/main/resources/ndex/*.zip
 src/main/resources/ndex/*.gz
+
+.ipynb_checkpoints
+.log
+
+.vscode
+
+src/main/resources/cyndex-2

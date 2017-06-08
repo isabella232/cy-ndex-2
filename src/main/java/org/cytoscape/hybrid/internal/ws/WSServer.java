@@ -66,11 +66,11 @@ public class WSServer implements CyShutdownListener {
 	@Override
 	public void handleEvent(CyShutdownEvent evt) {
 		logger.info("Terminating WS Server: " + url);
-		try {
-			server.stop();
-		} catch (Exception e) {
-			e.printStackTrace();
-			logger.error("Could not stop WS server.", e);
-		}
+//		try {
+//			server.stop();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			logger.error("Could not stop WS server.", e);
+//		}
 	}
 }

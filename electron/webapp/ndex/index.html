@@ -1,27 +1,29 @@
+<!DOCTYPE html>
 <html>
+
 <head>
-  <link href='https://fonts.googleapis.com/css?family=Roboto:300,400' rel='stylesheet' type='text/css'>
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/immutable/3.8.1/immutable.js"></script>
-
-  <script src="CyFramework/CyFramework.js"></script>
-  <script src="NDExStore/NDExStore.js"></script>
-  <script src="NDExValetFinder/NDExValetFinder.js"></script>
-  <script src="NDExPlugins/NDExPlugins.js"></script>
-
-  <!--Electron only dependency-->
-  <link rel="stylesheet" href="../../css/photon.min.css">
-  <link rel="stylesheet" href="../../css/desktop.css">
-
+  <meta charset="utf-8">
+  <title>CyNDEx 2</title>
 </head>
+
 <body>
+<h1>CyNDEx-2 Electron App Template for HTTP Server (NOT FILE)</h1>
+<div>
+  This is a template page for Electron apps.  Modify this and render.js to
+  use your own frontend code.
+</div>
 
+<h3>Press COMMAND+D to open Chromium dev tool</h3>
+<h2>Parameters provided by Cytoscape</h2>
 
-<div id='valet'></div>
+<ul>
+  <li id="cyrest"></li>
+  <li id="appType"></li>
+  <li id="ls"></li>
+</ul>
 
+<button id='close'>Close This Electron App</button>
 
 <script src="renderer.js"></script>
-
 </body>
 </html>

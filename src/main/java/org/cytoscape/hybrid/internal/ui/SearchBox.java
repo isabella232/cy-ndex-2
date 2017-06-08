@@ -9,8 +9,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -23,16 +21,18 @@ import javax.swing.JToolTip;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 
-import org.cytoscape.hybrid.events.InterAppMessage;
+import org.cytoscape.hybrid.events.ExternalAppClosedEvent;
+import org.cytoscape.hybrid.events.ExternalAppClosedEventListener;
+import org.cytoscape.hybrid.events.ExternalAppStartedEvent;
+import org.cytoscape.hybrid.events.ExternalAppStartedEventListener;
+import org.cytoscape.hybrid.internal.task.OpenExternalAppTaskFactory;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
-import org.cytoscape.hybrid.internal.ws.WSClient;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
+import org.cytoscape.work.TaskIterator;
+import org.cytoscape.work.TaskManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-public class SearchBox extends JPanel {
+public class SearchBox extends JPanel implements ExternalAppClosedEventListener, ExternalAppStartedEventListener {
 
 	private static final long serialVersionUID = 5216512744558942600L;
 
@@ -61,11 +61,6 @@ public class SearchBox extends JPanel {
 	private final JLabel iconLabel;
 	private final JTextField searchTextField;
 	private final JPanel searchButton;
-	private final JPanel settingButton;
-
-	// WS Client
-	private final WSClient client;
-	private final ObjectMapper mapper;
 
 	// States
 	private Boolean searchBoxClicked = false;
@@ -73,16 +68,17 @@ public class SearchBox extends JPanel {
 	// For child process management
 	private final ExternalAppManager pm;
 
-	private final String command;
+	private final OpenExternalAppTaskFactory tf;
+	private final TaskManager tm;
 
-	public SearchBox(final WSClient client, final ExternalAppManager pm, String command) {
+	
+	public SearchBox(final ExternalAppManager pm, 
+			OpenExternalAppTaskFactory tf, TaskManager tm) {
 
-		this.mapper = new ObjectMapper();
-
-		this.client = client;
 		this.pm = pm;
-		this.command = command;
-
+		this.tf = tf;
+		this.tm = tm;
+		
 		this.setPreferredSize(PANEL_SIZE);
 		this.setSize(PANEL_SIZE);
 		this.setMaximumSize(PANEL_SIZE_MAX);
@@ -146,10 +142,6 @@ public class SearchBox extends JPanel {
 			}
 			
 			private final void processClick() {
-				if (!isEnabled()) {
-					MessageUtil.reauestExternalAppFocus(client);
-					return;
-				}
 
 				if (!searchBoxClicked) {
 					searchTextField.setText("");
@@ -169,51 +161,33 @@ public class SearchBox extends JPanel {
 				}
 			}
 		});
+		
 
 		this.searchButton = new JPanel();
-		this.settingButton = new JPanel();
 		this.searchButton.setLayout(new BorderLayout());
-		this.settingButton.setLayout(new BorderLayout());
 		this.searchButton.setBorder(new EmptyBorder(3, 5, 3, 5));
-		this.settingButton.setBorder(new EmptyBorder(3, 5, 3, 5));
 		this.searchButton.setBackground(Color.WHITE);
-		this.settingButton.setBackground(Color.WHITE);
 		
 		final JLabel searchIconLabel = new JLabel(ICON_SEARCH);
 		final JLabel settingIconLabel = new JLabel(ICON_SETTINGS);
 		searchIconLabel.setOpaque(false);
 		settingIconLabel.setOpaque(false);
 		this.searchButton.add(searchIconLabel, BorderLayout.CENTER);
-		this.settingButton.add(settingIconLabel, BorderLayout.CENTER);
-		
-		this.settingButton.setSize(BUTTON_SIZE);
 		this.searchButton.setSize(BUTTON_SIZE);
-
 		this.searchButton.setBackground(Color.white);
-		this.settingButton.setBackground(Color.white);
-
 		this.searchButton.setToolTipText("Start NDEx search (opens new window)");
-		this.settingButton.setToolTipText("Open settings");
-		
 		this.searchButton.addMouseListener(new MouseAdapter() {
 			
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				System.out.println("Search start!----------");
+				
+				// Ignore if already open.
+				if(!searchButton.isEnabled()) {
+					return;
+				}
+				
 				try {
 					search(searchTextField.getText());
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
-		
-		this.settingButton.addMouseListener(new MouseAdapter() {
-			
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				try {
-					setting();
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
@@ -223,7 +197,6 @@ public class SearchBox extends JPanel {
 		final JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new GridLayout(1, 2));
 		buttonPanel.add(searchButton);
-		buttonPanel.add(settingButton);
 
 		setLayout(new BorderLayout());
 		add(iconLabel, BorderLayout.WEST);
@@ -244,40 +217,20 @@ public class SearchBox extends JPanel {
 
 		pm.setQuery(query);
 		
-		execute("ndex");
-	}	
-
-	private final void setting() {
-		try {
-			execute("ndex-login");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}		
+		final TaskIterator itr = tf.createTaskIterator();
+		tm.execute(itr);
 	}
-	
-	private final void execute(final String app) throws Exception {
 
-		final String dest = "ws://localhost:8025/ws/echo";
-		client.start(dest);
 
-		if (pm.isActive()) {
-			final InterAppMessage focus = InterAppMessage.create().setFrom(InterAppMessage.FROM_CY3)
-					.setType(InterAppMessage.TYPE_FOCUS);
-			this.client.getSocket().sendMessage(mapper.writeValueAsString(focus));
-			return;
-		}
-
-		final ExecutorService executor = Executors.newSingleThreadExecutor();
-		executor.submit(() -> {
-			try {
-				// Set application type:
-				this.client.getSocket().setApplication(app);
-				System.out.println("Command: " + command);
-				pm.setProcess(Runtime.getRuntime().exec(command));
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
+	@Override
+	public void handleEvent(ExternalAppClosedEvent event) {
+		searchButton.setEnabled(true);
+		searchTextField.setEnabled(true);
 	}
-	
+
+	@Override
+	public void handleEvent(ExternalAppStartedEvent event) {
+		searchButton.setEnabled(false);
+		searchTextField.setEnabled(false);
+	}
 }

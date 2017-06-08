@@ -2,9 +2,16 @@ package org.cytoscape.hybrid.internal.ws;
 
 public class ExternalAppManager {
 
+	public static final String APP_NAME_LOAD = "choose";
+	public static final String APP_NAME_SAVE = "save";
+	
 	private Process currentProcess;
-
+	
+	
 	private String query;
+	
+	private String appName;
+	
 
 	public void setProcess(final Process process) {
 		this.currentProcess = process;
@@ -31,5 +38,13 @@ public class ExternalAppManager {
 	
 	public String getQuery() {
 		return this.query;
+	}
+
+	public String getAppName() {
+		return appName;
+	}
+
+	public void setAppName(String appName) {
+		this.appName = appName;
 	}
 }

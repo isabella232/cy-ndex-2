@@ -5,7 +5,6 @@ import java.util.Properties;
 
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.event.CyEventHelper;
-import org.cytoscape.hybrid.internal.login.LoginManager;
 import org.cytoscape.property.CyProperty;
 import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
@@ -17,8 +16,8 @@ public class WSClient {
 
 
 	public WSClient(final CySwingApplication app, final ExternalAppManager pm, CyEventHelper eventHelper,
-			final LoginManager loginManager, final CyProperty<Properties> props) {
-		socket = new ClientSocket(app, pm, loginManager, props);
+		final CyProperty<Properties> props) {
+		socket = new ClientSocket(app, pm, props, eventHelper);
 		client = new WebSocketClient();
 		client.getPolicy().setIdleTimeout(1000000000);
 		client.setMaxIdleTimeout(1000000000);

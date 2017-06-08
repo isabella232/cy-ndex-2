@@ -8,9 +8,11 @@ package org.cytoscape.hybrid.events;
  */
 public class InterAppMessage {
 	
+	// Source of message
 	public static final String FROM_CY3 = "cy3";
 	public static final String FROM_NDEX = "ndex";
 	
+	// Type of messages
 	public static final String TYPE_FOCUS = "focus";
 	public static final String TYPE_FOCUS_SUCCESS = "focus-success";
 	public static final String TYPE_FOCUS_LOST = "focus-lost";

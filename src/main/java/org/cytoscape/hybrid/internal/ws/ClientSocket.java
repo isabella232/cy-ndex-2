@@ -12,13 +12,15 @@ import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
 
 import javax.swing.JFrame;
+import javax.swing.JMenuBar;
+import javax.swing.MenuSelectionManager;
 import javax.swing.SwingUtilities;
 
 import org.cytoscape.application.swing.CySwingApplication;
+import org.cytoscape.event.CyEventHelper;
+import org.cytoscape.hybrid.events.ExternalAppClosedEvent;
 import org.cytoscape.hybrid.events.InterAppMessage;
 import org.cytoscape.hybrid.events.WSHandler;
-import org.cytoscape.hybrid.internal.login.Credential;
-import org.cytoscape.hybrid.internal.login.LoginManager;
 import org.cytoscape.property.CyProperty;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
@@ -56,17 +58,18 @@ public class ClientSocket {
 	private final CountDownLatch latch = new CountDownLatch(1);
 	
 	private String application;
-	private final LoginManager loginManager;
 
 	private final String cyrestPort;
+	
+	private final CyEventHelper eventHelper;
 	
 
 	public ClientSocket(final CySwingApplication app, 
 			ExternalAppManager pm, 
-			final LoginManager loginManager, final CyProperty<Properties> props) {
+			final CyProperty<Properties> props, CyEventHelper eventHelper) {
 		this.app = app;
 		this.pm = pm;
-		this.loginManager = loginManager;
+		this.eventHelper = eventHelper;
 
 		this.mapper = new ObjectMapper();
 		this.handlers = new HashMap<>();
@@ -101,6 +104,7 @@ public class ClientSocket {
 
 			@Override
 			public void windowActivated(WindowEvent e) {
+				
 				final InterAppMessage msg = InterAppMessage.create().setType(InterAppMessage.TYPE_FOCUS)
 						.setFrom(InterAppMessage.FROM_CY3);
 				try {
@@ -149,59 +153,46 @@ public class ClientSocket {
 	@OnWebSocketMessage
 	public void onText(Session session, String message) throws IOException {
 
-		System.out.println("GOT MSG: " + message);
+		System.out.println("Got WS Message: " + message);
 		
 		// Map message into message object
 		final InterAppMessage msg = mapper.readValue(message, InterAppMessage.class);
 
 		final String from = msg.getFrom();
 
-		if (msg.getType().equals(InterAppMessage.TYPE_APP)) {
-			appStarted = false;
-			final InterAppMessage reply = InterAppMessage.create()
-					.setType(InterAppMessage.TYPE_APP)
-					.setFrom(InterAppMessage.FROM_CY3)
-					.setBody(application);
+		if (msg.getType().equals(InterAppMessage.TYPE_CLOSED)) {
+			pm.kill();			
 			
-			// Make the window disabled.
-			final JFrame desktop = app.getJFrame();
-			
-			desktop.setEnabled(false);
-			app.getJToolBar().setEnabled(false);	
-			desktop.setFocusable(false);
-					
-			final Credential cred = loginManager.getLogin();
-			if(cred != null) {
-				// Add login as optional param
-				reply.setOptions(cred);
-			}
-			
-			try {
-				sendMessage(mapper.writeValueAsString(reply));
-			} catch (JsonProcessingException e1) {
-				e1.printStackTrace();
-			}
-		} else if (msg.getType().equals(InterAppMessage.TYPE_CLOSED)) {
-			pm.kill();
+			// Reset status
+			pm.setAppName(null);
 			
 			EventQueue.invokeLater(new Runnable() {
 
 				@Override
 				public void run() {
+					
+					eventHelper.fireEvent(new ExternalAppClosedEvent(this));
 					final JFrame desktop = app.getJFrame();
 					desktop.setEnabled(true);
+					app.getJToolBar().setEnabled(true);
+					final JMenuBar menuBar = app.getJMenuBar();
+					menuBar.setEnabled(true);
+					
 					desktop.setFocusable(true);
 					desktop.setAlwaysOnTop(true);
-					desktop.requestFocus();
-					desktop.toFront();
-					desktop.repaint();
+					
 					try {
 						Thread.sleep(40);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 					desktop.setAlwaysOnTop(false);
-					app.getJToolBar().setEnabled(true);
+					desktop.requestFocus();
+					desktop.toFront();
+					desktop.repaint();
+					
+					menuBar.updateUI();
+					
 				}
 			});
 		} else if (msg.getType().equals(InterAppMessage.TYPE_CONNECTED)) {
@@ -221,6 +212,9 @@ public class ClientSocket {
 				return;
 			}
 			final JFrame desktop = app.getJFrame();
+			desktop.setEnabled(false);
+			app.getJMenuBar().setEnabled(false);	
+			app.getJToolBar().setEnabled(false);	
 			
 			if(!appStarted) {
 				appStarted = true;
@@ -311,8 +305,6 @@ public class ClientSocket {
 		desktop.setEnabled(true);
 		app.getJMenuBar().setEnabled(true);	
 		app.getJToolBar().setEnabled(true);	
-		
-		System.out.println("--------------------- SOK closed");;
 	}
 
 	public void sendMessage(String str) {
