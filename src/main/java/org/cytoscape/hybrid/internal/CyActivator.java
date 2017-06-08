@@ -82,7 +82,8 @@ public class CyActivator extends AbstractCyActivator {
 	private static final Dimension PANEL_SIZE_MAX = new Dimension(900, 100);
 
 	private static final String CDN_SERVER_URL_TAG = "cyndex.cdn.url";
-	private final String BASE_URL = "http://chianti.ucsd.edu/~kono/ci/app/cyndex2";
+//private final String BASE_URL = "http://chianti.ucsd.edu/~kono/ci/app/cyndex2";
+	private final String BASE_URL = "https://github.com/idekerlab/cy-ndex-2/releases/download/2.0.7/";
 	
 	private static final String STATIC_CONTENT_DIR = "cyndex-2";
 	

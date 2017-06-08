@@ -1,18 +1,13 @@
 package org.cytoscape.hybrid.internal.electron;
 
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -62,10 +57,17 @@ public final class NativeAppInstaller {
 	private static final String PLATFORM_MAC = "mac";
 	private static final String PLATFORM_LINUX = "linux";
 
+	private static final String PLATFORM_WIN_32 = "win32";
+	private static final String PLATFORM_LINUX_32 = "linux32";
+	
 	// Archive file names
 	private static final String ARCHIVE_MAC = "CyNDEx-2-mac.tar.gz";
 	private static final String ARCHIVE_LINUX = "CyNDEx-2-linux64.tar.gz";
 	private static final String ARCHIVE_WIN = "CyNDEx-2-win64.zip";
+	
+	// Legacy versions
+	private static final String ARCHIVE_LINUX_32 = "CyNDEx-2-linux32.tar.gz";
+	private static final String ARCHIVE_WIN_32 = "CyNDEx-2-win32.zip";
 
 	private static final Map<String, String> COMMANDS = new HashMap<>();
 	private static final Map<String, String> ARCHIVE = new HashMap<>();
@@ -75,10 +77,14 @@ public final class NativeAppInstaller {
 		COMMANDS.put(PLATFORM_MAC, "CyNDEx-2.app/Contents/MacOS/CyNDEx-2");
 		COMMANDS.put(PLATFORM_WIN, "CyNDEx-2-win64/CyNDEx-2.exe");
 		COMMANDS.put(PLATFORM_LINUX, "CyNDEx-2-linux-x64/CyNDEx-2");
+		COMMANDS.put(PLATFORM_WIN_32, "CyNDEx-2-win64/CyNDEx-2.exe");
+		COMMANDS.put(PLATFORM_LINUX_32, "CyNDEx-2-linux-x64/CyNDEx-2");
 
 		ARCHIVE.put(PLATFORM_MAC, ARCHIVE_MAC);
 		ARCHIVE.put(PLATFORM_WIN, ARCHIVE_WIN);
 		ARCHIVE.put(PLATFORM_LINUX, ARCHIVE_LINUX);
+		ARCHIVE.put(PLATFORM_WIN_32, ARCHIVE_WIN_32);
+		ARCHIVE.put(PLATFORM_LINUX_32, ARCHIVE_LINUX_32);
 	}
 
 	private final CyApplicationConfiguration appConfig;
@@ -269,10 +275,10 @@ public final class NativeAppInstaller {
             }
  
             // output for debugging purpose only
-            System.out.println("Content-Type = " + contentType);
-            System.out.println("Content-Disposition = " + disposition);
-            System.out.println("Content-Length = " + contentLength);
-            System.out.println("fileName = " + fileName);
+//            System.out.println("Content-Type = " + contentType);
+//            System.out.println("Content-Disposition = " + disposition);
+//            System.out.println("Content-Length = " + contentLength);
+//            System.out.println("fileName = " + fileName);
  
             // opens input stream from the HTTP connection
             httpConn.disconnect();
@@ -284,17 +290,30 @@ public final class NativeAppInstaller {
                             + responseCode);
         }
 	}
-	
-	
 
 	private final String detectPlatform() {
 		final String os = System.getProperty("os.name").toLowerCase();
+		final String arch = System.getProperty("os.arch").toLowerCase();
+		
+		System.out.println("OS = " + os);
+		System.out.println("Architecture = " + arch);
+		
 		if (os.contains(PLATFORM_MAC)) {
+			// Universal binary.
 			return PLATFORM_MAC;
 		} else if (os.contains(PLATFORM_WIN)) {
-			return PLATFORM_WIN;
+			
+			if(arch.equals("x86")) {
+				return PLATFORM_WIN;
+			} else {
+				return PLATFORM_WIN;
+			}
 		} else {
-			return PLATFORM_LINUX;
+			if(arch.equals("amd64")) {
+				return PLATFORM_LINUX;
+			} else {
+				return PLATFORM_LINUX_32;
+			}
 		}
 	}
 	
@@ -321,18 +340,27 @@ public final class NativeAppInstaller {
 				int fileSize = checkSize(cdnUrl + ARCHIVE_MAC);
 				final URL sourceUrl = new URL(cdnUrl + ARCHIVE_MAC);
 				extract(sourceUrl, archiveFile, fileSize);
-				unzip(archiveFile, electronAppDir);
+				unzipMac(archiveFile, electronAppDir);
 			} catch (Exception e) {
 				e.printStackTrace();
+				logger.error("Failed to extract", e);
 			}
 			break;
 		case PLATFORM_WIN:
-//			final URL source = this.getClass().getClassLoader().getResource(TEMPLATE_NAME + "/" + ARCHIVE_WIN);
 			final URL sourceUrl = new URL(cdnUrl + ARCHIVE_WIN);
 			extractPreviewTemplate(sourceUrl, electronAppDir);
 			break;
 		case PLATFORM_LINUX:
-
+			final URL linuxSourceUrl = new URL(cdnUrl + ARCHIVE_LINUX);
+			System.out.println("Resource URL = " + linuxSourceUrl);
+			int fileSize = checkSize(cdnUrl + ARCHIVE_LINUX);
+			extract(linuxSourceUrl, archiveFile, fileSize);
+			try {
+				unzip(archiveFile, electronAppDir);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				logger.error("Failed to extract", e);
+			}
 			break;
 		default:
 			break;
@@ -341,7 +369,9 @@ public final class NativeAppInstaller {
 	}
 
 	// For Mac: Extract with native tar command to avoid broken app.
-	private void unzip(File archiveFile, File electronAppDirectory) throws IOException, InterruptedException {
+	private void unzipMac(File archiveFile, File electronAppDirectory) throws IOException, InterruptedException {
+		
+		System.out.println("Deploying Electron for Mac...");
 
 		ProcessBuilder pb = new ProcessBuilder("tar", "zxvf", archiveFile.toString(), "-C",
 				electronAppDirectory.toString());
@@ -353,7 +383,31 @@ public final class NativeAppInstaller {
 				stream.close();
 				break;
 			}
-//			System.out.print((char) c);
+		}
+		System.out.println("Electron for Mac is ready!");
+	}
+	
+	// For Linux: Extract with native tar command to avoid broken app.
+	private void unzip(File archiveFile, File electronAppDirectory) throws IOException, InterruptedException {
+
+		System.out.println("Deploying Electron files...");
+		try {
+			ProcessBuilder pb = new ProcessBuilder("tar", "zxvf", archiveFile.toString(), "-C",
+					electronAppDirectory.toString());
+			Process p = pb.start();
+			InputStream is = p.getInputStream();
+			try {
+				while(is.read() >= 0);
+			} finally {
+				is.close();
+			}
+
+			p.waitFor();
+			System.out.println("Electron for Linux extracted: " + p.exitValue());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Failed to extract Electron file.", e);
 		}
 	}
 
@@ -380,6 +434,7 @@ public final class NativeAppInstaller {
 		
 		int idx = 0;
 		
+		System.out.println("DOWNLOADING FILE FROM " + src);
 		try {
 			fos = new FileOutputStream(target.toString());
 			byte[] buf = new byte[BUFFER_SIZE];
@@ -397,6 +452,10 @@ public final class NativeAppInstaller {
 					this.bar.setValue(progress.intValue());
 				}
 			}
+			System.out.println("Done!--------------");
+		} catch(Exception e) {
+			System.out.println("Failed to download!!--------------");
+			e.printStackTrace();
 		} finally {
 			if (fos != null) {
 				fos.close();
