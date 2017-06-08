@@ -1,19 +1,20 @@
 {
-  "name": "ndex-valet",
-  "productName": "NDEx-Valet",
-  "version": "1.2.10",
-  "description": "NDEx Valet Cytoscape App",
+  "name": "cy-ndex-2",
+  "productName": "CyNDEx-2",
+  "version": "2.0.4",
+  "description": "Electron-based NDEx client for Cytoscape",
   "main": "main.js",
   "scripts": {
-    "start": "electron main.js",
+    "start": "electron main.js 1234",
     "update": "./scripts/update.sh",
-    "build-clients": "./scripts/build-clients.sh",
     "build": "./scripts/build.sh",
-    "all": "./scripts/all.sh"
+    "deploy": "./scripts/deploy.sh",
+    "all": "./scripts/all.sh",
+    "clean": "rm -rf ./build"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/idekerlab/ndex-valet.git"
+    "url": "https://github.com/idekerlab/cy-ndex-2.git"
   },
   "keywords": [
     "electron",
@@ -24,26 +25,17 @@
   ],
   "author": "Keiichiro Ono",
   "license": "MIT",
-  "homepage": "https://github.com/idekerlab/ndex-valet",
+  "homepage": "https://github.com/idekerlab/cy-ndex-2",
   "devDependencies": {
-    "devtron": "1.3.0",
-    "electron": "1.4.7",
-    "electron-packager": "8.2.0",
-    "eslint": "3.7.1",
-    "eslint-config-airbnb": "12.0.0",
-    "eslint-plugin-import": "2.0.0",
-    "eslint-plugin-jsx-a11y": "2.2.2",
-    "eslint-plugin-react": "6.3.0"
+    "devtron": "^1.4.0",
+    "electron": "^1.7.2",
+    "electron-packager": "^8.7.0",
+    "eslint": "^3.19.0",
+    "eslint-plugin-import": "^2.3.0",
+    "eslint-plugin-node": "^4.2.2"
   },
   "dependencies": {
-    "file-url": "1.1.0",
-    "immutable": "3.8.1",
-    "jsonfile": "2.3.1",
-    "minio": "2.0.3",
-    "plist": "2.0.1",
-    "request": "2.78.0",
-    "winston": "2.2.0",
-    "ws": "1.1.1",
-    "xmlbuilder": "4.2.1"
+    "winston": "^2.3.1",
+    "ws": "^2.3.1"
   }
 }

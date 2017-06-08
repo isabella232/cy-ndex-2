@@ -1,9 +1,9 @@
-# NDEx Valet Electron App
+# CyNDEx-2 Electron App
 
 ## Introduction
-This is an experimental application to use [Electron](http://electron.atom.io/) as a new front-end for Cytoscape app.
+This is an application to use [Electron](http://electron.atom.io/) as a new frontend for Cytoscape app.
 
-**This Electron app is designed to work as a part of Cytoscape app,** and not a stand-alone application for browsing NDEx.
+**This Electron app is designed to work as a part of Cytoscape app,** and is not designed as a stand-alone application for browsing NDEx.
 
 ## Project Structure
 
@@ -27,6 +27,6 @@ npm install && npm start
 * Documentation: [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
 ----
-The Cytoscape Consortium
+&copy; 2017 The Cytoscape Consortium
 
-&copy; 2016 Keiichiro Ono (University of California, San Diego)
+Keiichiro Ono (University of California, San Diego)

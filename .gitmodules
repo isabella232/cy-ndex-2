@@ -1,27 +1,3 @@
-[submodule "electron/extrnal-modules/NDExStore"]
-	path = electron/external-modules/NDExStore
-	url = git@github.com:CyComponent/NDExStore.git
-[submodule "electron/extrnal-modules/NDExPlugins"]
-	path = electron/external-modules/NDExPlugins
-	url = git@github.com:CyComponent/NDExPlugins.git
-[submodule "electron/extrnal-modules/NDExSave"]
-	path = electron/external-modules/NDExSave
-	url = git@github.com:CyComponent/NDExSave.git
-[submodule "electron/extrnal-modules/CyFramework"]
-	path = electron/external-modules/CyFramework
-	url = git@github.com:CyComponent/CyFramework.git
-[submodule "electron/extrnal-modules/NDExLogin"]
-	path = electron/external-modules/NDExLogin
-	url = git@github.com:CyComponent/NDExLogin.git
-[submodule "electron/external-modules/NDExServerManager"]
-	path = electron/external-modules/NDExServerManager
-	url = git@github.com:CyComponent/NDExServerManager.git
-[submodule "electron/external-modules/NDExValetFinder"]
-	path = electron/external-modules/NDExValetFinder
-	url = git@github.com:CyComponent/NDExValetFinder.git
-[submodule "electron/external-modules/NDExSearchUI"]
-	path = electron/external-modules/NDExSearchUI
-	url = git@github.com:CyComponent/NDExSearchUI.git
-[submodule "electron/external-modules/CyUI"]
-	path = electron/external-modules/CyUI
-	url = git@github.com:CyComponent/CyUI.git
+[submodule "webapp"]
+	path = webapp
+	url = git@github.com:idekerlab/ndex-web.git

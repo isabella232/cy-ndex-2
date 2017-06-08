@@ -37,6 +37,7 @@ public class EchoEndpoint {
 	@OnMessage
 	public void onMessage(String message, Session session) {
 		
+		logger.info("Client Got message: " + message);
 		InterAppMessage value = null;
 		try {
 			value = mapper.readValue(message, InterAppMessage.class);
