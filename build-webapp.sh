@@ -6,6 +6,13 @@ rm -rf ./webapp/build
 rm -rf ./src/main/resources/cyndex-2
 
 cd webapp
+
+# Make sure it is up-to-date
+echo 'pulling changes from master branch...'
+
+git checkout master
+git pull
+
 npm install
 npm run build
 cd -
