@@ -119,8 +119,8 @@ public class CyActivator extends AbstractCyActivator {
 			throw new RuntimeException("Invalid URL for the installer location.", e);
 		}
 		
-		System.out.println("* CDN HOST: " + cdnHost);
-		System.out.println("* CDN URL: " + cdnUrl);
+		logger.info("Electron app CDN: " + cdnHost);
+		logger.info("CDN URL: " + cdnUrl);
 	}
 
 	public void start(BundleContext bc) {
@@ -299,7 +299,8 @@ public class CyActivator extends AbstractCyActivator {
 	}
 	private final void startHttpServer(BundleContext bc, String path) {
 		
-		System.out.println("Web app root = " + path);
+		logger.info("CyNDEx-2 web application root directory: " + path);
+		
 		final StaticContentsServer httpServer = new StaticContentsServer(path);
 		ExecutorService executor = Executors.newSingleThreadExecutor();
 		executor.submit(() -> {

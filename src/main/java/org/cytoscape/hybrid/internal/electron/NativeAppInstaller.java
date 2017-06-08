@@ -228,8 +228,6 @@ public final class NativeAppInstaller {
 				toolBar.repaint();
 				toolBar.updateUI();
 				
-				System.out.println("* CyNDEx-2 installed and ready to use!");
-				
 				markerFile.createNewFile();
 			} catch (IOException e) {
 				throw new RuntimeException("Failed to install native app", e);
@@ -274,12 +272,6 @@ public final class NativeAppInstaller {
                         fileURL.length());
             }
  
-            // output for debugging purpose only
-//            System.out.println("Content-Type = " + contentType);
-//            System.out.println("Content-Disposition = " + disposition);
-//            System.out.println("Content-Length = " + contentLength);
-//            System.out.println("fileName = " + fileName);
- 
             // opens input stream from the HTTP connection
             httpConn.disconnect();
             return contentLength;
@@ -295,8 +287,8 @@ public final class NativeAppInstaller {
 		final String os = System.getProperty("os.name").toLowerCase();
 		final String arch = System.getProperty("os.arch").toLowerCase();
 		
-		System.out.println("OS = " + os);
-		System.out.println("Architecture = " + arch);
+		logger.info("Target OS = " + os);
+		logger.info("Architecture = " + arch);
 		
 		if (os.contains(PLATFORM_MAC)) {
 			// Universal binary.
@@ -323,7 +315,6 @@ public final class NativeAppInstaller {
 		    for(final Path file : directoryStream) {
 		        if(!file.toString().equals(current)) {
 		        		deleteDirectory(file);
-		        		System.out.println("Old files deleted: " + file.toString());
 		        }
 		    }
 		} catch (IOException e) {
@@ -352,7 +343,6 @@ public final class NativeAppInstaller {
 			break;
 		case PLATFORM_LINUX:
 			final URL linuxSourceUrl = new URL(cdnUrl + ARCHIVE_LINUX);
-			System.out.println("Resource URL = " + linuxSourceUrl);
 			int fileSize = checkSize(cdnUrl + ARCHIVE_LINUX);
 			extract(linuxSourceUrl, archiveFile, fileSize);
 			try {
@@ -371,8 +361,6 @@ public final class NativeAppInstaller {
 	// For Mac: Extract with native tar command to avoid broken app.
 	private void unzipMac(File archiveFile, File electronAppDirectory) throws IOException, InterruptedException {
 		
-		System.out.println("Deploying Electron for Mac...");
-
 		ProcessBuilder pb = new ProcessBuilder("tar", "zxvf", archiveFile.toString(), "-C",
 				electronAppDirectory.toString());
 		Process p = pb.start();
@@ -384,13 +372,11 @@ public final class NativeAppInstaller {
 				break;
 			}
 		}
-		System.out.println("Electron for Mac is ready!");
 	}
 	
 	// For Linux: Extract with native tar command to avoid broken app.
 	private void unzip(File archiveFile, File electronAppDirectory) throws IOException, InterruptedException {
 
-		System.out.println("Deploying Electron files...");
 		try {
 			ProcessBuilder pb = new ProcessBuilder("tar", "zxvf", archiveFile.toString(), "-C",
 					electronAppDirectory.toString());
@@ -403,7 +389,6 @@ public final class NativeAppInstaller {
 			}
 
 			p.waitFor();
-			System.out.println("Electron for Linux extracted: " + p.exitValue());
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -434,7 +419,6 @@ public final class NativeAppInstaller {
 		
 		int idx = 0;
 		
-		System.out.println("DOWNLOADING FILE FROM " + src);
 		try {
 			fos = new FileOutputStream(target.toString());
 			byte[] buf = new byte[BUFFER_SIZE];
@@ -452,10 +436,9 @@ public final class NativeAppInstaller {
 					this.bar.setValue(progress.intValue());
 				}
 			}
-			System.out.println("Done!--------------");
 		} catch(Exception e) {
-			System.out.println("Failed to download!!--------------");
 			e.printStackTrace();
+			logger.error("Failed to download Electron binary");
 		} finally {
 			if (fos != null) {
 				fos.close();
@@ -485,8 +468,6 @@ public final class NativeAppInstaller {
 		final ZipInputStream zipIn = new ZipInputStream(source.openStream());
 
 		ZipEntry entry = zipIn.getNextEntry();
-		
-		System.out.println("ZIN = " + entry);
 		
 		while (entry != null) {
 			final String filePath = destDir.getPath() + File.separator + entry.getName();

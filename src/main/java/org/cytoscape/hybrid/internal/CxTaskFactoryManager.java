@@ -32,7 +32,6 @@ public class CxTaskFactoryManager {
 	public void addWriterFactory(final CyNetworkViewWriterFactory factory, final Map properties) {
 		final String id = (String) properties.get(ID_TAG);
 		if (id != null && id.equals(CX_WRITER_ID)) {
-			System.out.println("* CXWriterFound: " + factory);
 			writerFactory = factory;
 		}
 	}
@@ -50,9 +49,6 @@ public class CxTaskFactoryManager {
 	public void addReaderFactory(final InputStreamTaskFactory factory, final Map properties) {
 		final String id = (String) properties.get(ID_TAG);
 		if (id != null && id.equals(CX_READER_ID)) {
-			
-			System.out.println("* CXReaderFound: " + factory);
-			
 			readerFactory = factory;
 		}
 	}
