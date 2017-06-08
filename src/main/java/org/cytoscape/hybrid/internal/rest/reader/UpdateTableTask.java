@@ -34,7 +34,6 @@ public class UpdateTableTask implements Task {
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		
 		final CyNetwork[] networks = reader.getNetworks();
-		System.out.println("NETWORk = " + networks[0].getSUID());
 		
 		CyNetwork network = networks[0];
 		if(network instanceof CySubNetwork) {
@@ -53,8 +52,6 @@ public class UpdateTableTask implements Task {
 
 	@Override
 	public void cancel() {
-		// TODO Auto-generated method stub
 		
 	}
-
 }

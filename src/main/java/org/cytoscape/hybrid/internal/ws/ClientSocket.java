@@ -153,7 +153,7 @@ public class ClientSocket {
 	@OnWebSocketMessage
 	public void onText(Session session, String message) throws IOException {
 
-		System.out.println("GOT MSG: " + message);
+		System.out.println("Got WS Message: " + message);
 		
 		// Map message into message object
 		final InterAppMessage msg = mapper.readValue(message, InterAppMessage.class);
@@ -305,8 +305,6 @@ public class ClientSocket {
 		desktop.setEnabled(true);
 		app.getJMenuBar().setEnabled(true);	
 		app.getJToolBar().setEnabled(true);	
-		
-		System.out.println("--------------------- WS connection closed");;
 	}
 
 	public void sendMessage(String str) {

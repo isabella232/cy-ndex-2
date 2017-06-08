@@ -1,12 +1,25 @@
 # CyNDEx-2
-The Cytoscape client for NDEx database
+
+The NDEx client App for Cytoscape
 
 ## Introduction
-(TBD)
-An Electron-based hybrid App for Cytoscape.
+This is an [Electron](https://electron.atom.io/) based hybrid App for Cytoscape.  You can search, import, and save NDEx networks from Cytoscape.
 
-## Build
-(TBD)
+## How to Build the App
+
+This application consists of the three parts:
+
+1. NDEx Client for Java
+1. Cytoscape Java App
+1. Electron dialog
+1. JavaScript front-end
+
+### NDEx Client for Java
+This is an official Java client maintained by the NDEx team.
+
+### Cytoscape Java App
+This is the code for the actual Cytoscape app.
+
 
 This application consists of two parts:
 
