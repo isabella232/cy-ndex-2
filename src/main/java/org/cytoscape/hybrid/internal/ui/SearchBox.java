@@ -5,8 +5,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -69,11 +67,11 @@ public class SearchBox extends JPanel implements ExternalAppClosedEventListener,
 	private final ExternalAppManager pm;
 
 	private final OpenExternalAppTaskFactory tf;
-	private final TaskManager tm;
+	private final TaskManager<?, ?> tm;
 
 	
 	public SearchBox(final ExternalAppManager pm, 
-			OpenExternalAppTaskFactory tf, TaskManager tm) {
+			OpenExternalAppTaskFactory tf, TaskManager<?, ?> tm) {
 
 		this.pm = pm;
 		this.tf = tf;
@@ -90,6 +88,9 @@ public class SearchBox extends JPanel implements ExternalAppClosedEventListener,
 		this.iconLabel.setIcon(NDEX_LOGO);
 
 		this.searchTextField = new JTextField() {
+			
+			private static final long serialVersionUID = -8641366271435349606L;
+
 			@Override
 			public JToolTip createToolTip() {
 				final Dimension size = new Dimension(220, 270);
@@ -118,6 +119,7 @@ public class SearchBox extends JPanel implements ExternalAppClosedEventListener,
 				return tip;
 			}
 		};
+		
 		this.searchTextField.setToolTipText("");
 	
 		this.searchTextField.setBorder(null);
@@ -127,6 +129,7 @@ public class SearchBox extends JPanel implements ExternalAppClosedEventListener,
 		this.searchTextField.setPreferredSize(TEXT_AREA_SIZE);
 		this.searchTextField.setSize(TEXT_AREA_SIZE);
 		this.searchTextField.setText(PLACEHOLDER);
+		
 		this.searchTextField.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -149,19 +152,16 @@ public class SearchBox extends JPanel implements ExternalAppClosedEventListener,
 				}
 			}
 		});
-		this.searchTextField.addActionListener(new ActionListener() {
 			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					search(searchTextField.getText());
-				} catch (Exception e1) {
-					e1.printStackTrace();
-					LOGGER.error("Could not finish search.", e1);
-				}
-			}
-		});
 		
+		this.searchTextField.addActionListener(e -> {
+			try {
+				search(searchTextField.getText());
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				LOGGER.error("Could not finish search.", ex);
+			}
+		});		
 
 		this.searchButton = new JPanel();
 		this.searchButton.setLayout(new BorderLayout());

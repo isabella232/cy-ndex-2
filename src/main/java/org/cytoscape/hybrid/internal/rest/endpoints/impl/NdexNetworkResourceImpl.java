@@ -50,8 +50,11 @@ import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
+import org.omg.PortableInterceptor.SUCCESSFUL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.FinalizablePhantomReference;
 
 public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
@@ -341,7 +344,59 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			saveMetadata(key, metadata.get(key), rootTable, root.getSUID());
 		}
 		final CyNetworkViewWriterFactory writerFactory = tfManager.getCxWriterFactory();
+			
+		int retryCount = 0;
+		boolean success = false;
+		while(retryCount <=3 ) {
+			try {
+				success = updateExistingNetwork(writerFactory, network, params, uuid);
+				if(success) {
+					break;
+				} 
+			} catch (Exception e) {
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+				
+			} finally {
+				retryCount++;
+			}
+		}
 
+		if(!success) {
+			final String message = "Could not update existing NDEx entry.  NDEx server did not accept your request.";
+			logger.error(message);
+			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
+		}
+		
+		// Visibility
+		if (params.isPublic != null && params.isPublic) {
+			// This is a hack: NDEx does not respond immediately after creation.
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				final String message = "Failed to wait (This should not happen!)";
+				logger.error(message);
+				throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
+			}
+			client.setVisibility(params.serverUrl, uuid, true, params.userId, params.password);
+		}
+
+		final NdexBaseResponse response = new NdexBaseResponse(suid, uuid);
+		try {
+			return CIProvider.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
+		} catch (InstantiationException | IllegalAccessException e) {
+			final String message = "Could not create wrapped CI JSON.";
+			logger.error(message);
+			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
+		}
+	}
+	
+	
+	private final boolean updateExistingNetwork(final CyNetworkViewWriterFactory writerFactory, 
+			final CyNetwork network, final NdexSaveParameters params, final String uuid) {
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		final CyWriter writer = writerFactory.createWriter(os, network);
 
@@ -364,33 +419,12 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			ndex.updateCXNetwork(UUID.fromString(uuid), cxis);
 
 		} catch (Exception e1) {
-			e1.printStackTrace();
 			final String message = "Failed to update network. Please check UUID and make sure it exists in NDEx.";
 			logger.error(message, e1);
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.NDEX_API);
 		}
-
-		// Visibility
-		if (params.isPublic != null && params.isPublic) {
-			// This is a hack: NDEx does not respond immediately after creation.
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				final String message = "Failed to wait (This should not happen!)";
-				logger.error(message);
-				throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
-			}
-			client.setVisibility(params.serverUrl, uuid, true, params.userId, params.password);
-		}
-
-		final NdexBaseResponse response = new NdexBaseResponse(suid, uuid);
-		try {
-			return CIProvider.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
-		} catch (InstantiationException | IllegalAccessException e) {
-			final String message = "Could not create wrapped CI JSON.";
-			logger.error(message);
-			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
-		}
+		
+		return true;
 	}
 
 	@Override
