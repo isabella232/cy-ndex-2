@@ -53,7 +53,7 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 
 	private final AppStatusParameters buildProps(final CyRootNetwork root) {
 		final SaveParameters summary = new SaveParameters();
-		final CyTable table = root.getDefaultNetworkTable();
+		final CyTable table = root.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS);
 
 		// Network local table
 		final CyRow row = table.getRow(root.getSUID());

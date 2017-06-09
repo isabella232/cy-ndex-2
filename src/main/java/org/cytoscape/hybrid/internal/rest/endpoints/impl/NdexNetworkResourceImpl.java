@@ -166,11 +166,12 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		// Metadata provided from the web UI
 		final Map<String, String> metadata = params.metadata;
 		final CyRootNetwork root = ((CySubNetwork) network).getRootNetwork();
-		final CyTable rootTable = root.getDefaultNetworkTable();
+//		final CyTable rootTable = root.getDefaultNetworkTable();
+		CyTable table = network.getDefaultNetworkTable();
 		
 		// Set Metadata to collection's table
 		for(String key: metadata.keySet()) {
-			saveMetadata(key, metadata.get(key), rootTable, root.getSUID());
+			saveMetadata(key, metadata.get(key), root);
 		}
 
 		// Get writer to convert collection into CX
@@ -202,7 +203,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		}
 
 		// Assign new UUID to the network collection
-		saveMetadata(NdexStatusResource.NDEX_UUID_TAG, newUuid, rootTable, root.getSUID());
+		saveMetadata(NdexStatusResource.NDEX_UUID_TAG, newUuid, root);
 
 		// Visibility
 		if (params.isPublic) {
@@ -228,15 +229,25 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		}
 	}
 
-	private final void saveMetadata(String columnName, String value, CyTable table, Long suid) {
+	private final void saveMetadata(String columnName, String value, CyRootNetwork root) {
 
-		synchronized (table) {
-			final CyColumn col = table.getColumn(columnName);
-			if (col == null) {
-				table.createColumn(columnName, String.class, false);
-			}
+		final CyTable rootLocalTable = root.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS);
+		final CyRow row = rootLocalTable.getRow(root.getSUID());
+		
+		row.getAllValues().keySet().stream()
+			.forEach(key->System.out.println("###### ROOT LOCAL::: " + key + " =>> " + row.getAllValues().get(key)));
+		
+		System.out.println("Local Columns:");
+		System.out.println(rootLocalTable.getColumns());
+		
+		// Create new column if it does not exist
+		final CyColumn col = rootLocalTable.getColumn(columnName);
+		if (col == null) {
+			rootLocalTable.createColumn(columnName, String.class, false);
 		}
-		table.getRow(suid).set(columnName, value);
+		
+		// Set the value to local table
+		row.set(columnName, value);
 	}
 
 	@Override
@@ -288,24 +299,26 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		final SummaryResponse summary = new SummaryResponse();
 
 		// Network local table
-		final NetworkSummary rootSummary = buildNetworkSummary(root);
+		final NetworkSummary rootSummary = buildNetworkSummary(root, network.getDefaultNetworkTable(), root.getSUID());
 		summary.currentNetworkSuid = network.getSUID();
 		summary.currentRootNetwork = rootSummary;
 		List<NetworkSummary> members = new ArrayList<>();
-		root.getSubNetworkList().stream().forEach(subnet -> members.add(buildNetworkSummary(subnet)));
+		root.getSubNetworkList().stream()
+			.forEach(subnet -> members.add(buildNetworkSummary(subnet, subnet.getDefaultNetworkTable(), subnet.getSUID())));
 		summary.members = members;
 
 		return summary;
 	}
 
-	private final NetworkSummary buildNetworkSummary(final CyNetwork network) {
-		CyTable table = network.getDefaultNetworkTable();
+	private final NetworkSummary buildNetworkSummary(CyNetwork network, CyTable table, Long networkSuid) {
+		
 		NetworkSummary summary = new NetworkSummary();
-		CyRow row = table.getRow(network.getSUID());
+		CyRow row = table.getRow(networkSuid);
 		summary.suid = row.get(CyNetwork.SUID, Long.class);
-		summary.name = network.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS).getRow(network.getSUID())
-				.get(CyNetwork.NAME, String.class);
-		summary.uuid = row.get("uuid", String.class);
+		// Get NAME from local table because this is always local.
+		summary.name = network.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS)
+				.getRow(network.getSUID()).get(CyNetwork.NAME, String.class);
+		summary.uuid = row.get(NdexStatusResource.NDEX_UUID_TAG, String.class);
 
 		final Collection<CyColumn> columns = table.getColumns();
 		final Map<String, Object> props = new HashMap<>();
@@ -341,7 +354,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		final CyTable rootTable = root.getDefaultNetworkTable();
 
 		for(String key: metadata.keySet()) {
-			saveMetadata(key, metadata.get(key), rootTable, root.getSUID());
+			saveMetadata(key, metadata.get(key), root);
 		}
 		final CyNetworkViewWriterFactory writerFactory = tfManager.getCxWriterFactory();
 			
