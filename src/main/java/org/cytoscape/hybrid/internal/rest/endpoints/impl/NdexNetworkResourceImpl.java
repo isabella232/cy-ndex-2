@@ -234,12 +234,6 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		final CyTable rootLocalTable = root.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS);
 		final CyRow row = rootLocalTable.getRow(root.getSUID());
 		
-		row.getAllValues().keySet().stream()
-			.forEach(key->System.out.println("###### ROOT LOCAL::: " + key + " =>> " + row.getAllValues().get(key)));
-		
-		System.out.println("Local Columns:");
-		System.out.println(rootLocalTable.getColumns());
-		
 		// Create new column if it does not exist
 		final CyColumn col = rootLocalTable.getColumn(columnName);
 		if (col == null) {
@@ -299,7 +293,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		final SummaryResponse summary = new SummaryResponse();
 
 		// Network local table
-		final NetworkSummary rootSummary = buildNetworkSummary(root, network.getDefaultNetworkTable(), root.getSUID());
+		final NetworkSummary rootSummary = buildNetworkSummary(root, root.getDefaultNetworkTable(), root.getSUID());
 		summary.currentNetworkSuid = network.getSUID();
 		summary.currentRootNetwork = rootSummary;
 		List<NetworkSummary> members = new ArrayList<>();
