@@ -12,7 +12,9 @@ import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
 
 import javax.swing.JFrame;
+import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.MenuSelectionManager;
 import javax.swing.SwingUtilities;
 
@@ -172,27 +174,43 @@ public class ClientSocket {
 				public void run() {
 					
 					eventHelper.fireEvent(new ExternalAppClosedEvent(this));
+					
 					final JFrame desktop = app.getJFrame();
 					desktop.setEnabled(true);
+					
 					app.getJToolBar().setEnabled(true);
 					final JMenuBar menuBar = app.getJMenuBar();
 					menuBar.setEnabled(true);
+					
+					// TODO: This is a JVM bug on Mac.  Cannot enable Help menu again if disabled.
+					JMenu help = app.getJMenu("Help");
+					help.setEnabled(true);
+					
+					for(int i=0; i<help.getItemCount(); i++) {
+						final JMenuItem item = help.getItem(i);
+						if(item != null) {
+							item.setEnabled(true);
+							item.updateUI();
+						}
+					}
+					help.setVisible(false);
 					
 					desktop.setFocusable(true);
 					desktop.setAlwaysOnTop(true);
 					
 					try {
-						Thread.sleep(40);
+						Thread.sleep(30);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-					desktop.setAlwaysOnTop(false);
+					
+					help.setVisible(true);
+
 					desktop.requestFocus();
 					desktop.toFront();
 					desktop.repaint();
 					
 					menuBar.updateUI();
-					
 				}
 			});
 		} else if (msg.getType().equals(InterAppMessage.TYPE_CONNECTED)) {
