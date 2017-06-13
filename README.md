@@ -1,9 +1,25 @@
 # CyNDEx-2
 
-The NDEx client App for Cytoscape
+The [NDEx](http://www.ndexbio.org/) client App for Cytoscape
 
 ## Introduction
-This is an [Electron](https://electron.atom.io/) based hybrid App for Cytoscape.  You can search, import, and save NDEx networks from Cytoscape.
+This is an [Electron](https://electron.atom.io/)-based hybrid App for Cytoscape.  You can search, import, and save NDEx networks from Cytoscape.
+
+# For Users
+
+## How to Install
+Just like other Cytoscape apps, you can install this from the [Cytoscape App Store](http://apps.cytoscape.org/) or directly from the file.  All of the required files will be installed automatically.
+
+### Automatic Download
+Once you install the app, some required files will be downloaded from remote server.  You need to wait until this process complete to start using this app. 
+
+**You MUST restart Cytoscape before using this app.**
+
+
+# For Developers
+
+This app provides
+## REST API Document
 
 ## How to Build the App
 
