@@ -209,6 +209,7 @@ public class ClientSocket {
 					desktop.requestFocus();
 					desktop.toFront();
 					desktop.repaint();
+					desktop.setAlwaysOnTop(false);
 					
 					menuBar.updateUI();
 				}
