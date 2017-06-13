@@ -10,17 +10,29 @@ This is an [Electron](https://electron.atom.io/)-based hybrid App for Cytoscape.
 ## How to Install
 Just like other Cytoscape apps, you can install this from the [Cytoscape App Store](http://apps.cytoscape.org/) or directly from the file.  All of the required files will be installed automatically.
 
-### Automatic Download
-Once you install the app, some required files will be downloaded from remote server.  You need to wait until this process complete to start using this app. 
+### Note: Automatic Download
+![](https://raw.githubusercontent.com/idekerlab/cy-ndex-2/master/notebooks/images/download.gif)
 
-**You MUST restart Cytoscape before using this app.**
+(Download progress on Mac version)
 
+Once you install the app from the App Store, some required files will be downloaded from remote server.  **You must wait until this process complete to start using this app.**  If your network connection is unstable, you can try again later whenever you have stable internet connection.
+
+Please restart Cytoscape before using this app.
+
+## How to Use CyNDEx-2
+(TBD)
 
 # For Developers
+This app provides user interface for NDEx, and it uses REST API provided via CyREST.  You can use CyREST-2 endpoints from tools of your choice, including [Jupyter Notebook](http://jupyter.org/).
 
-This app provides
 ## REST API Document
 
+![](https://raw.githubusercontent.com/idekerlab/cy-ndex-2/master/notebooks/images/swagger.png)
+
+The REST endpoints are provided via CyREST 3.5.0 or newer.  From CyREST version 3.5, it provides complete API documentation a using Swagger.  Please select ***Help&rarr;Automation&rarr;CyREST API*** to open the Swagger API document.
+
+----
+(TBD)
 ## How to Build the App
 
 This application consists of the three parts:
