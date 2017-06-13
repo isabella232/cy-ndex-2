@@ -1,7 +1,7 @@
 {
   "name": "cy-ndex-2",
   "productName": "CyNDEx-2",
-  "version": "2.0.4",
+  "version": "2.0.10",
   "description": "Electron-based NDEx client for Cytoscape",
   "main": "main.js",
   "scripts": {

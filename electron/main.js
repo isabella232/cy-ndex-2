@@ -46,7 +46,6 @@ const initLogger = () => {
   LOGGER.level = 'debug'
 }
 
-
 /**
   Initialize the application window
 */
@@ -73,8 +72,6 @@ const initWindow = () => {
   })
 
   // Load app from local directory.
-  const dir = `${__dirname}`
-  // mainWindow.loadURL('file://' + dir + '/webapp/ndex/index.html')
   mainWindow.loadURL('http://localhost:2222/index.html')
 
   // Event handlers:
@@ -82,18 +79,27 @@ const initWindow = () => {
 }
 
 const initEventHandlers = () => {
+
+  console.log('************************** Window Event')
   // Focus: the window clicked.
   mainWindow.on('focus', e => {
-    if (block || mainWindow === null || mainWindow === undefined) {
+    if (mainWindow === null || mainWindow === undefined) {
       return
     }
 
-    if (!mainWindow.isDestroyed() && !mainWindow.isAlwaysOnTop()) {
+    console.log('******** Got focus *************')
+    if (!mainWindow.isDestroyed()) {
       mainWindow.setAlwaysOnTop(true);
       ws.send(JSON.stringify(MSG_FOCUS));
-      setTimeout(() => {
-        mainWindow.setAlwaysOnTop(false);
-      }, 200)
+    }
+  })
+
+  // Window lost focus
+  mainWindow.on('blur', e => {
+    console.log('******** Lost focus *************')
+    if (!mainWindow.isDestroyed()) {
+      mainWindow.setAlwaysOnTop(false);
+      mainWindow.hide()
     }
   })
 
@@ -110,7 +116,7 @@ const initEventHandlers = () => {
     // TODO: Are there any better way to handle strange events from Windows system?
     setTimeout(() => {
       ws.send(JSON.stringify(MSG_RESTORE))
-    }, 200)
+    }, 100)
   })
 
   // closed
@@ -156,27 +162,12 @@ const initSocket = () => {
           if (mainWindow === undefined || mainWindow === null) {
             break
           }
-          if (mainWindow.isFocused() || block) {
-            break
-          }
+          console.log("Focus from CY3------------")
+          mainWindow.setAlwaysOnTop(true);
+          setTimeout(() => {
+            mainWindow.show()
+          }, 20)
 
-          block = true
-          try {
-            if (!mainWindow.isAlwaysOnTop()) {
-
-              mainWindow.setAlwaysOnTop(true)
-              mainWindow.showInactive()
-
-              setTimeout(() => {
-                mainWindow.setAlwaysOnTop(false)
-              }, 550)
-            }
-
-            block = false;
-            break
-          } catch (ex) {
-            LOGGER.log('error', ex)
-          }
         case 'restored':
           if (mainWindow.isMinimized() && !block) {
             block = true
