@@ -97,10 +97,10 @@ const initEventHandlers = () => {
   // Window lost focus
   mainWindow.on('blur', e => {
     console.log('******** Lost focus *************')
-    if (!mainWindow.isDestroyed()) {
-      mainWindow.setAlwaysOnTop(false);
-      mainWindow.hide()
-    }
+    // if (!mainWindow.isDestroyed()) {
+    //   mainWindow.setAlwaysOnTop(false);
+    //   mainWindow.hide()
+    // }
   })
 
   // Window minimized
