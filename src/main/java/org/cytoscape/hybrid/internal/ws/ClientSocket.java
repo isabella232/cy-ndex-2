@@ -59,8 +59,6 @@ public class ClientSocket {
 	// private Boolean ignore = false;
 	private final CountDownLatch latch = new CountDownLatch(1);
 	
-	private String application;
-
 	private final String cyrestPort;
 	
 	private final CyEventHelper eventHelper;
@@ -94,9 +92,6 @@ public class ClientSocket {
 		}, 0, 120000);
 	}
 	
-	public void setApplication(final String app) {
-		this.application = app;
-	}
 
 	private void addListener() {
 		final JFrame desktop = app.getJFrame();

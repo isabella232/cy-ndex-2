@@ -79,28 +79,16 @@ const initWindow = () => {
 }
 
 const initEventHandlers = () => {
-
-  console.log('************************** Window Event')
   // Focus: the window clicked.
   mainWindow.on('focus', e => {
     if (mainWindow === null || mainWindow === undefined) {
       return
     }
 
-    console.log('******** Got focus *************')
     if (!mainWindow.isDestroyed()) {
       mainWindow.setAlwaysOnTop(true);
       ws.send(JSON.stringify(MSG_FOCUS));
     }
-  })
-
-  // Window lost focus
-  mainWindow.on('blur', e => {
-    console.log('******** Lost focus *************')
-    // if (!mainWindow.isDestroyed()) {
-    //   mainWindow.setAlwaysOnTop(false);
-    //   mainWindow.hide()
-    // }
   })
 
   // Window minimized
@@ -157,16 +145,6 @@ const initSocket = () => {
           mainWindow.minimize()
           block = false
           break
-
-        case 'focus':
-          if (mainWindow === undefined || mainWindow === null) {
-            break
-          }
-          console.log("Focus from CY3------------")
-          mainWindow.setAlwaysOnTop(true);
-          setTimeout(() => {
-            mainWindow.show()
-          }, 20)
 
         case 'restored':
           if (mainWindow.isMinimized() && !block) {

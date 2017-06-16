@@ -1,7 +1,7 @@
 {
   "name": "cy-ndex-2",
   "productName": "CyNDEx-2",
-  "version": "2.0.10",
+  "version": "2.0.14",
   "description": "Electron-based NDEx client for Cytoscape",
   "main": "main.js",
   "scripts": {
@@ -28,8 +28,8 @@
   "homepage": "https://github.com/idekerlab/cy-ndex-2",
   "devDependencies": {
     "devtron": "^1.4.0",
-    "electron": "^1.7.2",
-    "electron-packager": "^8.7.0",
+    "electron": "^1.7.3",
+    "electron-packager": "^8.7.1",
     "eslint": "^3.19.0",
     "eslint-plugin-import": "^2.3.0",
     "eslint-plugin-node": "^4.2.2"

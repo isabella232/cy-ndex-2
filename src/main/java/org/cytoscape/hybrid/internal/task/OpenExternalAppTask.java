@@ -72,7 +72,6 @@ public class OpenExternalAppTask extends AbstractTask {
 				}
 
 				// Set application type:
-				this.client.getSocket().setApplication(appName);
 				pm.setProcess(Runtime.getRuntime().exec(command + " " + cyrestPort));
 					
 				eventHelper.fireEvent(new ExternalAppStartedEvent(this));
