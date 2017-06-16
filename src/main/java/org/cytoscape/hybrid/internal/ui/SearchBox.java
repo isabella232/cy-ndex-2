@@ -70,6 +70,8 @@ public class SearchBox extends JPanel implements ExternalAppClosedEventListener,
 	private final TaskManager<?, ?> tm;
 
 	
+	private volatile boolean isOpen = false;
+	
 	public SearchBox(final ExternalAppManager pm, 
 			OpenExternalAppTaskFactory tf, TaskManager<?, ?> tm) {
 
@@ -181,10 +183,12 @@ public class SearchBox extends JPanel implements ExternalAppClosedEventListener,
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				
+
 				// Ignore if already open.
 				if(!searchButton.isEnabled()) {
 					return;
 				}
+				searchButton.setEnabled(false);
 				
 				try {
 					search(searchTextField.getText());

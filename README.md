@@ -19,6 +19,21 @@ Once you install the app from the App Store, some required files will be downloa
 
 Please restart Cytoscape before using this app.
 
+### Uninstall CyNDEx-2
+To uninstall CyNDEx-2 completely from your machine, you need to follow these steps:
+
+1. Uninstall the app from App menu
+1. Open _CytoscapeConfiguration_ directory
+1. Remove the following files/directories:
+    * _cyndex-2_ directory
+    * _ndex-electron-2.x.x_ directory
+    * _ndex-installed-2.x.x.txt_ file
+1.
+    * Mac users - remove ~/Library/Application Support/CyNDEx-2 directory
+    * Windows user - remove %AppData%/Roaming/CyNDEx-2 directory 
+
+
+
 ## How to Use CyNDEx-2
 (TBD)
 

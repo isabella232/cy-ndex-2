@@ -207,16 +207,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 		// Visibility
 		if (params.isPublic) {
-			// This is a hack: NDEx does not respond immediately after creation.
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				final String message = "Failed to wait (This should not happen!)";
-				logger.error(message);
-				throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
-			}
-
-			client.setVisibility(params.serverUrl, newUuid, true, params.userId, params.password);
+			this.setVisibility(params, newUuid);
 		}
 
 		final NdexBaseResponse response = new NdexBaseResponse(suid, newUuid);
@@ -227,6 +218,19 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			logger.error(message);
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 		}
+	}
+	
+	private final void setVisibility(final NdexSaveParameters params, final String uuid) {
+		// This is a hack: NDEx does not respond immediately after creation.
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			final String message = "Failed to wait (This should not happen!)";
+			logger.error(message);
+			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
+		}
+
+		client.setVisibility(params.serverUrl, uuid, params.isPublic, params.userId, params.password);
 	}
 
 	private final void saveMetadata(String columnName, String value, CyRootNetwork root) {
@@ -379,16 +383,8 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		}
 		
 		// Visibility
-		if (params.isPublic != null && params.isPublic) {
-			// This is a hack: NDEx does not respond immediately after creation.
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				final String message = "Failed to wait (This should not happen!)";
-				logger.error(message);
-				throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
-			}
-			client.setVisibility(params.serverUrl, uuid, true, params.userId, params.password);
+		if(params.isPublic != null) {
+			this.setVisibility(params, uuid);
 		}
 
 		final NdexBaseResponse response = new NdexBaseResponse(suid, uuid);
