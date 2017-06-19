@@ -19,6 +19,8 @@ import javax.swing.JToolTip;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 
+import org.cytoscape.application.events.CyShutdownEvent;
+import org.cytoscape.application.events.CyShutdownListener;
 import org.cytoscape.hybrid.events.ExternalAppClosedEvent;
 import org.cytoscape.hybrid.events.ExternalAppClosedEventListener;
 import org.cytoscape.hybrid.events.ExternalAppStartedEvent;
@@ -30,7 +32,7 @@ import org.cytoscape.work.TaskManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SearchBox extends JPanel implements ExternalAppClosedEventListener, ExternalAppStartedEventListener {
+public class SearchBox extends JPanel implements ExternalAppClosedEventListener, ExternalAppStartedEventListener, CyShutdownListener {
 
 	private static final long serialVersionUID = 5216512744558942600L;
 
@@ -69,8 +71,6 @@ public class SearchBox extends JPanel implements ExternalAppClosedEventListener,
 	private final OpenExternalAppTaskFactory tf;
 	private final TaskManager<?, ?> tm;
 
-	
-	private volatile boolean isOpen = false;
 	
 	public SearchBox(final ExternalAppManager pm, 
 			OpenExternalAppTaskFactory tf, TaskManager<?, ?> tm) {
@@ -236,5 +236,12 @@ public class SearchBox extends JPanel implements ExternalAppClosedEventListener,
 	public void handleEvent(ExternalAppStartedEvent event) {
 		searchButton.setEnabled(false);
 		searchTextField.setEnabled(false);
+	}
+
+
+	@Override
+	public void handleEvent(CyShutdownEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 }

@@ -15,6 +15,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.Socket;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.Properties;
@@ -71,8 +72,6 @@ import org.osgi.framework.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.deser.Deserializers.Base;
-
 public class CyActivator extends AbstractCyActivator {
 	
 	// Logger for this activator
@@ -90,16 +89,21 @@ public class CyActivator extends AbstractCyActivator {
 	private WSServer server;
 
 	private JToolBar toolBar;
-	private JPanel panel;
 	
 	private String cdnHost;
 	private String cdnUrl;
+
+	private SearchBox searchPanel;
+
+	private StaticContentsServer httpServer;
 
 	public CyActivator() {
 		super();
 	}
 	
 	private final void setURL(final CyProperty<Properties> cyProp) {
+		
+		
 		// Get remote file location
 		final Object url = cyProp.getProperties().get(CDN_SERVER_URL_TAG);
 		cdnUrl = BASE_URL;
@@ -125,6 +129,8 @@ public class CyActivator extends AbstractCyActivator {
 
 	public void start(BundleContext bc) {
 
+		
+		
 		// Import dependencies
 		final CySwingApplication desktop = getService(bc, CySwingApplication.class);
 		final CyApplicationConfiguration config = getService(bc, CyApplicationConfiguration.class);
@@ -206,7 +212,7 @@ public class CyActivator extends AbstractCyActivator {
 		registerAllServices(bc, ndexTaskFactory, ndexTaskFactoryProps);
 
 		// Export
-		final SearchBox searchPanel = new SearchBox(pm, ndexTaskFactory, tm);
+		searchPanel = new SearchBox(pm, ndexTaskFactory, tm);
 		registerService(bc, searchPanel, ExternalAppClosedEventListener.class);
 		registerService(bc, searchPanel, ExternalAppStartedEventListener.class);
 		installer.executeInstaller(searchPanel);
@@ -226,6 +232,7 @@ public class CyActivator extends AbstractCyActivator {
 		// Network IO
 		registerService(bc, new NdexNetworkResourceImpl(ndexClient, errorBuilder, appManager, netmgr, tfManager,
 				loadNetworkTF, ciExceptionFactory, ciErrorFactory), NdexNetworkResource.class, new Properties());
+		
 	}
 	
 	private final void installWebApp(final String configDir, final BundleContext bc) {
@@ -284,7 +291,17 @@ public class CyActivator extends AbstractCyActivator {
 		bos.close();
 	}
 
+	
+	private final boolean checkPort(final int port) {
+	    try (Socket sock = new Socket("localhost", port)) {
+	        return false;
+	    } catch (IOException ex) {
+	        return true;
+	    }
+	}
+	
 	private final void startServer(BundleContext bc) {
+		
 		// Start server
 		this.server = new WSServer();
 		registerAllServices(bc, server, new Properties());
@@ -300,8 +317,11 @@ public class CyActivator extends AbstractCyActivator {
 	private final void startHttpServer(BundleContext bc, String path) {
 		
 		logger.info("CyNDEx-2 web application root directory: " + path);
+		if(!checkPort(2222)) {
+			return;
+		}
 		
-		final StaticContentsServer httpServer = new StaticContentsServer(path);
+		httpServer = new StaticContentsServer(path);
 		ExecutorService executor = Executors.newSingleThreadExecutor();
 		executor.submit(() -> {
 			try {
@@ -335,12 +355,17 @@ public class CyActivator extends AbstractCyActivator {
 
 	@Override
 	public void shutDown() {
-		logger.info("Shutting down NDEx Valet...");
+		logger.info("Shutting down CyNDEx-2...");
+		
 		server.stop();
-		if(toolBar != null && panel != null) {
-			toolBar.remove(panel);
+		try {
+			httpServer.stopServer();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		panel = null;
-		server = null;
+		
+		if(toolBar != null && searchPanel != null) {
+			toolBar.remove(searchPanel);
+		}
 	}
 }

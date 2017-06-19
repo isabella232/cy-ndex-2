@@ -37,7 +37,12 @@ public class StaticContentsServer {
 		handlers.setHandlers(new Handler[] { resource_handler, new DefaultHandler() });
 		gzip.setHandler(handlers);
 
-		server.start();
+		try {
+			server.start();
+		} catch(Exception ex) {
+			ex.printStackTrace();
+			throw new RuntimeException("Faild to start static content server.", ex);
+		}
 		logger.info("Preview server is listening on port " + PORT.toString());
 	}
 	

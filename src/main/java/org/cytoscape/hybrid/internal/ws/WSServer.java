@@ -65,7 +65,8 @@ public class WSServer implements CyShutdownListener {
 
 	@Override
 	public void handleEvent(CyShutdownEvent evt) {
-		logger.info("Terminating WS Server: " + url);
+		logger.info("CyNDEx-2 App");
+		
 //		try {
 //			server.stop();
 //		} catch (Exception e) {
