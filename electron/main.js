@@ -72,7 +72,7 @@ const initWindow = () => {
   })
 
   // Load app from local directory.
-  mainWindow.loadURL('http://localhost:2222/index.html')
+  mainWindow.loadURL('http://localhost:2222/index.html', { extraHeaders: 'pragma: no-cache' })
 
   // Event handlers:
   initEventHandlers()
