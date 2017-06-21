@@ -19,6 +19,7 @@ import io.swagger.annotations.ApiOperation;
 public interface NdexStatusResource {
 
 	public final static String NDEX_UUID_TAG = "ndex.uuid";
+	public static final String SINGLETON_COLUMN_NAME = "ndex.createdFromSingleton";
 	
 	@ApiModel(
 			value="App Status Response",

@@ -59,6 +59,7 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 		final CyRow row = table.getRow(root.getSUID());
 		summary.suid = root.getSUID();
 		summary.uuid = row.get(NdexStatusResource.NDEX_UUID_TAG, String.class);
+		summary.createdFromSingleton = row.get(NdexStatusResource.SINGLETON_COLUMN_NAME, Boolean.class);
 		summary.name = row.get(CyNetwork.NAME, String.class);
 		summary.author = row.get("author", String.class);
 		summary.description = row.get("description", String.class);

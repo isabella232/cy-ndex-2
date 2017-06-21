@@ -3,6 +3,7 @@ package org.cytoscape.hybrid.internal.rest.parameter;
 public class SaveParameters implements AppStatusParameters {
 	public Long suid;
 	public String uuid;
+	public Boolean createdFromSingleton;
 	public String name;
 	public String author;
 	public String organism;

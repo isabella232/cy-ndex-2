@@ -50,16 +50,16 @@ import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
-import org.omg.PortableInterceptor.SUCCESSFUL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.FinalizablePhantomReference;
-
 public class NdexNetworkResourceImpl implements NdexNetworkResource {
-
+	
 	private static final Logger logger = LoggerFactory.getLogger(NdexNetworkResourceImpl.class);
 
+	// Subnet ID tag in NDEx netwoprk summary
+	private static final String SUBNET_TAG = "subnetworkIds";
+	
 	private final NdexClient client;
 	private final TaskMonitor tm;
 
@@ -101,6 +101,24 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 		summary = client.getSummary(params.serverUrl, params.uuid, params.userId, params.password);
 
+		boolean createdFromSingleton = false;
+		if(summary.keySet().contains(SUBNET_TAG)) {
+			Object subnets = summary.get(SUBNET_TAG);
+			if(subnets instanceof List) {
+				final List<Long> subnetArray = (List<Long>) subnets;
+				
+				if(subnetArray.isEmpty()) {
+					createdFromSingleton = true;
+				} else {
+					// This is a Cytoscape network
+					createdFromSingleton = false;
+				}
+			}
+		}
+		
+//		System.out.println("created from Singleton = " + createdFromSingleton);
+		
+		
 		// Load network from ndex
 		InputStream is;
 		Long newSuid = null;
@@ -124,7 +142,19 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 				task.run(tm);
 			}
 
-			newSuid = reader.getNetworks()[0].getSUID();
+			final CyNetwork network = reader.getNetworks()[0];
+			newSuid = network.getSUID();
+			final CyRootNetwork rootNetwork = ((CySubNetwork)network).getRootNetwork();
+			final CyTable table = rootNetwork.getDefaultNetworkTable();
+			final CyColumn singletonColumn = table.getColumn(NdexStatusResource.SINGLETON_COLUMN_NAME);
+			
+			
+			if(singletonColumn == null) {
+				table.createColumn(NdexStatusResource.SINGLETON_COLUMN_NAME, Boolean.class, true);
+			}
+			
+			table.getRow(rootNetwork.getSUID()).set(NdexStatusResource.SINGLETON_COLUMN_NAME, createdFromSingleton);
+			
 		} catch (Exception e) {
 			logger.error("Failed to load network from NDEx", e);
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR,
