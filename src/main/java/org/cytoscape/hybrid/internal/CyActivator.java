@@ -129,8 +129,6 @@ public class CyActivator extends AbstractCyActivator {
 
 	public void start(BundleContext bc) {
 
-		
-		
 		// Import dependencies
 		final CySwingApplication desktop = getService(bc, CySwingApplication.class);
 		final CyApplicationConfiguration config = getService(bc, CyApplicationConfiguration.class);

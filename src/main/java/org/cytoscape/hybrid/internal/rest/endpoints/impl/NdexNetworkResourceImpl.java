@@ -59,6 +59,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 	// Subnet ID tag in NDEx netwoprk summary
 	private static final String SUBNET_TAG = "subnetworkIds";
+	private static final String ORIGINAL_UUID_TAG = "ndex.uuid.createdFrom";
 	
 	private final NdexClient client;
 	private final TaskMonitor tm;
@@ -116,8 +117,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			}
 		}
 		
-//		System.out.println("created from Singleton = " + createdFromSingleton);
-		
+		System.out.println("created from Singleton = " + createdFromSingleton);
 		
 		// Load network from ndex
 		InputStream is;
@@ -133,9 +133,11 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			TaskIterator tasks = loadNetworkTF.createTaskIterator(summary.get("name").toString(), reader);
 
 			// Update table AFTER loading
-			UpdateTableTask updateTableTask = new UpdateTableTask(reader);
-			updateTableTask.setUuid(params.uuid);
-			tasks.append(updateTableTask);
+			if(!createdFromSingleton) {
+				UpdateTableTask updateTableTask = new UpdateTableTask(reader);
+				updateTableTask.setUuid(params.uuid);
+				tasks.append(updateTableTask);
+			}
 
 			while (tasks.hasNext()) {
 				final Task task = tasks.next();
@@ -148,13 +150,21 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			final CyTable table = rootNetwork.getDefaultNetworkTable();
 			final CyColumn singletonColumn = table.getColumn(NdexStatusResource.SINGLETON_COLUMN_NAME);
 			
-			
 			if(singletonColumn == null) {
 				table.createColumn(NdexStatusResource.SINGLETON_COLUMN_NAME, Boolean.class, true);
 			}
-			
+
 			table.getRow(rootNetwork.getSUID()).set(NdexStatusResource.SINGLETON_COLUMN_NAME, createdFromSingleton);
+
+			// Create special column only for networks created from singleton
+			if(createdFromSingleton) {
+				final CyColumn originalUuidColumn = table.getColumn(ORIGINAL_UUID_TAG);
 			
+				if(originalUuidColumn == null) {
+					table.createColumn(ORIGINAL_UUID_TAG, String.class, true);
+				}
+				table.getRow(rootNetwork.getSUID()).set(ORIGINAL_UUID_TAG, params.uuid);
+			}
 		} catch (Exception e) {
 			logger.error("Failed to load network from NDEx", e);
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR,
