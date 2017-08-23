@@ -22,6 +22,7 @@ import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -49,8 +50,8 @@ import org.cytoscape.hybrid.internal.rest.endpoints.impl.NdexNetworkResourceImpl
 import org.cytoscape.hybrid.internal.rest.endpoints.impl.NdexStatusResourceImpl;
 import org.cytoscape.hybrid.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.hybrid.internal.rest.reader.LoadNetworkStreamTaskFactoryImpl;
+import org.cytoscape.hybrid.internal.task.CyNdexSearchTaskFactory;
 import org.cytoscape.hybrid.internal.task.OpenExternalAppTaskFactory;
-import org.cytoscape.hybrid.internal.ui.SearchBox;
 import org.cytoscape.hybrid.internal.ws.ExternalAppManager;
 import org.cytoscape.hybrid.internal.ws.WSClient;
 import org.cytoscape.hybrid.internal.ws.WSServer;
@@ -92,8 +93,6 @@ public class CyActivator extends AbstractCyActivator {
 	
 	private String cdnHost;
 	private String cdnUrl;
-
-	private SearchBox searchPanel;
 
 	private StaticContentsServer httpServer;
 
@@ -173,7 +172,7 @@ public class CyActivator extends AbstractCyActivator {
 		final CyServiceRegistrar serviceRegistrar = getService(bc, CyServiceRegistrar.class);
 		TaskFactory loadNetworkTF = new LoadNetworkStreamTaskFactoryImpl(netmgr, networkViewManager, cyProp,
 				cyNetworkNaming, vmm, nullNetworkViewFactory, serviceRegistrar);
-
+		/*
 		// Start WS server
 		this.startServer(bc);
 		
@@ -230,6 +229,9 @@ public class CyActivator extends AbstractCyActivator {
 		// Network IO
 		registerService(bc, new NdexNetworkResourceImpl(ndexClient, errorBuilder, appManager, netmgr, tfManager,
 				loadNetworkTF, ciExceptionFactory, ciErrorFactory), NdexNetworkResource.class, new Properties());
+		*/
+		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
+		registerAllServices(bc, new CyNdexSearchTaskFactory(serviceRegistrar, icon));
 		
 	}
 	
@@ -260,7 +262,8 @@ public class CyActivator extends AbstractCyActivator {
 	
 	private final void extractWebapp(final Bundle bundle, final String path, String targetDir) {
 		Enumeration<String> ress = bundle.getEntryPaths(path);
-		
+		if (ress == null)
+			return;
 		while(ress.hasMoreElements()) {
 			String fileName = ress.nextElement();
 			
@@ -361,9 +364,6 @@ public class CyActivator extends AbstractCyActivator {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		if(toolBar != null && searchPanel != null) {
-			toolBar.remove(searchPanel);
-		}
+		// remove from search panel
 	}
 }
