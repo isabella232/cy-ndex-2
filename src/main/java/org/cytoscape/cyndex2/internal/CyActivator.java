@@ -49,9 +49,7 @@ import org.cytoscape.cyndex2.internal.rest.endpoints.impl.NdexStatusResourceImpl
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.reader.LoadNetworkStreamTaskFactoryImpl;
 import org.cytoscape.cyndex2.internal.task.OpenExternalAppTaskFactory;
-import org.cytoscape.cyndex2.internal.ws.ExternalAppManager;
-import org.cytoscape.cyndex2.internal.ws.WSClient;
-import org.cytoscape.cyndex2.internal.ws.WSServer;
+import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.io.write.CyNetworkViewWriterFactory;
 import org.cytoscape.model.CyNetworkManager;
@@ -87,8 +85,6 @@ public class CyActivator extends AbstractCyActivator {
 	
 	private static final String STATIC_CONTENT_DIR = "cyndex-2";
 	
-	private WSServer server;
-
 	private JToolBar toolBar;
 	private Browser browser;
 	private BrowserView browserView;
@@ -140,6 +136,8 @@ public class CyActivator extends AbstractCyActivator {
 		@SuppressWarnings("unchecked")
 		final CyProperty<Properties> cyProp = getService(bc, CyProperty.class, "(cyPropertyName=cytoscape3.props)");
 		
+		
+		final ExternalAppManager pm = new ExternalAppManager();
 		// Create native package (Electron code) locations from properties
 		setURL(cyProp);
 		
@@ -175,9 +173,6 @@ public class CyActivator extends AbstractCyActivator {
 		TaskFactory loadNetworkTF = new LoadNetworkStreamTaskFactoryImpl(netmgr, networkViewManager, cyProp,
 				cyNetworkNaming, vmm, nullNetworkViewFactory, serviceRegistrar);
 		
-		// Start WS server
-		this.startServer(bc);
-		
 		// Start static content delivery server
 		final File configRoot = config.getConfigurationDirectoryLocation();
 		final String staticContentPath = configRoot.getAbsolutePath();
@@ -187,10 +182,6 @@ public class CyActivator extends AbstractCyActivator {
 		File staticPath = new File(staticContentPath, STATIC_CONTENT_DIR);
 		this.startHttpServer(bc, staticPath.getAbsolutePath());
 
-		// Initialize OSGi services
-		final ExternalAppManager pm = new ExternalAppManager();
-		final WSClient client = new WSClient(desktop, pm, eventHelper, cyProp);
-
 		final NativeAppInstaller installer = createInstaller(desktop, config, bc.getBundle().getVersion().toString());
 		
 		browser = new Browser();
@@ -198,7 +189,7 @@ public class CyActivator extends AbstractCyActivator {
 		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
 		
 		// TF for NDEx Save
-		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory(ExternalAppManager.APP_NAME_SAVE, client, pm,
+		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory(ExternalAppManager.APP_NAME_SAVE, pm,
 				 cyProp, eventHelper, appManager, browserView, icon);
 		final Properties ndexSaveTaskFactoryProps = new Properties();
 		ndexSaveTaskFactoryProps.setProperty(ENABLE_FOR, ActionEnableSupport.ENABLE_FOR_NETWORK);
@@ -208,7 +199,7 @@ public class CyActivator extends AbstractCyActivator {
 		registerAllServices(bc, ndexSaveTaskFactory, ndexSaveTaskFactoryProps);
 
 		// TF for NDEx Load
-		final OpenExternalAppTaskFactory ndexTaskFactory = new OpenExternalAppTaskFactory(ExternalAppManager.APP_NAME_LOAD, client, pm,
+		final OpenExternalAppTaskFactory ndexTaskFactory = new OpenExternalAppTaskFactory(ExternalAppManager.APP_NAME_LOAD, pm,
 				cyProp, eventHelper, appManager, browserView, icon);
 		final Properties ndexTaskFactoryProps = new Properties();
 		ndexTaskFactoryProps.setProperty(IN_MENU_BAR, "false");
@@ -301,20 +292,6 @@ public class CyActivator extends AbstractCyActivator {
 	    }
 	}
 	
-	private final void startServer(BundleContext bc) {
-		
-		// Start server
-		this.server = new WSServer();
-		registerAllServices(bc, server, new Properties());
-		ExecutorService executor = Executors.newSingleThreadExecutor();
-		executor.submit(() -> {
-			try {
-				server.start();
-			} catch (Exception e) {
-				throw new RuntimeException("Could not start WS server in separate thread.", e);
-			}
-		});
-	}
 	private final void startHttpServer(BundleContext bc, String path) {
 		
 		logger.info("CyNDEx-2 web application root directory: " + path);
@@ -358,7 +335,6 @@ public class CyActivator extends AbstractCyActivator {
 	public void shutDown() {
 		logger.info("Shutting down CyNDEx-2...");
 		
-		server.stop();
 		try {
 			httpServer.stopServer();
 		} catch (Exception e) {

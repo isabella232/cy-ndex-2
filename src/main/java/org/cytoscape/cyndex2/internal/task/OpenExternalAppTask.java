@@ -9,8 +9,7 @@ import javax.swing.JFrame;
 
 import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.cyndex2.events.ExternalAppStartedEvent;
-import org.cytoscape.cyndex2.internal.ws.ExternalAppManager;
-import org.cytoscape.cyndex2.internal.ws.WSClient;
+import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
@@ -28,17 +27,15 @@ public class OpenExternalAppTask extends AbstractTask {
 	// Name of the application
 	private final String appName;
 
-	private final WSClient client;
-	private final ExternalAppManager pm;
 	private final CyProperty<Properties> props;
 	private final CyEventHelper eventHelper;
 	private final BrowserView browserView;
+	private final ExternalAppManager pm;
 
 	final String WS_LOCATION = "ws://localhost:8025/ws/echo";
 
-	public OpenExternalAppTask(final String appName, final WSClient client, final ExternalAppManager pm,
+	public OpenExternalAppTask(final String appName, final ExternalAppManager pm,
 			final CyProperty<Properties> props, final CyEventHelper eventHelper, final BrowserView browserView) {
-		this.client = client;
 		this.pm = pm;
 		this.appName = appName;
 		this.props = props;
@@ -58,9 +55,6 @@ public class OpenExternalAppTask extends AbstractTask {
 		final String cyrestPort = props.getProperties().get("rest.port").toString();
 		
 		// Make sure WS server is running.
-		if (client.isStopped()) {
-			client.start(WS_LOCATION);
-		}
 
 		pm.setAppName(appName);
 		

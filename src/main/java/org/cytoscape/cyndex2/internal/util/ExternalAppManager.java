@@ -1,4 +1,4 @@
-package org.cytoscape.cyndex2.internal.ws;
+package org.cytoscape.cyndex2.internal.util;
 
 public class ExternalAppManager {
 
@@ -6,7 +6,6 @@ public class ExternalAppManager {
 	public static final String APP_NAME_SAVE = "save";
 	
 	private Process currentProcess;
-	
 	
 	private String query;
 	
