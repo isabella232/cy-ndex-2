@@ -5,7 +5,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.cytoscape.hybrid.internal.ws.WSServer;
+import org.cytoscape.cyndex2.internal.ws.WSServer;
 import org.eclipse.jetty.server.Server;
 import org.junit.After;
 import org.junit.Before;
