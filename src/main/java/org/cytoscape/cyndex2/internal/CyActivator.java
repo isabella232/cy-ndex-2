@@ -7,8 +7,6 @@ import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
 import static org.cytoscape.work.ServiceProperties.TITLE;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -23,16 +21,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.JToolBar;
-import javax.swing.border.EmptyBorder;
+import javax.swing.JFrame;
 
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.ActionEnableSupport;
-import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.ci.CIErrorFactory;
 import org.cytoscape.ci.CIExceptionFactory;
 import org.cytoscape.ci_bridge_impl.CIProvider;
@@ -61,7 +54,6 @@ import org.cytoscape.view.model.CyNetworkViewFactory;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.work.TaskFactory;
-import org.cytoscape.work.TaskManager;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Version;
@@ -69,6 +61,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.teamdev.jxbrowser.chromium.Browser;
+import com.teamdev.jxbrowser.chromium.BrowserPreferences;
+import com.teamdev.jxbrowser.chromium.JSValue;
+import com.teamdev.jxbrowser.chromium.events.ScriptContextAdapter;
+import com.teamdev.jxbrowser.chromium.events.ScriptContextEvent;
 import com.teamdev.jxbrowser.chromium.swing.BrowserView;
 
 public class CyActivator extends AbstractCyActivator {
@@ -76,16 +72,12 @@ public class CyActivator extends AbstractCyActivator {
 	// Logger for this activator
 	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
 
-	private static final Dimension PANEL_SIZE = new Dimension(400, 40);
-	private static final Dimension PANEL_SIZE_MAX = new Dimension(900, 100);
-
 	private static final String CDN_SERVER_URL_TAG = "cyndex.cdn.url";
 //private final String BASE_URL = "http://chianti.ucsd.edu/~kono/ci/app/cyndex2";
 	private final String BASE_URL = "https://github.com/idekerlab/cy-ndex-2/releases/download/2.0.25/";
 	
 	private static final String STATIC_CONTENT_DIR = "cyndex-2";
 	
-	private JToolBar toolBar;
 	private Browser browser;
 	private BrowserView browserView;
 	
@@ -127,11 +119,9 @@ public class CyActivator extends AbstractCyActivator {
 	public void start(BundleContext bc) {
 
 		// Import dependencies
-		final CySwingApplication desktop = getService(bc, CySwingApplication.class);
 		final CyApplicationConfiguration config = getService(bc, CyApplicationConfiguration.class);
 		final CyApplicationManager appManager = getService(bc, CyApplicationManager.class);
 		final CyEventHelper eventHelper = getService(bc, CyEventHelper.class);
-		final TaskManager<?, ?> tm = getService(bc, TaskManager.class);
 
 		@SuppressWarnings("unchecked")
 		final CyProperty<Properties> cyProp = getService(bc, CyProperty.class, "(cyPropertyName=cytoscape3.props)");
@@ -182,13 +172,22 @@ public class CyActivator extends AbstractCyActivator {
 		File staticPath = new File(staticContentPath, STATIC_CONTENT_DIR);
 		this.startHttpServer(bc, staticPath.getAbsolutePath());
 
-		final NativeAppInstaller installer = createInstaller(desktop, config, bc.getBundle().getVersion().toString());
-		
+		BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222");
+
 		browser = new Browser();
 		browserView = new BrowserView(browser);
+		browser.addScriptContextListener(new ScriptContextAdapter() {
+		    @Override
+		    public void onScriptContextCreated(ScriptContextEvent event) {
+		        Browser browser = event.getBrowser();
+		        JSValue window = browser.executeJavaScriptAndReturnValue("window");
+		        window.asObject().setProperty("browser", browser);
+		    }
+		});
 		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
 		
-		// TF for NDEx Save
+		
+        // TF for NDEx Save
 		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory(ExternalAppManager.APP_NAME_SAVE, pm,
 				 cyProp, eventHelper, appManager, browserView, icon);
 		final Properties ndexSaveTaskFactoryProps = new Properties();
@@ -310,27 +309,6 @@ public class CyActivator extends AbstractCyActivator {
 		});
 	}
 
-	private final NativeAppInstaller createInstaller(final CySwingApplication desktop,
-			final CyApplicationConfiguration config, final String version) {
-		final JProgressBar bar = new JProgressBar();
-		bar.setValue(0);
-		JPanel progress = new JPanel();
-		progress.setBorder(new EmptyBorder(10, 10, 10, 10));
-		progress.setPreferredSize(PANEL_SIZE);
-		progress.setSize(PANEL_SIZE);
-		progress.setMaximumSize(PANEL_SIZE_MAX);
-		progress.setBackground(new Color(245, 245, 245));
-
-		JLabel label = new JLabel("Loading NDEx App: ");
-		progress.setLayout(new BorderLayout());
-		progress.add(bar, BorderLayout.CENTER);
-		progress.add(label, BorderLayout.WEST);
-		toolBar = desktop.getJToolBar();
-
-		// This is the actual installer extracting binaries
-		return new NativeAppInstaller(config, bar, progress, toolBar, desktop, version, cdnHost, cdnUrl);
-	}
-
 	@Override
 	public void shutDown() {
 		logger.info("Shutting down CyNDEx-2...");
@@ -341,5 +319,42 @@ public class CyActivator extends AbstractCyActivator {
 			e.printStackTrace();
 		}
 		// remove from search panel
+	}
+	
+	public static void main(String[] args){
+		BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222");
+
+		Browser browser = new Browser();
+		BrowserView browserView = new BrowserView(browser);
+		JFrame frame = new JFrame();
+        frame.add(browserView, BorderLayout.CENTER);
+        frame.setSize(700, 500);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+        
+		browser.addScriptContextListener(new ScriptContextAdapter() {
+		    @Override
+		    public void onScriptContextCreated(ScriptContextEvent event) {
+		        Browser browser = event.getBrowser();
+		        JSValue window = browser.executeJavaScriptAndReturnValue("window");
+		        window.asObject().setProperty("frame", frame);
+		    }
+		});
+        
+		// Creates another Browser instance and loads the remote Developer
+        // Tools URL to access HTML inspector.
+        Browser browser2 = new Browser();
+        BrowserView browserView2 = new BrowserView(browser2);
+
+		String remoteDebuggingURL = browser.getRemoteDebuggingURL();
+        JFrame frame2 = new JFrame();
+        frame2.add(browserView2, BorderLayout.CENTER);
+        frame2.setSize(700, 500);
+        frame2.setLocationRelativeTo(null);
+        frame2.setVisible(true);
+
+        browser2.loadURL(remoteDebuggingURL);	
+        
+        browser.executeJavaScript("browser");
 	}
 }

@@ -14,6 +14,10 @@ import org.cytoscape.property.CyProperty;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
+import com.teamdev.jxbrowser.chromium.Browser;
+import com.teamdev.jxbrowser.chromium.JSValue;
+import com.teamdev.jxbrowser.chromium.events.ScriptContextAdapter;
+import com.teamdev.jxbrowser.chromium.events.ScriptContextEvent;
 import com.teamdev.jxbrowser.chromium.swing.BrowserView;
 
 /**
@@ -31,6 +35,7 @@ public class OpenExternalAppTask extends AbstractTask {
 	private final CyEventHelper eventHelper;
 	private final BrowserView browserView;
 	private final ExternalAppManager pm;
+	private JFrame frame;
 
 	final String WS_LOCATION = "ws://localhost:8025/ws/echo";
 
@@ -41,6 +46,7 @@ public class OpenExternalAppTask extends AbstractTask {
 		this.props = props;
 		this.eventHelper = eventHelper;
 		this.browserView = browserView;
+        
 	}
 	
 	public void configure(Object config) {
@@ -54,7 +60,6 @@ public class OpenExternalAppTask extends AbstractTask {
 
 		final String cyrestPort = props.getProperties().get("rest.port").toString();
 		
-		// Make sure WS server is running.
 
 		pm.setAppName(appName);
 		
@@ -62,6 +67,10 @@ public class OpenExternalAppTask extends AbstractTask {
 		executor.submit(() -> {
 			try {
 				// Close other application
+				if (frame != null){
+					frame.dispose();
+					frame = null;
+				}
 				try {
 					pm.kill();
 					Thread.sleep(400);
@@ -69,9 +78,6 @@ public class OpenExternalAppTask extends AbstractTask {
 					e2.printStackTrace();
 					throw new RuntimeException("Could not stop existing app instance.");
 				}
-
-				// Set application type:
-				//pm.setProcess(Runtime.getRuntime().exec(command + " " + cyrestPort));
 					
 				eventHelper.fireEvent(new ExternalAppStartedEvent(this));
 			} catch (Exception e) {
@@ -79,12 +85,22 @@ public class OpenExternalAppTask extends AbstractTask {
 				throw new RuntimeException("Could not start the application: " + appName, e);
 			}
 		});
-		JFrame frame = new JFrame();
-        frame.add(browserView, BorderLayout.CENTER);
-        frame.setSize(700, 500);
+		frame = new JFrame();
+		frame.add(browserView, BorderLayout.CENTER);
+        frame.setResizable(false);
+        frame.setSize(1000, 700);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+        browserView.getBrowser().addScriptContextListener(new ScriptContextAdapter() {
+		    @Override
+		    public void onScriptContextCreated(ScriptContextEvent event) {
+		        Browser browser = event.getBrowser();
+		        JSValue window = browser.executeJavaScriptAndReturnValue("window");
+		        window.asObject().setProperty("frame", frame);
+		    }
+		});
         
-		browserView.getBrowser().loadURL("localhost:2222");
+		browserView.getBrowser().loadURL("http://localhost:2222");
+		
 	}
 }
