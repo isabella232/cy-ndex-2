@@ -1,4 +1,4 @@
-package org.cytoscape.cyndex2.electron;
+package org.cytoscape.cyndex2.server;
 
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;

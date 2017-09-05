@@ -157,7 +157,7 @@ public class NdexClient {
 		}
 
 		if (code == Status.UNAUTHORIZED.getStatusCode()) {
-			throw errorBuilder.buildException(Status.UNAUTHORIZED, "Autholization to failed", ErrorType.AUTH_FAILED);
+			throw errorBuilder.buildException(Status.UNAUTHORIZED, "Autholization failed", ErrorType.AUTH_FAILED);
 		}
 
 		if (code == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {

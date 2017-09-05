@@ -1,16 +1,15 @@
 package org.cytoscape.cyndex2.internal.task;
 
 import java.awt.BorderLayout;
-import java.util.Properties;
+import java.awt.Dialog.ModalityType;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.swing.JFrame;
+import javax.swing.JDialog;
 
 import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.cyndex2.events.ExternalAppStartedEvent;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
-import org.cytoscape.property.CyProperty;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
@@ -31,19 +30,16 @@ public class OpenExternalAppTask extends AbstractTask {
 	// Name of the application
 	private final String appName;
 
-	private final CyProperty<Properties> props;
 	private final CyEventHelper eventHelper;
 	private final BrowserView browserView;
 	private final ExternalAppManager pm;
-	private JFrame frame;
+	private JDialog frame;
 
-	final String WS_LOCATION = "ws://localhost:8025/ws/echo";
+	//final String WS_LOCATION = "ws://localhost:8025/ws/echo";
 
-	public OpenExternalAppTask(final String appName, final ExternalAppManager pm,
-			final CyProperty<Properties> props, final CyEventHelper eventHelper, final BrowserView browserView) {
+	public OpenExternalAppTask(final String appName, final ExternalAppManager pm, final CyEventHelper eventHelper, final BrowserView browserView) {
 		this.pm = pm;
 		this.appName = appName;
-		this.props = props;
 		this.eventHelper = eventHelper;
 		this.browserView = browserView;
         
@@ -57,9 +53,6 @@ public class OpenExternalAppTask extends AbstractTask {
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
-
-		final String cyrestPort = props.getProperties().get("rest.port").toString();
-		
 
 		pm.setAppName(appName);
 		
@@ -85,12 +78,15 @@ public class OpenExternalAppTask extends AbstractTask {
 				throw new RuntimeException("Could not start the application: " + appName, e);
 			}
 		});
-		frame = new JFrame();
+		frame = new JDialog();
 		frame.add(browserView, BorderLayout.CENTER);
         frame.setResizable(false);
         frame.setSize(1000, 700);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+        frame.setModalityType(ModalityType.APPLICATION_MODAL);
+        frame.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        frame.setAlwaysOnTop(true);
         browserView.getBrowser().addScriptContextListener(new ScriptContextAdapter() {
 		    @Override
 		    public void onScriptContextCreated(ScriptContextEvent event) {
