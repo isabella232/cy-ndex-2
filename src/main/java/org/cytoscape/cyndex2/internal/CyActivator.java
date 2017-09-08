@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -62,7 +63,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.teamdev.jxbrowser.chromium.Browser;
-import com.teamdev.jxbrowser.chromium.BrowserException;
+import com.teamdev.jxbrowser.chromium.BrowserContext;
 import com.teamdev.jxbrowser.chromium.JSValue;
 import com.teamdev.jxbrowser.chromium.events.ScriptContextAdapter;
 import com.teamdev.jxbrowser.chromium.events.ScriptContextEvent;
@@ -74,11 +75,10 @@ public class CyActivator extends AbstractCyActivator {
 	// Logger for this activator
 	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
 	public static final String INSTALL_MAKER_FILE_NAME = "ndex-installed";
+	Browser browser;
+	BrowserView browserView = null;
 
 	private static final String STATIC_CONTENT_DIR = "cyndex-2";
-
-	private Browser browser;
-	private BrowserView browserView;
 
 	private JPanel queryPanel;
 	private JProgressBar bar;
@@ -87,6 +87,32 @@ public class CyActivator extends AbstractCyActivator {
 
 	public CyActivator() {
 		super();
+		initBrowser();
+	}
+
+	private void initBrowser() {
+		if (browser != null)
+			return;
+		
+
+		File tempDir = new File(BrowserContext.defaultContext().getDataDir(), "Temp");
+		if (!tempDir.exists() || tempDir.listFiles().length == 0) {
+			try {
+				browser = new Browser();
+				browserView = new BrowserView(browser);
+				browser.addScriptContextListener(new ScriptContextAdapter() {
+					@Override
+					public void onScriptContextCreated(ScriptContextEvent event) {
+						Browser browser = event.getBrowser();
+						JSValue window = browser.executeJavaScriptAndReturnValue("window");
+						window.asObject().setProperty("browser", browser);
+					}
+				});
+			} catch (IPCException exception) {
+				System.out.println("FAILED TO START Cy-NDEX-2. Please restart Cytoscape");
+			}
+		}
+
 	}
 
 	public void start(BundleContext bc) {
@@ -100,7 +126,7 @@ public class CyActivator extends AbstractCyActivator {
 
 		final ExternalAppManager pm = new ExternalAppManager();
 		// Create native package (Electron code) locations from properties
-		//CIWrapper:truesetURL(cyProp);
+		// CIWrapper:truesetURL(cyProp);
 
 		// For loading network
 		final CxTaskFactoryManager tfManager = new CxTaskFactoryManager();
@@ -155,24 +181,7 @@ public class CyActivator extends AbstractCyActivator {
 		installWebApp(staticContentPath, bc);
 		File staticPath = new File(staticContentPath, STATIC_CONTENT_DIR);
 		this.startHttpServer(bc, staticPath.getAbsolutePath());
-		
-		
-		try{
-			browser = new Browser();
-			browserView = new BrowserView(browser);
-			browser.addScriptContextListener(new ScriptContextAdapter() {
-				@Override
-				public void onScriptContextCreated(ScriptContextEvent event) {
-					Browser browser = event.getBrowser();
-					JSValue window = browser.executeJavaScriptAndReturnValue("window");
-					window.asObject().setProperty("browser", browser);
-				}
-			});
-		}catch (BrowserException e){
-			System.out.println("BrowserException");
-		} catch (IPCException exception) {
-			System.out.println("FAILED TO START Cy-NDEX-2. Please restart Cytoscape");
-		}
+
 		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
 
 		// TF for NDEx Save
@@ -319,6 +328,7 @@ public class CyActivator extends AbstractCyActivator {
 		}
 		if (browser != null)
 			browser.dispose();
+
 	}
 
 }

@@ -86,7 +86,7 @@ public class OpenExternalAppTask extends AbstractTask {
         frame.setVisible(true);
         frame.setModalityType(ModalityType.APPLICATION_MODAL);
         frame.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        frame.setAlwaysOnTop(true);
+        
         browserView.getBrowser().addScriptContextListener(new ScriptContextAdapter() {
 		    @Override
 		    public void onScriptContextCreated(ScriptContextEvent event) {
