@@ -7,7 +7,9 @@ import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
 import static org.cytoscape.work.ServiceProperties.TITLE;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
+import java.awt.Rectangle;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -15,20 +17,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.border.EmptyBorder;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.ActionEnableSupport;
+import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.ci.CIErrorFactory;
 import org.cytoscape.ci.CIExceptionFactory;
 import org.cytoscape.ci_bridge_impl.CIProvider;
@@ -64,10 +66,16 @@ import org.slf4j.LoggerFactory;
 
 import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.BrowserContext;
-import com.teamdev.jxbrowser.chromium.JSValue;
-import com.teamdev.jxbrowser.chromium.events.ScriptContextAdapter;
-import com.teamdev.jxbrowser.chromium.events.ScriptContextEvent;
-import com.teamdev.jxbrowser.chromium.internal.ipc.IPCException;
+import com.teamdev.jxbrowser.chromium.BrowserContextParams;
+import com.teamdev.jxbrowser.chromium.BrowserPreferences;
+import com.teamdev.jxbrowser.chromium.BrowserType;
+import com.teamdev.jxbrowser.chromium.PopupContainer;
+import com.teamdev.jxbrowser.chromium.PopupHandler;
+import com.teamdev.jxbrowser.chromium.PopupParams;
+import com.teamdev.jxbrowser.chromium.events.DisposeEvent;
+import com.teamdev.jxbrowser.chromium.events.DisposeListener;
+import com.teamdev.jxbrowser.chromium.events.LoadAdapter;
+import com.teamdev.jxbrowser.chromium.events.LoadEvent;
 import com.teamdev.jxbrowser.chromium.swing.BrowserView;
 
 public class CyActivator extends AbstractCyActivator {
@@ -75,58 +83,56 @@ public class CyActivator extends AbstractCyActivator {
 	// Logger for this activator
 	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
 	public static final String INSTALL_MAKER_FILE_NAME = "ndex-installed";
-	Browser browser;
-	BrowserView browserView = null;
-
+	private ExternalAppManager pm;
 	private static final String STATIC_CONTENT_DIR = "cyndex-2";
-
-	private JPanel queryPanel;
-	private JProgressBar bar;
+	private static Browser browser;
+	private static JDialog dialog;
+	private static String remoteDebuggingURL;
+	private static BrowserContext context;
 
 	private StaticContentsServer httpServer;
 
 	public CyActivator() {
 		super();
-		initBrowser();
 	}
 
-	private void initBrowser() {
-		if (browser != null)
-			return;
-		
+	public static Browser getBrowser() {
+		if (browser == null) {
+			BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222", "--ipc-connection-timeout=2");
 
-		File tempDir = new File(BrowserContext.defaultContext().getDataDir(), "Temp");
-		if (!tempDir.exists() || tempDir.listFiles().length == 0) {
-			try {
-				browser = new Browser();
-				browserView = new BrowserView(browser);
-				browser.addScriptContextListener(new ScriptContextAdapter() {
-					@Override
-					public void onScriptContextCreated(ScriptContextEvent event) {
-						Browser browser = event.getBrowser();
-						JSValue window = browser.executeJavaScriptAndReturnValue("window");
-						window.asObject().setProperty("browser", browser);
-					}
-				});
-			} catch (IPCException exception) {
-				System.out.println("FAILED TO START Cy-NDEX-2. Please restart Cytoscape");
-			}
+			browser = new Browser(BrowserType.LIGHTWEIGHT, context);
+			remoteDebuggingURL = browser.getRemoteDebuggingURL();
+			BrowserPreferences preferences = browser.getPreferences();
+			preferences.setLocalStorageEnabled(true);
+			browser.setPreferences(preferences);
+			browser.setPopupHandler(new CustomPopupHandler());
+
+			browser.addLoadListener(new LoadAdapter() {
+
+				@Override
+				public void onDocumentLoadedInMainFrame(LoadEvent event) {
+					Browser browser = event.getBrowser();
+					browser.executeJavaScript("localStorage");
+				}
+			});
 		}
 
+		return browser;
 	}
 
 	public void start(BundleContext bc) {
 
 		// Import dependencies
 		final CyApplicationConfiguration config = getService(bc, CyApplicationConfiguration.class);
+
 		final CyApplicationManager appManager = getService(bc, CyApplicationManager.class);
 		final CyEventHelper eventHelper = getService(bc, CyEventHelper.class);
 		@SuppressWarnings("unchecked")
 		final CyProperty<Properties> cyProp = getService(bc, CyProperty.class, "(cyPropertyName=cytoscape3.props)");
 
-		final ExternalAppManager pm = new ExternalAppManager();
-		// Create native package (Electron code) locations from properties
-		// CIWrapper:truesetURL(cyProp);
+		final CySwingApplication swingApp = getService(bc, CySwingApplication.class);
+
+		pm = new ExternalAppManager();
 
 		// For loading network
 		final CxTaskFactoryManager tfManager = new CxTaskFactoryManager();
@@ -166,17 +172,6 @@ public class CyActivator extends AbstractCyActivator {
 		final File configRoot = config.getConfigurationDirectoryLocation();
 		final String staticContentPath = configRoot.getAbsolutePath();
 
-		bar = new JProgressBar();
-		bar.setValue(0);
-		queryPanel = new JPanel();
-		queryPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
-		queryPanel.setBackground(new Color(245, 245, 245));
-
-		JLabel label = new JLabel("Loading NDEx App: ");
-		queryPanel.setLayout(new BorderLayout());
-		queryPanel.add(bar, BorderLayout.CENTER);
-		queryPanel.add(label, BorderLayout.WEST);
-
 		// Create web app dir
 		installWebApp(staticContentPath, bc);
 		File staticPath = new File(staticContentPath, STATIC_CONTENT_DIR);
@@ -184,19 +179,24 @@ public class CyActivator extends AbstractCyActivator {
 
 		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
 
+		BrowserContextParams params = new BrowserContextParams(
+				new File(config.getConfigurationDirectoryLocation(), "jxbrowser").getAbsolutePath());
+		context = new BrowserContext(params);
+		dialog = new JDialog(swingApp.getJFrame(), "CyNDex Browser " + bc.getBundle().getVersion().toString());
+
 		// TF for NDEx Save
 		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory(
-				ExternalAppManager.APP_NAME_SAVE, pm, eventHelper, appManager, browserView, icon, queryPanel);
+				ExternalAppManager.APP_NAME_SAVE, eventHelper, appManager, icon, pm, dialog);
 		final Properties ndexSaveTaskFactoryProps = new Properties();
-		ndexSaveTaskFactoryProps.setProperty(ENABLE_FOR, ActionEnableSupport.ENABLE_FOR_NETWORK);
+		//ndexSaveTaskFactoryProps.setProperty(ENABLE_FOR, ActionEnableSupport.ENABLE_FOR_NETWORK);
 		ndexSaveTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export");
 		ndexSaveTaskFactoryProps.setProperty(MENU_GRAVITY, "0.0");
 		ndexSaveTaskFactoryProps.setProperty(TITLE, "Network Collection to NDEx...");
-		registerAllServices(bc, ndexSaveTaskFactory, ndexSaveTaskFactoryProps);
+		registerService(bc, ndexSaveTaskFactory, TaskFactory.class, ndexSaveTaskFactoryProps);
 
 		// TF for NDEx Load
 		final OpenExternalAppTaskFactory ndexTaskFactory = new OpenExternalAppTaskFactory(
-				ExternalAppManager.APP_NAME_LOAD, pm, eventHelper, appManager, browserView, icon, queryPanel);
+				ExternalAppManager.APP_NAME_LOAD, eventHelper, appManager, icon, pm, dialog);
 		final Properties ndexTaskFactoryProps = new Properties();
 		ndexTaskFactoryProps.setProperty(IN_MENU_BAR, "false");
 
@@ -205,8 +205,6 @@ public class CyActivator extends AbstractCyActivator {
 		// Expose CyREST endpoints
 		final ErrorBuilder errorBuilder = new ErrorBuilder(ciErrorFactory, ciExceptionFactory, config);
 		final NdexClient ndexClient = new NdexClient(errorBuilder);
-
-		// Status endpoint
 
 		// Base
 		registerService(bc, new NdexBaseResourceImpl(bc.getBundle().getVersion().toString(), errorBuilder),
@@ -230,7 +228,6 @@ public class CyActivator extends AbstractCyActivator {
 		if (!isInstalled(configDir, version.toString())) {
 			final File webappDir = new File(configDir, STATIC_CONTENT_DIR);
 			webappDir.mkdir();
-			bar.setValue(10);
 			extractWebapp(bc.getBundle(), STATIC_CONTENT_DIR, configDir);
 			File markerFile = new File(configDir, INSTALL_MAKER_FILE_NAME + "-" + version.toString() + ".txt");
 			try {
@@ -240,9 +237,6 @@ public class CyActivator extends AbstractCyActivator {
 				e.printStackTrace();
 			}
 		}
-		bar.setValue(100);
-		queryPanel.removeAll();
-		queryPanel.repaint();
 	}
 
 	private final boolean isInstalled(final String configDir, final String bundleVersion) {
@@ -261,7 +255,6 @@ public class CyActivator extends AbstractCyActivator {
 
 	private final void extractWebapp(final Bundle bundle, final String path, String targetDir) {
 		Enumeration<String> ress = bundle.getEntryPaths(path);
-		bar.setValue(50);
 		while (ress.hasMoreElements()) {
 			String fileName = ress.nextElement();
 
@@ -277,7 +270,6 @@ public class CyActivator extends AbstractCyActivator {
 					e.printStackTrace();
 				}
 			}
-			bar.setIndeterminate(true);
 		}
 	}
 
@@ -329,6 +321,53 @@ public class CyActivator extends AbstractCyActivator {
 		if (browser != null)
 			browser.dispose();
 
+	}
+
+	private static class CustomPopupHandler implements PopupHandler {
+		public PopupContainer handlePopup(PopupParams params) {
+			return new PopupContainer() {
+				public void insertBrowser(final Browser browser, final Rectangle initialBounds) {
+					SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							BrowserView browserView = new BrowserView(browser);
+							browserView.setPreferredSize(initialBounds.getSize());
+
+							final JFrame frame = new JFrame("Popup");
+							frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+							frame.add(browserView, BorderLayout.CENTER);
+							frame.pack();
+							frame.setLocation(initialBounds.getLocation());
+							frame.setVisible(true);
+							frame.addWindowListener(new WindowAdapter() {
+								@Override
+								public void windowClosing(WindowEvent e) {
+									browser.dispose();
+								}
+							});
+
+							browser.addDisposeListener(new DisposeListener<Browser>() {
+								public void onDisposed(DisposeEvent<Browser> event) {
+									frame.setVisible(false);
+								}
+							});
+						}
+					});
+				}
+			};
+		}
+	}
+
+	private static void loadDevTools() {
+		JDialog devTools = new JDialog();
+		Browser devBrowser = new Browser(BrowserType.LIGHTWEIGHT, context);
+		BrowserView bv = new BrowserView(devBrowser);
+
+		devTools.add(bv, BorderLayout.CENTER);
+		devTools.setSize(1000, 700);
+		devTools.setLocationRelativeTo(null);
+		devTools.setVisible(true);
+		devBrowser.loadURL(remoteDebuggingURL);
 	}
 
 }

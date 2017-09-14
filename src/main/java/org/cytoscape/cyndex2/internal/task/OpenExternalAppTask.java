@@ -1,19 +1,24 @@
 package org.cytoscape.cyndex2.internal.task;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Dialog.ModalityType;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JDialog;
-
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JTextField;
 import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.cyndex2.events.ExternalAppStartedEvent;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
-import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.JSValue;
 import com.teamdev.jxbrowser.chromium.events.ScriptContextAdapter;
 import com.teamdev.jxbrowser.chromium.events.ScriptContextEvent;
@@ -29,74 +34,93 @@ public class OpenExternalAppTask extends AbstractTask {
 
 	// Name of the application
 	private final String appName;
-
 	private final CyEventHelper eventHelper;
-	private final BrowserView browserView;
 	private final ExternalAppManager pm;
-	private JDialog frame;
+	private final JDialog dialog;
+	private BrowserView browserView;
 
-	//final String WS_LOCATION = "ws://localhost:8025/ws/echo";
-
-	public OpenExternalAppTask(final String appName, final ExternalAppManager pm, final CyEventHelper eventHelper, final BrowserView browserView) {
-		this.pm = pm;
+	public OpenExternalAppTask(final String appName, final CyEventHelper eventHelper, final ExternalAppManager pm,
+			JDialog dialog) {
 		this.appName = appName;
 		this.eventHelper = eventHelper;
-		this.browserView = browserView;
-        
+		this.pm = pm;
+		this.dialog = dialog;
 	}
-	
-	public void configure(Object config) {
-		
-		
+
+	private JPanel getProgressBarPanel() {
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		JLabel label = new JLabel("Loading browser...");
+		label.setAlignmentX(JTextField.CENTER_ALIGNMENT);
+		panel.add(label);
+		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		JProgressBar progressBar = new JProgressBar();
+		progressBar.setValue(50);
+		panel.setMinimumSize(new Dimension(400, 10));
+		progressBar.setIndeterminate(true);
+		panel.add(progressBar);
+		return panel;
 	}
-	
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
 
+		if (pm.loadFailed()) {
+			System.out.println("LOAD FAILED");
+			return;
+		}
 		pm.setAppName(appName);
-		
+
 		final ExecutorService executor = Executors.newSingleThreadExecutor();
 		executor.submit(() -> {
 			try {
-				// Close other application
-				if (frame != null){
-					frame.dispose();
-					frame = null;
+				if (pm.loadSuccess()) {
+					browserView = pm.getBrowserView();
+				} else {
+					JPanel panel = getProgressBarPanel();
+					dialog.add(panel, BorderLayout.CENTER);
+					dialog.pack();
+					dialog.setResizable(false);
+					dialog.setLocationRelativeTo(null);
+					dialog.setVisible(true);
+					browserView = pm.getBrowserView();
+
+					if (browserView == null) {
+						dialog.setVisible(false);
+						return;
+					}
+					dialog.remove(panel);
+					dialog.setVisible(false);
+					dialog.add(browserView, BorderLayout.CENTER);
 				}
-				try {
-					pm.kill();
-					Thread.sleep(400);
-				} catch (Exception e2) {
-					e2.printStackTrace();
-					throw new RuntimeException("Could not stop existing app instance.");
-				}
-					
+
+				dialog.setSize(1000, 700);
+				dialog.setLocationRelativeTo(null);
+				dialog.setModalityType(ModalityType.APPLICATION_MODAL);
+
+				browserView.getBrowser().loadURL("http://localhost:2222");
+
+				browserView.getBrowser().addScriptContextListener(new ScriptContextAdapter() {
+
+					@Override
+					public void onScriptContextCreated(ScriptContextEvent arg0) {
+						JSValue window = browserView.getBrowser().executeJavaScriptAndReturnValue("window");
+						window.asObject().setProperty("frame", dialog);
+					}
+				});
 				eventHelper.fireEvent(new ExternalAppStartedEvent(this));
+				dialog.setVisible(true);
+			} catch (IllegalStateException e) {
+				System.out.println("Failed to load URL");
+				dialog.setVisible(false);
+
 			} catch (Exception e) {
+				if (dialog != null)
+					dialog.setVisible(false);
 				e.printStackTrace();
 				throw new RuntimeException("Could not start the application: " + appName, e);
 			}
 		});
-		frame = new JDialog();
-		frame.add(browserView, BorderLayout.CENTER);
-        frame.setResizable(false);
-        frame.setSize(1000, 700);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-        frame.setModalityType(ModalityType.APPLICATION_MODAL);
-        frame.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        
-        browserView.getBrowser().addScriptContextListener(new ScriptContextAdapter() {
-		    @Override
-		    public void onScriptContextCreated(ScriptContextEvent event) {
-		        Browser browser = event.getBrowser();
-		        JSValue window = browser.executeJavaScriptAndReturnValue("window");
-		        window.asObject().setProperty("frame", frame);
-		    }
-		});
-        
-		browserView.getBrowser().loadURL("http://localhost:2222");
-		
+
 	}
 }

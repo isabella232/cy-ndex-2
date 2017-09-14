@@ -1,42 +1,52 @@
 package org.cytoscape.cyndex2.internal.util;
 
+import java.io.File;
+
+import org.cytoscape.cyndex2.internal.CyActivator;
+
+import com.teamdev.jxbrowser.chromium.BrowserContext;
+import com.teamdev.jxbrowser.chromium.internal.ipc.IPCException;
+import com.teamdev.jxbrowser.chromium.swing.BrowserView;
+
 public class ExternalAppManager {
 
 	public static final String APP_NAME_LOAD = "choose";
 	public static final String APP_NAME_SAVE = "save";
-	
-	private Process currentProcess;
-	
+
+	private BrowserView browserView;
+	private boolean loadFailed;
 	private String query;
-	
 	private String appName;
-	
 
-	public void setProcess(final Process process) {
-		this.currentProcess = process;
+	public boolean dylibExists() {
+		File tempDir = new File(BrowserContext.defaultContext().getDataDir(), "Temp");
+		return (tempDir.exists() && tempDir.listFiles().length > 0);
 	}
 
-	public void kill() {
-		if (currentProcess != null) {
-			this.currentProcess.destroyForcibly();
-			this.currentProcess = null;
-		}
-	}
-
-	public Boolean isActive() {
-		if (this.currentProcess != null && this.currentProcess.isAlive()) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	public void setQuery(final String query) {
+	public void setQuery(String query) {
 		this.query = query;
 	}
-	
+
 	public String getQuery() {
-		return this.query;
+		return query;
+	}
+
+	public boolean loadFailed() {
+		return loadFailed || (browserView == null && dylibExists());
+	}
+
+	public BrowserView getBrowserView() {
+		if (!loadFailed() && browserView == null)
+			try {
+				browserView = new BrowserView(CyActivator.getBrowser());
+			} catch (IPCException e) {
+				e.printStackTrace();
+			}
+		if (browserView == null) {
+			loadFailed = true;
+			browserView = null;
+		}
+		return browserView;
 	}
 
 	public String getAppName() {
@@ -45,5 +55,9 @@ public class ExternalAppManager {
 
 	public void setAppName(String appName) {
 		this.appName = appName;
+	}
+
+	public boolean loadSuccess() {
+		return browserView != null;
 	}
 }
