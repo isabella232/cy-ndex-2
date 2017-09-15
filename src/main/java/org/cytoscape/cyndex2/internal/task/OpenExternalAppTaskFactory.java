@@ -3,6 +3,8 @@ package org.cytoscape.cyndex2.internal.task;
 import java.awt.Color;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -28,7 +30,7 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 	private final CyEventHelper eventHelper;
 	private final ExternalAppManager pm;
 	private final CyApplicationManager appManager;
-	private JTextField entry;
+	private Entry entry;
 	private JDialog dialog;
 
 	public OpenExternalAppTaskFactory(final String appName, final CyEventHelper eventHelper,
@@ -41,30 +43,67 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 		this.dialog = dialog;
 	}
 
-	public JTextField getEntry() {
+	public Entry getEntry() {
 		if (entry == null) {
-			entry = new JTextField("Search CyNDex");
-			entry.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-			entry.setForeground(Color.GRAY);
-			entry.addFocusListener(new FocusListener() {
+			entry = new Entry();
+		}
+		return entry;
+	}
+
+	private class Entry extends JTextField {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -5305178656253939245L;
+
+		public Entry() {
+			super("Search CyNDex");
+			setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+			setForeground(Color.GRAY);
+			addKeyListener(new KeyAdapter() {
+				@Override
+				public void keyTyped(KeyEvent e) {
+					super.keyTyped(e);
+				}
+				@Override
+				public void keyPressed(KeyEvent e) {
+					if (e.getKeyCode() == KeyEvent.VK_ENTER)
+						fireSearchRequested();
+					else {
+						super.keyPressed(e);
+						firePropertyChange(QUERY_PROPERTY, null, null);
+					}
+				}
+
+			});
+
+			addFocusListener(new FocusListener() {
 				@Override
 				public void focusGained(FocusEvent e) {
-					if (entry.getForeground() == Color.GRAY) {
-						entry.setText("");
-						entry.setForeground(Color.BLACK);
+					if (getForeground() == Color.GRAY) {
+						setText("");
+						setForeground(Color.BLACK);
 					}
 				}
 
 				@Override
 				public void focusLost(FocusEvent e) {
-					if (entry.getText().isEmpty()) {
-						entry.setForeground(Color.GRAY);
-						entry.setText("Search CyNDex");
+					if (getText().isEmpty()) {
+						setForeground(Color.GRAY);
+						setText("Search CyNDex");
 					}
 				}
 			});
+
 		}
-		return entry;
+		
+		public String getQuery(){
+			return getForeground() == Color.GRAY ? "" : getText();
+		}
+
+		private void fireSearchRequested() {
+			firePropertyChange(SEARCH_REQUESTED_PROPERTY, null, null);
+		}
 	}
 
 	public JComponent getQueryComponent() {
@@ -79,8 +118,8 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 
 	@Override
 	public String getQuery() {
-		JTextField entry = getEntry();
-		return entry.getForeground() == Color.GRAY ? "" : entry.getText();
+		Entry entry = getEntry();
+		return entry.getQuery();
 	}
 
 	@Override
@@ -95,7 +134,7 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 			return false;
 		if (appName == ExternalAppManager.APP_NAME_SAVE) {
 			final CyNetwork curNetwork = appManager.getCurrentNetwork();
-			if (curNetwork == null) {
+			if (!pm.loadSuccess() || curNetwork == null) {
 				return false;
 			} else {
 				return true;

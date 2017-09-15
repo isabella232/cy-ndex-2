@@ -7,6 +7,7 @@ import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
 import static org.cytoscape.work.ServiceProperties.TITLE;
 
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.Rectangle;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -115,8 +116,9 @@ public class CyActivator extends AbstractCyActivator {
 					browser.executeJavaScript("localStorage");
 				}
 			});
+			loadDevTools();
 		}
-
+		
 		return browser;
 	}
 
@@ -334,6 +336,7 @@ public class CyActivator extends AbstractCyActivator {
 							browserView.setPreferredSize(initialBounds.getSize());
 
 							final JFrame frame = new JFrame("Popup");
+							frame.setModalExclusionType(Dialog.ModalExclusionType.APPLICATION_EXCLUDE);
 							frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 							frame.add(browserView, BorderLayout.CENTER);
 							frame.pack();
