@@ -13,8 +13,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTextField;
-import org.cytoscape.event.CyEventHelper;
-import org.cytoscape.cyndex2.events.ExternalAppStartedEvent;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
@@ -30,21 +28,21 @@ import com.teamdev.jxbrowser.chromium.swing.BrowserView;
  * process.
  *
  */
+
 public class OpenExternalAppTask extends AbstractTask {
 
 	// Name of the application
 	private final String appName;
-	private final CyEventHelper eventHelper;
 	private final ExternalAppManager pm;
 	private final JDialog dialog;
 	private BrowserView browserView;
+	private final String port;
 
-	public OpenExternalAppTask(final String appName, final CyEventHelper eventHelper, final ExternalAppManager pm,
-			JDialog dialog) {
+	public OpenExternalAppTask(final String appName, final ExternalAppManager pm, final JDialog dialog, String port) {
 		this.appName = appName;
-		this.eventHelper = eventHelper;
 		this.pm = pm;
 		this.dialog = dialog;
+		this.port = port;
 	}
 
 	private JPanel getProgressBarPanel() {
@@ -98,17 +96,21 @@ public class OpenExternalAppTask extends AbstractTask {
 				dialog.setLocationRelativeTo(null);
 				dialog.setModalityType(ModalityType.APPLICATION_MODAL);
 
-				browserView.getBrowser().loadURL("http://localhost:2222");
-
 				browserView.getBrowser().addScriptContextListener(new ScriptContextAdapter() {
 
 					@Override
 					public void onScriptContextCreated(ScriptContextEvent arg0) {
 						JSValue window = browserView.getBrowser().executeJavaScriptAndReturnValue("window");
-						window.asObject().setProperty("frame", dialog);
+						if (window != null) {
+							window.asObject().setProperty("frame", dialog);
+							window.asObject().setProperty("restPort", port);
+						}
+
 					}
 				});
-				eventHelper.fireEvent(new ExternalAppStartedEvent(this));
+
+				browserView.getBrowser().loadURL("http://localhost:2222");
+
 				dialog.setVisible(true);
 			} catch (IllegalStateException e) {
 				System.out.println("Failed to load URL");

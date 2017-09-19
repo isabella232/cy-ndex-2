@@ -100,7 +100,7 @@
 						<Embed-Dependency>*;scope=!provided|test;groupId=!org.cytoscape</Embed-Dependency>
 						<Embed-Transitive>true</Embed-Transitive>
 						<Import-Package>*;resolution:=optional</Import-Package>
-						<Cytoscape-App-Dependencies>CX Support;2.2.0,cyREST;3.5.0</Cytoscape-App-Dependencies>
+						<Cytoscape-App-Dependencies>CX Support;2.2.1,cyREST;3.5.0</Cytoscape-App-Dependencies>
 					</instructions>
 				</configuration>
 			</plugin>

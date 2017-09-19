@@ -15,6 +15,6 @@ public class AppInfoResponse {
 	@ApiModelProperty(value = "Official name of this app")
 	public String appName;
 
-	@ApiModelProperty(value = "Shoer description of this app")
+	@ApiModelProperty(value = "Short description of this app")
 	public String description;
 }

@@ -5,6 +5,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.Properties;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -16,8 +17,8 @@ import javax.swing.JTextField;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.search.AbstractNetworkSearchTaskFactory;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
-import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.property.CyProperty;
 import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskIterator;
 
@@ -27,20 +28,20 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 	private static final String NAME = "CyNDEX-2";
 
 	private final String appName;
-	private final CyEventHelper eventHelper;
 	private final ExternalAppManager pm;
 	private final CyApplicationManager appManager;
 	private Entry entry;
-	private JDialog dialog;
+	private final JDialog dialog;
+	private final String port;
 
-	public OpenExternalAppTaskFactory(final String appName, final CyEventHelper eventHelper,
-			final CyApplicationManager appManager, final Icon icon, final ExternalAppManager pm, final JDialog dialog) {
+	public OpenExternalAppTaskFactory(final String appName, final CyApplicationManager appManager, final Icon icon,
+			final ExternalAppManager pm, final JDialog dialog, final CyProperty<Properties> cyProps) {
 		super(ID, NAME, icon);
 		this.appName = appName;
-		this.eventHelper = eventHelper;
 		this.appManager = appManager;
 		this.pm = pm;
 		this.dialog = dialog;
+		port = cyProps.getProperties().getProperty("rest.port");
 	}
 
 	public Entry getEntry() {
@@ -65,6 +66,7 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 				public void keyTyped(KeyEvent e) {
 					super.keyTyped(e);
 				}
+
 				@Override
 				public void keyPressed(KeyEvent e) {
 					if (e.getKeyCode() == KeyEvent.VK_ENTER)
@@ -96,8 +98,8 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 			});
 
 		}
-		
-		public String getQuery(){
+
+		public String getQuery() {
 			return getForeground() == Color.GRAY ? "" : getText();
 		}
 
@@ -125,7 +127,7 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 	@Override
 	public TaskIterator createTaskIterator() {
 		pm.setQuery(getQuery());
-		return new TaskIterator(new OpenExternalAppTask(appName, eventHelper, pm, dialog));
+		return new TaskIterator(new OpenExternalAppTask(appName, pm, dialog, port));
 	}
 
 	@Override
@@ -134,7 +136,7 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 			return false;
 		if (appName == ExternalAppManager.APP_NAME_SAVE) {
 			final CyNetwork curNetwork = appManager.getCurrentNetwork();
-			if (!pm.loadSuccess() || curNetwork == null) {
+			if (curNetwork == null) {
 				return false;
 			} else {
 				return true;

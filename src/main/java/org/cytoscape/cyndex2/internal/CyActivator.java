@@ -1,6 +1,5 @@
 package org.cytoscape.cyndex2.internal;
 
-import static org.cytoscape.work.ServiceProperties.ENABLE_FOR;
 import static org.cytoscape.work.ServiceProperties.IN_MENU_BAR;
 import static org.cytoscape.work.ServiceProperties.MENU_GRAVITY;
 import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
@@ -30,12 +29,10 @@ import javax.swing.WindowConstants;
 
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
-import org.cytoscape.application.swing.ActionEnableSupport;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.ci.CIErrorFactory;
 import org.cytoscape.ci.CIExceptionFactory;
 import org.cytoscape.ci_bridge_impl.CIProvider;
-import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.cyndex2.internal.rest.NdexClient;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexBaseResource;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexNetworkResource;
@@ -90,6 +87,7 @@ public class CyActivator extends AbstractCyActivator {
 	private static JDialog dialog;
 	private static String remoteDebuggingURL;
 	private static BrowserContext context;
+	private static CyProperty<Properties> cyProps;
 
 	private StaticContentsServer httpServer;
 
@@ -103,34 +101,33 @@ public class CyActivator extends AbstractCyActivator {
 
 			browser = new Browser(BrowserType.LIGHTWEIGHT, context);
 			remoteDebuggingURL = browser.getRemoteDebuggingURL();
+			
 			BrowserPreferences preferences = browser.getPreferences();
 			preferences.setLocalStorageEnabled(true);
 			browser.setPreferences(preferences);
 			browser.setPopupHandler(new CustomPopupHandler());
 
 			browser.addLoadListener(new LoadAdapter() {
-
 				@Override
 				public void onDocumentLoadedInMainFrame(LoadEvent event) {
 					Browser browser = event.getBrowser();
 					browser.executeJavaScript("localStorage");
 				}
 			});
-			loadDevTools();
+			//loadDevTools();
 		}
-		
+
 		return browser;
 	}
 
+	@SuppressWarnings("unchecked")
 	public void start(BundleContext bc) {
-
 		// Import dependencies
 		final CyApplicationConfiguration config = getService(bc, CyApplicationConfiguration.class);
 
 		final CyApplicationManager appManager = getService(bc, CyApplicationManager.class);
-		final CyEventHelper eventHelper = getService(bc, CyEventHelper.class);
-		@SuppressWarnings("unchecked")
-		final CyProperty<Properties> cyProp = getService(bc, CyProperty.class, "(cyPropertyName=cytoscape3.props)");
+
+		cyProps = getService(bc, CyProperty.class, "(cyPropertyName=cytoscape3.props)");
 
 		final CySwingApplication swingApp = getService(bc, CySwingApplication.class);
 
@@ -149,6 +146,7 @@ public class CyActivator extends AbstractCyActivator {
 		// CIErrorFactory.class);
 
 		CIExceptionFactory ciExceptionFactory = CIProvider.getCIExceptionFactory();
+
 		CIErrorFactory ciErrorFactory = null;
 		try {
 			ciErrorFactory = CIProvider.getCIErrorFactory(bc);
@@ -167,7 +165,7 @@ public class CyActivator extends AbstractCyActivator {
 		final VisualMappingManager vmm = getService(bc, VisualMappingManager.class);
 		final CyNetworkViewFactory nullNetworkViewFactory = getService(bc, CyNetworkViewFactory.class);
 		final CyServiceRegistrar serviceRegistrar = getService(bc, CyServiceRegistrar.class);
-		TaskFactory loadNetworkTF = new LoadNetworkStreamTaskFactoryImpl(netmgr, networkViewManager, cyProp,
+		TaskFactory loadNetworkTF = new LoadNetworkStreamTaskFactoryImpl(netmgr, networkViewManager, cyProps,
 				cyNetworkNaming, vmm, nullNetworkViewFactory, serviceRegistrar);
 
 		// Start static content delivery server
@@ -179,8 +177,10 @@ public class CyActivator extends AbstractCyActivator {
 		File staticPath = new File(staticContentPath, STATIC_CONTENT_DIR);
 		this.startHttpServer(bc, staticPath.getAbsolutePath());
 
+		// get QueryPanel icon
 		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
 
+		// Set local storage directory to CytoscapeConfiguration
 		BrowserContextParams params = new BrowserContextParams(
 				new File(config.getConfigurationDirectoryLocation(), "jxbrowser").getAbsolutePath());
 		context = new BrowserContext(params);
@@ -188,9 +188,10 @@ public class CyActivator extends AbstractCyActivator {
 
 		// TF for NDEx Save
 		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory(
-				ExternalAppManager.APP_NAME_SAVE, eventHelper, appManager, icon, pm, dialog);
+				ExternalAppManager.APP_NAME_SAVE, appManager, icon, pm, dialog, cyProps);
 		final Properties ndexSaveTaskFactoryProps = new Properties();
-		//ndexSaveTaskFactoryProps.setProperty(ENABLE_FOR, ActionEnableSupport.ENABLE_FOR_NETWORK);
+		// ndexSaveTaskFactoryProps.setProperty(ENABLE_FOR,
+		// ActionEnableSupport.ENABLE_FOR_NETWORK);
 		ndexSaveTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export");
 		ndexSaveTaskFactoryProps.setProperty(MENU_GRAVITY, "0.0");
 		ndexSaveTaskFactoryProps.setProperty(TITLE, "Network Collection to NDEx...");
@@ -198,7 +199,7 @@ public class CyActivator extends AbstractCyActivator {
 
 		// TF for NDEx Load
 		final OpenExternalAppTaskFactory ndexTaskFactory = new OpenExternalAppTaskFactory(
-				ExternalAppManager.APP_NAME_LOAD, eventHelper, appManager, icon, pm, dialog);
+				ExternalAppManager.APP_NAME_LOAD, appManager, icon, pm, dialog, cyProps);
 		final Properties ndexTaskFactoryProps = new Properties();
 		ndexTaskFactoryProps.setProperty(IN_MENU_BAR, "false");
 
@@ -320,8 +321,10 @@ public class CyActivator extends AbstractCyActivator {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		if (browser != null)
+		if (browser != null) {
+			browser.getCacheStorage().clearCache();
 			browser.dispose();
+		}
 
 	}
 
