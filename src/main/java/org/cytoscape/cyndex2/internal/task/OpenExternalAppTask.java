@@ -92,10 +92,11 @@ public class OpenExternalAppTask extends AbstractTask {
 					dialog.setVisible(false);
 					dialog.add(browserView, BorderLayout.CENTER);
 
-					dialog.setModalityType(ModalityType.APPLICATION_MODAL);
-					dialog.setModalExclusionType(Dialog.ModalExclusionType.APPLICATION_EXCLUDE);
+					
 				}
-
+				dialog.setModalityType(ModalityType.APPLICATION_MODAL);
+				dialog.setModalExclusionType(Dialog.ModalExclusionType.APPLICATION_EXCLUDE);
+				
 				dialog.setSize(1000, 700);
 				dialog.setLocationRelativeTo(null);
 				
