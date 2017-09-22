@@ -185,7 +185,7 @@ public class CyActivator extends AbstractCyActivator {
 				new File(config.getConfigurationDirectoryLocation(), "jxbrowser").getAbsolutePath());
 		context = new BrowserContext(params);
 		dialog = new JDialog(swingApp.getJFrame(), "CyNDex Browser " + bc.getBundle().getVersion().toString());
-
+		
 		// TF for NDEx Save
 		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory(
 				ExternalAppManager.APP_NAME_SAVE, appManager, icon, pm, dialog, cyProps);

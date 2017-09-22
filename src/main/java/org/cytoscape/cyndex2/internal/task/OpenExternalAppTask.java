@@ -1,7 +1,6 @@
 package org.cytoscape.cyndex2.internal.task;
 
 import java.awt.BorderLayout;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Dialog.ModalityType;
 import java.util.concurrent.ExecutorService;
@@ -95,7 +94,9 @@ public class OpenExternalAppTask extends AbstractTask {
 					
 				}
 				dialog.setModalityType(ModalityType.APPLICATION_MODAL);
-				dialog.setModalExclusionType(Dialog.ModalExclusionType.APPLICATION_EXCLUDE);
+				if (dialog.getModalityType() != ModalityType.APPLICATION_MODAL){
+					System.out.println("Modality not set correctly");
+				}
 				
 				dialog.setSize(1000, 700);
 				dialog.setLocationRelativeTo(null);
