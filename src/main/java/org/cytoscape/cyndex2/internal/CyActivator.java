@@ -84,7 +84,6 @@ public class CyActivator extends AbstractCyActivator {
 	private ExternalAppManager pm;
 	private static final String STATIC_CONTENT_DIR = "cyndex-2";
 	private static Browser browser;
-	private static JDialog dialog;
 	private static String remoteDebuggingURL;
 	private static BrowserContext context;
 	private static CyProperty<Properties> cyProps;
@@ -184,11 +183,10 @@ public class CyActivator extends AbstractCyActivator {
 		BrowserContextParams params = new BrowserContextParams(
 				new File(config.getConfigurationDirectoryLocation(), "jxbrowser").getAbsolutePath());
 		context = new BrowserContext(params);
-		dialog = new JDialog(swingApp.getJFrame(), "CyNDex Browser " + bc.getBundle().getVersion().toString());
 		
 		// TF for NDEx Save
 		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory(
-				ExternalAppManager.APP_NAME_SAVE, appManager, icon, pm, dialog, cyProps);
+				ExternalAppManager.APP_NAME_SAVE, appManager, icon, pm, swingApp, cyProps);
 		final Properties ndexSaveTaskFactoryProps = new Properties();
 		// ndexSaveTaskFactoryProps.setProperty(ENABLE_FOR,
 		// ActionEnableSupport.ENABLE_FOR_NETWORK);
@@ -199,7 +197,7 @@ public class CyActivator extends AbstractCyActivator {
 
 		// TF for NDEx Load
 		final OpenExternalAppTaskFactory ndexTaskFactory = new OpenExternalAppTaskFactory(
-				ExternalAppManager.APP_NAME_LOAD, appManager, icon, pm, dialog, cyProps);
+				ExternalAppManager.APP_NAME_LOAD, appManager, icon, pm, swingApp, cyProps);
 		final Properties ndexTaskFactoryProps = new Properties();
 		ndexTaskFactoryProps.setProperty(IN_MENU_BAR, "false");
 
