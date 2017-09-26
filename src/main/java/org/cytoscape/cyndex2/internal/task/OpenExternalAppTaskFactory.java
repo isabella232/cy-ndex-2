@@ -38,7 +38,7 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 	private final CyApplicationManager appManager;
 	private Entry entry;
 	private final CySwingApplication swingApp;
-	private final String port;
+	private String port;
 
 	public OpenExternalAppTaskFactory(final String appName, final CyApplicationManager appManager, final Icon icon,
 			final ExternalAppManager pm, final CySwingApplication swingApp, final CyProperty<Properties> cyProps) {
@@ -48,6 +48,8 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 		this.pm = pm;
 		this.swingApp = swingApp;
 		port = cyProps.getProperties().getProperty("rest.port");
+		if (port == null)
+			port = "1234";
 	}
 
 	public Entry getEntry() {
