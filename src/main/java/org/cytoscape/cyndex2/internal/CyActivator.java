@@ -100,7 +100,7 @@ public class CyActivator extends AbstractCyActivator {
 
 			browser = new Browser(BrowserType.LIGHTWEIGHT, context);
 			remoteDebuggingURL = browser.getRemoteDebuggingURL();
-			
+
 			BrowserPreferences preferences = browser.getPreferences();
 			preferences.setLocalStorageEnabled(true);
 			browser.setPreferences(preferences);
@@ -113,7 +113,7 @@ public class CyActivator extends AbstractCyActivator {
 					browser.executeJavaScript("localStorage");
 				}
 			});
-			//loadDevTools();
+			// loadDevTools();
 		}
 
 		return browser;
@@ -183,7 +183,7 @@ public class CyActivator extends AbstractCyActivator {
 		BrowserContextParams params = new BrowserContextParams(
 				new File(config.getConfigurationDirectoryLocation(), "jxbrowser").getAbsolutePath());
 		context = new BrowserContext(params);
-		
+
 		// TF for NDEx Save
 		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory(
 				ExternalAppManager.APP_NAME_SAVE, appManager, icon, pm, swingApp, cyProps);

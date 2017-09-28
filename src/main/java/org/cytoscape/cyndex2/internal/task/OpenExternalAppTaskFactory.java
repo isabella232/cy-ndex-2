@@ -8,6 +8,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Properties;
 
 import javax.swing.BorderFactory;
@@ -132,9 +134,15 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 					+ "<p>If you want to browse the database, simply send empty query. For more details, please visit <i>www.ndexbio.org</i></p>";
 			pane.setText(help);
 			pane.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-
-			ToolTipManager.sharedInstance().setDismissDelay(10000);
 			JToolTip tip = super.createToolTip();
+			pane.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					tip.setVisible(false);
+				}
+			});
+			ToolTipManager.sharedInstance().setDismissDelay(10000);
+			
 			tip.setPreferredSize(size);
 			tip.setSize(size);
 			tip.setComponent(this);

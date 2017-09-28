@@ -3,12 +3,10 @@ package org.cytoscape.cyndex2.internal.task;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Dialog.ModalityType;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -73,38 +71,33 @@ public class OpenExternalAppTask extends AbstractTask {
 		}
 		pm.setAppName(appName);
 
+		JPanel panel = getProgressBarPanel();
+		JDialog loadDialog = new JDialog(swingApp.getJFrame(), "Loading CyNDEx");
+		loadDialog.add(panel, BorderLayout.CENTER);
+		loadDialog.pack();
+		loadDialog.setResizable(false);
+		loadDialog.setLocationRelativeTo(null);
+		loadDialog.setVisible(true);
+		
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				final JDialog dialog = new JDialog(swingApp.getJFrame(), "CyNDEx2 Browser",
+				JFrame frame = swingApp.getJFrame();
+				
+				final JDialog dialog = new JDialog(frame, "CyNDEx2 Browser",
 						ModalityType.APPLICATION_MODAL);
 				dialog.getModalityType();
+				
 				try {
-					if (pm.loadSuccess()) {
-						browserView = pm.getBrowserView();
-					} else {
-						JPanel panel = getProgressBarPanel();
-						JDialog loadDialog = new JDialog(swingApp.getJFrame(), "Loading CyNDEx");
-						loadDialog.add(panel, BorderLayout.CENTER);
-						loadDialog.pack();
-						loadDialog.setResizable(false);
-						loadDialog.setLocationRelativeTo(null);
-						loadDialog.setVisible(true);
-						browserView = pm.getBrowserView();
-
-						loadDialog.setVisible(false);
-						if (browserView == null) {
-							return;
-						}
-
+					browserView = pm.getBrowserView();
+					if (browserView == null) {
+						return;
 					}
+					
 					dialog.setSize(1000, 700);
 					dialog.setLocationRelativeTo(null);
 					dialog.add(browserView, BorderLayout.CENTER);
-					if (dialog.getModalityType() != ModalityType.APPLICATION_MODAL) {
-						System.out.println("Modality not set correctly");
-					}
-
+					
 					browserView.getBrowser().addScriptContextListener(new ScriptContextAdapter() {
 
 						@Override
@@ -120,8 +113,10 @@ public class OpenExternalAppTask extends AbstractTask {
 
 					browserView.getBrowser().loadURL("http://localhost:2222");
 					dialog.setAlwaysOnTop(false);
+					loadDialog.setVisible(false);
+					
 					dialog.setVisible(true);
-
+					
 				} catch (IllegalStateException e) {
 					System.out.println("Failed to load URL");
 					dialog.setVisible(false);
