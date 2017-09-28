@@ -8,8 +8,6 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.Properties;
 
 import javax.swing.BorderFactory;
@@ -135,12 +133,6 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 			pane.setText(help);
 			pane.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 			JToolTip tip = super.createToolTip();
-			pane.addMouseListener(new MouseAdapter() {
-				@Override
-				public void mouseClicked(MouseEvent e) {
-					tip.setVisible(false);
-				}
-			});
 			ToolTipManager.sharedInstance().setDismissDelay(10000);
 			
 			tip.setPreferredSize(size);
