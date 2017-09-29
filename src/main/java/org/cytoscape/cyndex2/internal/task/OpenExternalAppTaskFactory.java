@@ -36,9 +36,11 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 	private final String appName;
 	private final ExternalAppManager pm;
 	private final CyApplicationManager appManager;
-	private Entry entry;
+	private static Entry entry;
 	private final CySwingApplication swingApp;
 	private String port;
+	
+	private static boolean loadFailed = false;
 
 	public OpenExternalAppTaskFactory(final String appName, final CyApplicationManager appManager, final Icon icon,
 			final ExternalAppManager pm, final CySwingApplication swingApp, final CyProperty<Properties> cyProps) {
@@ -48,15 +50,19 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 		this.pm = pm;
 		this.swingApp = swingApp;
 		port = cyProps.getProperties().getProperty("rest.port");
+		entry = new Entry();
+		
 		if (port == null)
 			port = "1234";
 	}
-
-	public Entry getEntry() {
-		if (entry == null) {
-			entry = new Entry();
-		}
-		return entry;
+	public static boolean loadFailed(){
+		return loadFailed;
+	}
+	
+	public static void setLoadFailed(){
+		entry.setDisabled();
+		loadFailed = true;
+		
 	}
 
 	private class Entry extends JTextField {
@@ -65,15 +71,16 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 		 */
 		private static final long serialVersionUID = -5305178656253939245L;
 		private final Font SEARCH_TEXT_FONT = new Font("SansSerif", Font.PLAIN, 12);
-		private final Color TEXT_COLOR  = Color.decode("#444444");
+		private final Color TEXT_COLOR = Color.decode("#444444");
 		private final static String SEARCH_TEXT = "Enter search terms for NDEx...";
-		
+		private boolean disabled = false;
+
 		public Entry() {
 			super(SEARCH_TEXT);
 			setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 			setForeground(Color.GRAY);
-			setToolTipText("TOOLTIP");
-			
+			setToolTipText("");
+
 			addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyTyped(KeyEvent e) {
@@ -85,9 +92,9 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 					if (e.getKeyCode() == KeyEvent.VK_ENTER)
 						fireSearchRequested();
 					else {
-						super.keyPressed(e);
 						firePropertyChange(QUERY_PROPERTY, null, null);
 					}
+					super.keyPressed(e);
 				}
 
 			});
@@ -115,9 +122,26 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 		public String getQuery() {
 			return getForeground() == Color.GRAY ? "" : getText();
 		}
-		
+
+		public void setDisabled() {
+			setEnabled(false);
+			setText("Restart Cytoscape to use CyNDEx2");
+			setForeground(Color.GRAY);
+			disabled = true;
+			firePropertyChange(QUERY_PROPERTY, null, null);
+		}
+
 		@Override
 		public JToolTip createToolTip() {
+			JToolTip tip = super.createToolTip();
+			ToolTipManager.sharedInstance().setDismissDelay(10000);
+			if (disabled) {
+				tip.setComponent(this);
+				tip.setLayout(new BorderLayout());
+				tip.add(new JLabel("Likely caused by a failure to update CyNDEx2 or an "
+						+ "issue with existing JXBrowser instances."), BorderLayout.CENTER);
+				return tip;
+			}
 			final Dimension size = new Dimension(220, 270);
 			final JEditorPane pane = new JEditorPane();
 			pane.setBackground(Color.white);
@@ -132,9 +156,7 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 					+ "<p>If you want to browse the database, simply send empty query. For more details, please visit <i>www.ndexbio.org</i></p>";
 			pane.setText(help);
 			pane.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-			JToolTip tip = super.createToolTip();
-			ToolTipManager.sharedInstance().setDismissDelay(10000);
-			
+
 			tip.setPreferredSize(size);
 			tip.setSize(size);
 			tip.setComponent(this);
@@ -149,31 +171,32 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 	}
 
 	public JComponent getQueryComponent() {
-		if (pm.loadFailed()) {
-			JLabel label = new JLabel("Restart Cytoscape to use CyNDex");
-			label.setForeground(Color.GRAY);
-			label.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));
-			return label;
-		}
-		return getEntry();
+		return entry;
 	}
 
 	@Override
 	public String getQuery() {
-		Entry entry = getEntry();
 		return entry.getQuery();
 	}
 
 	@Override
 	public TaskIterator createTaskIterator() {
+		// Store query info
 		pm.setQuery(getQuery());
-		return new TaskIterator(new OpenExternalAppTask(appName, pm, swingApp, port));
+		pm.setAppName(appName);
+		pm.setPort(port);
+
+		TaskIterator ti = new TaskIterator();
+		LoadBrowserTask loader = new LoadBrowserTask(pm, ti, swingApp);
+		ti.append(loader);
+		return ti;
 	}
 
 	@Override
 	public boolean isReady() {
-		if (pm.loadFailed())
+		if (loadFailed)
 			return false;
+
 		if (appName == ExternalAppManager.APP_NAME_SAVE) {
 			final CyNetwork curNetwork = appManager.getCurrentNetwork();
 			if (curNetwork == null) {

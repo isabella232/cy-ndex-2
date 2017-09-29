@@ -13,6 +13,7 @@ import java.awt.event.WindowEvent;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
@@ -22,11 +23,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.swing.ImageIcon;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
-
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
@@ -66,7 +65,7 @@ import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.BrowserContext;
 import com.teamdev.jxbrowser.chromium.BrowserContextParams;
 import com.teamdev.jxbrowser.chromium.BrowserPreferences;
-import com.teamdev.jxbrowser.chromium.BrowserType;
+import com.teamdev.jxbrowser.chromium.LoggerProvider;
 import com.teamdev.jxbrowser.chromium.PopupContainer;
 import com.teamdev.jxbrowser.chromium.PopupHandler;
 import com.teamdev.jxbrowser.chromium.PopupParams;
@@ -84,28 +83,70 @@ public class CyActivator extends AbstractCyActivator {
 	private ExternalAppManager pm;
 	private static final String STATIC_CONTENT_DIR = "cyndex-2";
 	private static Browser browser;
-	private static String remoteDebuggingURL;
-	private static BrowserContext context;
 	private static CyProperty<Properties> cyProps;
+	private static File jxbrowserConfigLocation;
 
 	private StaticContentsServer httpServer;
 
 	public CyActivator() {
 		super();
 	}
+	
+	public static class BrowserCreationError extends Exception{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 4687535679654703495L;
 
-	public static Browser getBrowser() {
+		public BrowserCreationError(){
+			super("JXBrowser instance creation failed. There is probably another instance already running.");
+		}
+	}
+	
+	private static boolean chromiumInstanceExists(){
+		// return whether libjxbrowser dylib/dll exists, which would cause Browser instantiation to fail
+		File[] instances = jxbrowserConfigLocation.listFiles(new FilenameFilter() {
+		    @Override
+		    public boolean accept(File dir, String name) {
+		        return name.startsWith("libjxbrowser-common64-") && name.endsWith(".dylib");
+		    }
+		});
+		return instances.length > 0;
+	}
+
+	public static Browser getBrowser() throws BrowserCreationError {
+		// returns non-null Browser object or an Exception
+		
 		if (browser == null) {
-			BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222", "--ipc-connection-timeout=2");
-
-			browser = new Browser(BrowserType.LIGHTWEIGHT, context);
-			remoteDebuggingURL = browser.getRemoteDebuggingURL();
-
+			
+			if (chromiumInstanceExists()){
+				throw new BrowserCreationError();
+			}
+			// Uncomment for development port
+			// BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222", "--ipc-connection-timeout=2");
+			BrowserPreferences.setChromiumSwitches("--ipc-connection-timeout=2");
+			
+			// Create the binary in the CytoscapeConfig
+			System.setProperty("jxbrowser.chromium.dir", jxbrowserConfigLocation.getAbsolutePath());
+			
+			LoggerProvider.setLevel(java.util.logging.Level.OFF);
+			BrowserContextParams params = new BrowserContextParams(
+					jxbrowserConfigLocation.getAbsolutePath());
+			
+			// TODO: Freezes for 120 seconds on duplicate StartIPCTask. Check for existing dyLib before
+			// Create browser and throw exception on failure
+			BrowserContext context = new BrowserContext(params);
+			
+			browser = new Browser(context);
+			
+			if (browser == null){
+				throw new BrowserCreationError();
+			}
+			
+			// Enable local storage and popups
 			BrowserPreferences preferences = browser.getPreferences();
 			preferences.setLocalStorageEnabled(true);
 			browser.setPreferences(preferences);
-			browser.setPopupHandler(new CustomPopupHandler());
-
 			browser.addLoadListener(new LoadAdapter() {
 				@Override
 				public void onDocumentLoadedInMainFrame(LoadEvent event) {
@@ -113,7 +154,9 @@ public class CyActivator extends AbstractCyActivator {
 					browser.executeJavaScript("localStorage");
 				}
 			});
-			// loadDevTools();
+
+			browser.setPopupHandler(new CustomPopupHandler());
+			
 		}
 
 		return browser;
@@ -180,10 +223,14 @@ public class CyActivator extends AbstractCyActivator {
 		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
 
 		// Set local storage directory to CytoscapeConfiguration
-		BrowserContextParams params = new BrowserContextParams(
-				new File(config.getConfigurationDirectoryLocation(), "jxbrowser").getAbsolutePath());
-		context = new BrowserContext(params);
 
+		jxbrowserConfigLocation = new File(config.getConfigurationDirectoryLocation(), "jxbrowser");
+		if (!jxbrowserConfigLocation.exists())
+			jxbrowserConfigLocation.mkdir();
+		BrowserPreferences.setChromiumDir(jxbrowserConfigLocation.getAbsolutePath());
+		System.setProperty(BrowserPreferences.TEMP_DIR_PROPERTY, jxbrowserConfigLocation.getAbsolutePath());
+
+		
 		// TF for NDEx Save
 		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory(
 				ExternalAppManager.APP_NAME_SAVE, appManager, icon, pm, swingApp, cyProps);
@@ -219,6 +266,8 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, new NdexNetworkResourceImpl(ndexClient, errorBuilder, appManager, netmgr, tfManager,
 				loadNetworkTF, ciExceptionFactory, ciErrorFactory), NdexNetworkResource.class, new Properties());
 
+		if (chromiumInstanceExists())
+			OpenExternalAppTaskFactory.setLoadFailed();
 	}
 
 	private final void installWebApp(final String configDir, final BundleContext bc) {
@@ -360,18 +409,6 @@ public class CyActivator extends AbstractCyActivator {
 				}
 			};
 		}
-	}
-
-	private static void loadDevTools() {
-		JDialog devTools = new JDialog();
-		Browser devBrowser = new Browser(BrowserType.LIGHTWEIGHT, context);
-		BrowserView bv = new BrowserView(devBrowser);
-
-		devTools.add(bv, BorderLayout.CENTER);
-		devTools.setSize(1000, 700);
-		devTools.setLocationRelativeTo(null);
-		devTools.setVisible(true);
-		devBrowser.loadURL(remoteDebuggingURL);
 	}
 
 }
