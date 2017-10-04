@@ -9,8 +9,8 @@ cd webapp
 
 # Make sure it is up-to-date
 #echo 'pulling changes from master branch...'
-#git checkout master
-#git pull
+git checkout master
+git pull
 
 npm install --python=python2.7
 npm run build

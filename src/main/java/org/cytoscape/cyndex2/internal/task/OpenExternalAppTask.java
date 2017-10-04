@@ -4,12 +4,14 @@ import java.awt.BorderLayout;
 import java.awt.Dialog.ModalityType;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
+import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.JSValue;
 import com.teamdev.jxbrowser.chromium.events.ScriptContextAdapter;
 import com.teamdev.jxbrowser.chromium.events.ScriptContextEvent;
@@ -28,6 +30,7 @@ public class OpenExternalAppTask extends AbstractTask {
 	private BrowserView browserView;
 	private final String port;
 	private final CySwingApplication swingApp;
+	private static JDialog dialog = null;
 
 	public OpenExternalAppTask(final BrowserView browserView,
 			final CySwingApplication swingApp, String port) {
@@ -37,23 +40,28 @@ public class OpenExternalAppTask extends AbstractTask {
 	}
 
 	@Override
-	public void run(TaskMonitor taskMonitor) throws Exception {
+	public void run(TaskMonitor taskMonitor) {
+		if (this.cancelled)
+			return;
 		// Open the CyNDEx-2 browser
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
 				JFrame frame = swingApp.getJFrame();
-				final JDialog dialog = new JDialog(frame, "CyNDEx2 Browser", ModalityType.APPLICATION_MODAL);
+				if (dialog == null)
+					dialog = new JDialog(frame, "CyNDEx2 Browser", ModalityType.APPLICATION_MODAL);
+				
 				dialog.getModalityType();
 				dialog.setSize(1000, 700);
 				dialog.setLocationRelativeTo(null);
 				dialog.add(browserView, BorderLayout.CENTER);
-
-				browserView.getBrowser().addScriptContextListener(new ScriptContextAdapter() {
+				
+				Browser browser = browserView.getBrowser();
+				browser.addScriptContextListener(new ScriptContextAdapter() {
 
 					@Override
 					public void onScriptContextCreated(ScriptContextEvent arg0) {
-						JSValue window = browserView.getBrowser().executeJavaScriptAndReturnValue("window");
+						JSValue window = browser.executeJavaScriptAndReturnValue("window");
 						if (window != null) {
 							window.asObject().setProperty("frame", dialog);
 							window.asObject().setProperty("restPort", port);
@@ -61,10 +69,18 @@ public class OpenExternalAppTask extends AbstractTask {
 
 					}
 				});
-
-				browserView.getBrowser().loadURL("http://localhost:2222");
-				dialog.setAlwaysOnTop(false);
-				dialog.setVisible(true);
+				try{
+					browserView.requestFocusInWindow();
+					browser.loadURL("http://localhost:2222");
+					dialog.setAlwaysOnTop(false);
+					dialog.setVisible(true);
+				}catch (Exception e){
+					dialog.setVisible(false);
+					System.out.println("Error loading CyNDEx2 browser: " + e.getMessage());
+					JOptionPane.showMessageDialog(swingApp.getJFrame(), "An error occurred communicating with JxBrowser. Restart and try again.", "JxBrowser Error", JOptionPane.ERROR_MESSAGE);
+					OpenExternalAppTaskFactory.setLoadFailed();
+				}
+				
 			}
 		});
 

@@ -1,6 +1,7 @@
 package org.cytoscape.cyndex2.internal.task;
 
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.cyndex2.internal.CyActivator;
@@ -33,7 +34,7 @@ public class LoadBrowserTask extends AbstractTask {
 			browserView = new BrowserView(browser);
 		}
 		if (browserView == null)
-			throw new BrowserCreationError();
+			throw new BrowserCreationError("Browser failed to initialize.");
 		return browserView;
 	}
 
@@ -50,10 +51,22 @@ public class LoadBrowserTask extends AbstractTask {
 			ti.insertTasksAfter(this, new OpenExternalAppTask(browserView, swingApp, port));
 		} catch (BrowserCreationError e) {
 			taskMonitor.showMessage(TaskMonitor.Level.ERROR,
-					"Failed to create browser instance for CyNDEx-2. Restart Cytoscape and try again.");
-			JOptionPane.showMessageDialog(swingApp.getJFrame(),
-					"Failed to create browser instance for CyNDEx-2. Restart Cytoscape and try again.",
-					"Error opening CyNDEx", JOptionPane.ERROR_MESSAGE);
+					"Failed to create browser instance for CyNDEx-2. Restart Cytoscape and try again.\nError: " + e.getMessage());
+			ti.append(new AbstractTask(){
+
+				@Override
+				public void run(TaskMonitor taskMonitor) throws Exception {
+					SwingUtilities.invokeLater(new Runnable(){
+
+						@Override
+						public void run() {
+							JOptionPane.showMessageDialog(null, e.getMessage());	
+						}
+						
+					});
+				}
+				
+			});
 			OpenExternalAppTaskFactory.setLoadFailed();
 		}
 	}

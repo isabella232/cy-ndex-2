@@ -21,6 +21,7 @@ import java.util.Enumeration;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -61,6 +62,7 @@ import org.osgi.framework.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.teamdev.jxbrowser.chromium.BeforeRedirectParams;
 import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.BrowserContext;
 import com.teamdev.jxbrowser.chromium.BrowserContextParams;
@@ -69,10 +71,12 @@ import com.teamdev.jxbrowser.chromium.LoggerProvider;
 import com.teamdev.jxbrowser.chromium.PopupContainer;
 import com.teamdev.jxbrowser.chromium.PopupHandler;
 import com.teamdev.jxbrowser.chromium.PopupParams;
+import com.teamdev.jxbrowser.chromium.StopFindAction;
 import com.teamdev.jxbrowser.chromium.events.DisposeEvent;
 import com.teamdev.jxbrowser.chromium.events.DisposeListener;
 import com.teamdev.jxbrowser.chromium.events.LoadAdapter;
 import com.teamdev.jxbrowser.chromium.events.LoadEvent;
+import com.teamdev.jxbrowser.chromium.javafx.DefaultNetworkDelegate;
 import com.teamdev.jxbrowser.chromium.swing.BrowserView;
 
 public class CyActivator extends AbstractCyActivator {
@@ -92,57 +96,77 @@ public class CyActivator extends AbstractCyActivator {
 		super();
 	}
 	
-	public static class BrowserCreationError extends Exception{
+	
+	public static class BrowserCreationError extends Exception {
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = 4687535679654703495L;
 
-		public BrowserCreationError(){
-			super("JXBrowser instance creation failed. There is probably another instance already running.");
+		public BrowserCreationError(String message) {
+			super("JXBrowser instance creation failed.\n" + message);
 		}
 	}
-	
-	private static boolean chromiumInstanceExists(){
-		// return whether libjxbrowser dylib/dll exists, which would cause Browser instantiation to fail
+
+	private static boolean chromiumInstanceExists() {
+		// return whether libjxbrowser dylib/dll exists, which would cause
+		// Browser instantiation to fail
 		File[] instances = jxbrowserConfigLocation.listFiles(new FilenameFilter() {
-		    @Override
-		    public boolean accept(File dir, String name) {
-		        return name.startsWith("libjxbrowser-common64-") && name.endsWith(".dylib");
-		    }
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.startsWith("libjxbrowser-common64-") && name.endsWith(".dylib");
+			}
 		});
 		return instances.length > 0;
 	}
-
+	
+	
 	public static Browser getBrowser() throws BrowserCreationError {
 		// returns non-null Browser object or an Exception
-		
+
 		if (browser == null) {
-			
-			if (chromiumInstanceExists()){
-				throw new BrowserCreationError();
+
+			if (chromiumInstanceExists()) {
+				throw new BrowserCreationError("Chromium instance already running.");
 			}
 			// Uncomment for development port
-			// BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222", "--ipc-connection-timeout=2");
-			BrowserPreferences.setChromiumSwitches("--ipc-connection-timeout=2");
-			
+			BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222", "--ipc-connection-timeout=2");
+			// BrowserPreferences.setChromiumSwitches("--ipc-connection-timeout=2");
+
 			// Create the binary in the CytoscapeConfig
 			System.setProperty("jxbrowser.chromium.dir", jxbrowserConfigLocation.getAbsolutePath());
-			
-			LoggerProvider.setLevel(java.util.logging.Level.OFF);
-			BrowserContextParams params = new BrowserContextParams(
-					jxbrowserConfigLocation.getAbsolutePath());
-			
-			// TODO: Freezes for 120 seconds on duplicate StartIPCTask. Check for existing dyLib before
-			// Create browser and throw exception on failure
-			BrowserContext context = new BrowserContext(params);
-			
-			browser = new Browser(context);
-			
-			if (browser == null){
-				throw new BrowserCreationError();
+
+			// try to disable logging as much as possible
+			LoggerProvider.getChromiumProcessLogger().setLevel(Level.OFF);
+			LoggerProvider.getIPCLogger().setLevel(Level.OFF);
+			LoggerProvider.getBrowserLogger().setLevel(Level.OFF);
+
+			BrowserContextParams params = new BrowserContextParams(jxbrowserConfigLocation.getAbsolutePath());
+
+			try {
+				// TODO: Freezes for 120 seconds on duplicate StartIPCTask.
+				// Check for existing dyLib before
+				// Create browser and throw exception on failure
+				BrowserContext context = new BrowserContext(params);
+				context.getNetworkService().setNetworkDelegate(new DefaultNetworkDelegate(){
+					@Override
+					public void onBeforeRedirect(BeforeRedirectParams params) {
+						if (params.getResponseCode() == 404){
+							browser.loadHTML("<h2>404 Error<h2><h3>Unable to locate the CyNDEx2 webapp in your CytoscapeConfiguration. <h3>");
+							return;
+						}
+						super.onBeforeRedirect(params);
+					}
+				});
+				browser = new Browser(context);
+			} catch (Exception e) {
+				throw new BrowserCreationError(e.getMessage());
 			}
-			
+
+			if (browser == null) {
+				throw new BrowserCreationError("Browser failed to initialize.");
+			}
+
 			// Enable local storage and popups
 			BrowserPreferences preferences = browser.getPreferences();
 			preferences.setLocalStorageEnabled(true);
@@ -154,9 +178,9 @@ public class CyActivator extends AbstractCyActivator {
 					browser.executeJavaScript("localStorage");
 				}
 			});
-
-			browser.setPopupHandler(new CustomPopupHandler());
 			
+			browser.setPopupHandler(new CustomPopupHandler());
+
 		}
 
 		return browser;
@@ -225,12 +249,16 @@ public class CyActivator extends AbstractCyActivator {
 		// Set local storage directory to CytoscapeConfiguration
 
 		jxbrowserConfigLocation = new File(config.getConfigurationDirectoryLocation(), "jxbrowser");
+
 		if (!jxbrowserConfigLocation.exists())
-			jxbrowserConfigLocation.mkdir();
+			try {
+				jxbrowserConfigLocation.mkdir();
+			} catch (SecurityException e) {
+				OpenExternalAppTaskFactory.setLoadFailed();
+			}
 		BrowserPreferences.setChromiumDir(jxbrowserConfigLocation.getAbsolutePath());
 		System.setProperty(BrowserPreferences.TEMP_DIR_PROPERTY, jxbrowserConfigLocation.getAbsolutePath());
 
-		
 		// TF for NDEx Save
 		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory(
 				ExternalAppManager.APP_NAME_SAVE, appManager, icon, pm, swingApp, cyProps);
@@ -240,6 +268,7 @@ public class CyActivator extends AbstractCyActivator {
 		ndexSaveTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export");
 		ndexSaveTaskFactoryProps.setProperty(MENU_GRAVITY, "0.0");
 		ndexSaveTaskFactoryProps.setProperty(TITLE, "Network Collection to NDEx...");
+		
 		registerService(bc, ndexSaveTaskFactory, TaskFactory.class, ndexSaveTaskFactoryProps);
 
 		// TF for NDEx Load
@@ -265,9 +294,9 @@ public class CyActivator extends AbstractCyActivator {
 		// Network IO
 		registerService(bc, new NdexNetworkResourceImpl(ndexClient, errorBuilder, appManager, netmgr, tfManager,
 				loadNetworkTF, ciExceptionFactory, ciErrorFactory), NdexNetworkResource.class, new Properties());
-
-		if (chromiumInstanceExists())
-			OpenExternalAppTaskFactory.setLoadFailed();
+		
+		//if (chromiumInstanceExists())
+		//	OpenExternalAppTaskFactory.setLoadFailed();
 	}
 
 	private final void installWebApp(final String configDir, final BundleContext bc) {
@@ -359,15 +388,17 @@ public class CyActivator extends AbstractCyActivator {
 		});
 	}
 
+	
 	@Override
 	public void shutDown() {
 		logger.info("Shutting down CyNDEx-2...");
-
+		
 		try {
 			httpServer.stopServer();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
 		if (browser != null) {
 			browser.getCacheStorage().clearCache();
 			browser.dispose();

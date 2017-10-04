@@ -31,7 +31,7 @@ import org.cytoscape.work.TaskIterator;
 public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory implements TaskFactory {
 
 	private static final String ID = "cyndex2";
-	private static final String NAME = "CyNDEX-2";
+	private static final String NAME = "CyNDEx-2";
 
 	private final String appName;
 	private final ExternalAppManager pm;
@@ -39,7 +39,6 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 	private static Entry entry;
 	private final CySwingApplication swingApp;
 	private String port;
-	
 	private static boolean loadFailed = false;
 
 	public OpenExternalAppTaskFactory(final String appName, final CyApplicationManager appManager, final Icon icon,
@@ -74,12 +73,14 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 		private final Color TEXT_COLOR = Color.decode("#444444");
 		private final static String SEARCH_TEXT = "Enter search terms for NDEx...";
 		private boolean disabled = false;
+		private final JToolTip tip;
 
 		public Entry() {
 			super(SEARCH_TEXT);
 			setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 			setForeground(Color.GRAY);
 			setToolTipText("");
+			tip = new JToolTip();
 
 			addKeyListener(new KeyAdapter() {
 				@Override
@@ -89,9 +90,9 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 
 				@Override
 				public void keyPressed(KeyEvent e) {
-					if (e.getKeyCode() == KeyEvent.VK_ENTER)
+					if (e.getKeyCode() == KeyEvent.VK_ENTER){
 						fireSearchRequested();
-					else {
+					}else {
 						firePropertyChange(QUERY_PROPERTY, null, null);
 					}
 					super.keyPressed(e);
@@ -118,7 +119,7 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 			});
 
 		}
-
+		
 		public String getQuery() {
 			return getForeground() == Color.GRAY ? "" : getText();
 		}
@@ -133,8 +134,7 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 
 		@Override
 		public JToolTip createToolTip() {
-			JToolTip tip = super.createToolTip();
-			ToolTipManager.sharedInstance().setDismissDelay(10000);
+			ToolTipManager.sharedInstance().setDismissDelay(7000);
 			if (disabled) {
 				tip.setComponent(this);
 				tip.setLayout(new BorderLayout());
@@ -162,12 +162,14 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 			tip.setComponent(this);
 			tip.setLayout(new BorderLayout());
 			tip.add(pane, BorderLayout.CENTER);
+			tip.setVisible(true);
 			return tip;
 		}
 
 		private void fireSearchRequested() {
 			firePropertyChange(SEARCH_REQUESTED_PROPERTY, null, null);
 		}
+
 	}
 
 	public JComponent getQueryComponent() {
