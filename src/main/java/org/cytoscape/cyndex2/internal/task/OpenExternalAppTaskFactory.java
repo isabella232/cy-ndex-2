@@ -69,7 +69,7 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 
 	public static void setLoadFailed(String reason) {
 		entry.setDisabled();
-		entry.setToolTipText(reason);
+		//entry.setToolTipText(reason);
 		loadFailed = true;
 
 	}
