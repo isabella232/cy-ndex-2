@@ -62,21 +62,20 @@ import org.osgi.framework.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.teamdev.jxbrowser.chromium.BeforeRedirectParams;
 import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.BrowserContext;
 import com.teamdev.jxbrowser.chromium.BrowserContextParams;
 import com.teamdev.jxbrowser.chromium.BrowserPreferences;
-import com.teamdev.jxbrowser.chromium.LoggerProvider;
+import com.teamdev.jxbrowser.chromium.BrowserType;
 import com.teamdev.jxbrowser.chromium.PopupContainer;
 import com.teamdev.jxbrowser.chromium.PopupHandler;
 import com.teamdev.jxbrowser.chromium.PopupParams;
-import com.teamdev.jxbrowser.chromium.StopFindAction;
 import com.teamdev.jxbrowser.chromium.events.DisposeEvent;
 import com.teamdev.jxbrowser.chromium.events.DisposeListener;
 import com.teamdev.jxbrowser.chromium.events.LoadAdapter;
 import com.teamdev.jxbrowser.chromium.events.LoadEvent;
-import com.teamdev.jxbrowser.chromium.javafx.DefaultNetworkDelegate;
+import com.teamdev.jxbrowser.chromium.internal.IPCLogger;
+import com.teamdev.jxbrowser.chromium.internal.ipc.IPC;
 import com.teamdev.jxbrowser.chromium.swing.BrowserView;
 
 public class CyActivator extends AbstractCyActivator {
@@ -87,6 +86,7 @@ public class CyActivator extends AbstractCyActivator {
 	private ExternalAppManager pm;
 	private static final String STATIC_CONTENT_DIR = "cyndex-2";
 	private static Browser browser;
+	private static BrowserView browserView;
 	private static CyProperty<Properties> cyProps;
 	private static File jxbrowserConfigLocation;
 
@@ -120,8 +120,7 @@ public class CyActivator extends AbstractCyActivator {
 		return instances.length > 0;
 	}
 	
-	
-	public static Browser getBrowser() throws BrowserCreationError {
+	public static BrowserView getBrowserView() throws BrowserCreationError {
 		// returns non-null Browser object or an Exception
 
 		if (browser == null) {
@@ -137,28 +136,14 @@ public class CyActivator extends AbstractCyActivator {
 			System.setProperty("jxbrowser.chromium.dir", jxbrowserConfigLocation.getAbsolutePath());
 
 			// try to disable logging as much as possible
-			LoggerProvider.getChromiumProcessLogger().setLevel(Level.OFF);
-			LoggerProvider.getIPCLogger().setLevel(Level.OFF);
-			LoggerProvider.getBrowserLogger().setLevel(Level.OFF);
-
-			BrowserContextParams params = new BrowserContextParams(jxbrowserConfigLocation.getAbsolutePath());
+			IPCLogger.getGlobal().setLevel(Level.OFF);
 
 			try {
-				// TODO: Freezes for 120 seconds on duplicate StartIPCTask.
-				// Check for existing dyLib before
-				// Create browser and throw exception on failure
+				BrowserContextParams params = new BrowserContextParams(jxbrowserConfigLocation.getAbsolutePath());
+				
 				BrowserContext context = new BrowserContext(params);
-				context.getNetworkService().setNetworkDelegate(new DefaultNetworkDelegate(){
-					@Override
-					public void onBeforeRedirect(BeforeRedirectParams params) {
-						if (params.getResponseCode() == 404){
-							browser.loadHTML("<h2>404 Error<h2><h3>Unable to locate the CyNDEx2 webapp in your CytoscapeConfiguration. <h3>");
-							return;
-						}
-						super.onBeforeRedirect(params);
-					}
-				});
-				browser = new Browser(context);
+		        browser = new Browser(BrowserType.LIGHTWEIGHT, context);
+				
 			} catch (Exception e) {
 				throw new BrowserCreationError(e.getMessage());
 			}
@@ -180,10 +165,11 @@ public class CyActivator extends AbstractCyActivator {
 			});
 			
 			browser.setPopupHandler(new CustomPopupHandler());
-
+			browserView = new BrowserView(browser);
+			
 		}
 
-		return browser;
+		return browserView;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -241,7 +227,7 @@ public class CyActivator extends AbstractCyActivator {
 		// Create web app dir
 		installWebApp(staticContentPath, bc);
 		File staticPath = new File(staticContentPath, STATIC_CONTENT_DIR);
-		this.startHttpServer(bc, staticPath.getAbsolutePath());
+		startHttpServer(bc, staticPath.getAbsolutePath());
 
 		// get QueryPanel icon
 		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
@@ -254,7 +240,7 @@ public class CyActivator extends AbstractCyActivator {
 			try {
 				jxbrowserConfigLocation.mkdir();
 			} catch (SecurityException e) {
-				OpenExternalAppTaskFactory.setLoadFailed();
+				OpenExternalAppTaskFactory.setLoadFailed("Failed to create JXBrowser directory in CytoscapeConfiguration");
 			}
 		BrowserPreferences.setChromiumDir(jxbrowserConfigLocation.getAbsolutePath());
 		System.setProperty(BrowserPreferences.TEMP_DIR_PROPERTY, jxbrowserConfigLocation.getAbsolutePath());
@@ -299,6 +285,7 @@ public class CyActivator extends AbstractCyActivator {
 		//	OpenExternalAppTaskFactory.setLoadFailed();
 	}
 
+
 	private final void installWebApp(final String configDir, final BundleContext bc) {
 
 		// This bundle's version
@@ -308,7 +295,7 @@ public class CyActivator extends AbstractCyActivator {
 			final File webappDir = new File(configDir, STATIC_CONTENT_DIR);
 			webappDir.mkdir();
 			extractWebapp(bc.getBundle(), STATIC_CONTENT_DIR, configDir);
-			File markerFile = new File(configDir, INSTALL_MAKER_FILE_NAME + "-" + version.toString() + ".txt");
+			File markerFile = new File(webappDir, INSTALL_MAKER_FILE_NAME + "-" + version.toString() + ".txt");
 			try {
 				markerFile.createNewFile();
 			} catch (IOException e) {
@@ -320,9 +307,14 @@ public class CyActivator extends AbstractCyActivator {
 
 	private final boolean isInstalled(final String configDir, final String bundleVersion) {
 		// This is the indicator of installation.
+		
+		final File cyndexDir = new File(configDir, STATIC_CONTENT_DIR);
+		if (!cyndexDir.exists()){
+			return false;
+		}
 		final String markerFileName = INSTALL_MAKER_FILE_NAME + "-" + bundleVersion + ".txt";
-		final File markerFile = new File(configDir, markerFileName);
-
+		final File markerFile = new File(cyndexDir, markerFileName);
+		
 		if (markerFile.exists()) {
 			// Exact match required. Otherwise, simply override the existing
 			// contents.
@@ -332,7 +324,7 @@ public class CyActivator extends AbstractCyActivator {
 		return false;
 	}
 
-	private final void extractWebapp(final Bundle bundle, final String path, String targetDir) {
+	private final void extractWebapp(final Bundle bundle, final String path, final String targetDir) {
 		Enumeration<String> ress = bundle.getEntryPaths(path);
 		while (ress.hasMoreElements()) {
 			String fileName = ress.nextElement();
@@ -374,15 +366,17 @@ public class CyActivator extends AbstractCyActivator {
 
 		logger.info("CyNDEx-2 web application root directory: " + path);
 		if (!checkPort(2222)) {
+			OpenExternalAppTaskFactory.setLoadFailed("Port 2222 is not available");
 			return;
 		}
-
+		
 		httpServer = new StaticContentsServer(path);
 		ExecutorService executor = Executors.newSingleThreadExecutor();
 		executor.submit(() -> {
 			try {
 				httpServer.startServer();
 			} catch (Exception e) {
+				OpenExternalAppTaskFactory.setLoadFailed("Failed to start local server.\n" + e.getMessage());
 				throw new RuntimeException("Could not start Static Content server in separate thread.", e);
 			}
 		});
@@ -396,13 +390,18 @@ public class CyActivator extends AbstractCyActivator {
 		try {
 			httpServer.stopServer();
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.debug("Failed to stop server. Did it ever start?\n" + e.getMessage());
+			//e.printStackTrace();
 		}
 		
-		if (browser != null) {
+		for (Browser browser : IPC.getBrowsers()){
 			browser.getCacheStorage().clearCache();
 			browser.dispose();
 		}
+		OpenExternalAppTaskFactory.cleanup();
+		
+		if (!browser.isDisposed())
+			browser.dispose();
 
 	}
 
