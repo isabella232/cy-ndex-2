@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Dialog.ModalityType;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
@@ -13,7 +14,9 @@ import java.util.Properties;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JEditorPane;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.JToolTip;
@@ -37,9 +40,9 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 	private final ExternalAppManager pm;
 	private final CyApplicationManager appManager;
 	private static Entry entry;
-	private final CySwingApplication swingApp;
 	private String port;
 	private static boolean loadFailed = false;
+	private static JDialog dialog;
 
 	public OpenExternalAppTaskFactory(final String appName, final CyApplicationManager appManager, final Icon icon,
 			final ExternalAppManager pm, final CySwingApplication swingApp, final CyProperty<Properties> cyProps) {
@@ -47,21 +50,35 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 		this.appName = appName;
 		this.appManager = appManager;
 		this.pm = pm;
-		this.swingApp = swingApp;
 		port = cyProps.getProperties().getProperty("rest.port");
 		entry = new Entry();
-		
+
 		if (port == null)
 			port = "1234";
+
+		JFrame frame = swingApp.getJFrame();
+		dialog = new JDialog(frame, "CyNDEx2 Browser", ModalityType.APPLICATION_MODAL);
+		// ensure modality type
+		dialog.getModalityType();
+
 	}
-	public static boolean loadFailed(){
+
+	public static boolean loadFailed() {
 		return loadFailed;
 	}
-	
-	public static void setLoadFailed(){
+
+	public static void setLoadFailed(String reason) {
 		entry.setDisabled();
+		entry.setToolTipText(reason);
 		loadFailed = true;
-		
+
+	}
+
+	public static void cleanup() {
+		if (dialog != null) {
+			dialog.setVisible(false);
+			dialog.dispose();
+		}
 	}
 
 	private class Entry extends JTextField {
@@ -90,9 +107,9 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 
 				@Override
 				public void keyPressed(KeyEvent e) {
-					if (e.getKeyCode() == KeyEvent.VK_ENTER){
+					if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 						fireSearchRequested();
-					}else {
+					} else {
 						firePropertyChange(QUERY_PROPERTY, null, null);
 					}
 					super.keyPressed(e);
@@ -119,7 +136,7 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 			});
 
 		}
-		
+
 		public String getQuery() {
 			return getForeground() == Color.GRAY ? "" : getText();
 		}
@@ -188,8 +205,11 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 		pm.setAppName(appName);
 		pm.setPort(port);
 
+		dialog.setSize(1000, 700);
+		dialog.setLocationRelativeTo(null);
+
 		TaskIterator ti = new TaskIterator();
-		LoadBrowserTask loader = new LoadBrowserTask(pm, ti, swingApp);
+		LoadBrowserTask loader = new LoadBrowserTask(pm, dialog, ti);
 		ti.append(loader);
 		return ti;
 	}
