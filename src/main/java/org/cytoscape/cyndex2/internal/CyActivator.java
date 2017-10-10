@@ -326,6 +326,10 @@ public class CyActivator extends AbstractCyActivator {
 
 	private final void extractWebapp(final Bundle bundle, final String path, final String targetDir) {
 		Enumeration<String> ress = bundle.getEntryPaths(path);
+		if (ress == null){
+			OpenExternalAppTaskFactory.setLoadFailed("CyNDEx2 webapp directory not found");
+			return;
+		}
 		while (ress.hasMoreElements()) {
 			String fileName = ress.nextElement();
 

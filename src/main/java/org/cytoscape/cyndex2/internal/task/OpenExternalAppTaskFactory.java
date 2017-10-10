@@ -25,17 +25,21 @@ import javax.swing.ToolTipManager;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.search.AbstractNetworkSearchTaskFactory;
+import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory implements TaskFactory {
 
 	private static final String ID = "cyndex2";
 	private static final String NAME = "CyNDEx-2";
 
+	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
 	private final String appName;
 	private final ExternalAppManager pm;
 	private final CyApplicationManager appManager;
@@ -69,6 +73,7 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 
 	public static void setLoadFailed(String reason) {
 		entry.setDisabled();
+		logger.error("CyNDEx2 ERROR: " + reason);
 		//entry.setToolTipText(reason);
 		loadFailed = true;
 
