@@ -104,26 +104,6 @@
 					</instructions>
 				</configuration>
 			</plugin>
-
-			<!-- For building web application (JavaScript-based app) -->
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.6.0</version>
-				<executions>
-					<execution>
-						<id>Build front-end code</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>${basedir}/build-webapp.sh</executable>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
 		</plugins>
 		<pluginManagement>
 			<plugins>
