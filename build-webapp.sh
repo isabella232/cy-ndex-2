@@ -2,6 +2,9 @@
 
 echo "Building webapp..."
 
+git submodule init
+git submodule update
+
 rm -rf ./webapp/build
 rm -rf ./src/main/resources/cyndex-2
 
