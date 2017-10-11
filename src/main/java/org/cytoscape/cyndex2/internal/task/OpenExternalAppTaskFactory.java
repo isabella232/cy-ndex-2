@@ -55,7 +55,6 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 		this.appManager = appManager;
 		this.pm = pm;
 		port = cyProps.getProperties().getProperty("rest.port");
-		entry = new Entry();
 
 		if (port == null)
 			port = "1234";
@@ -64,19 +63,18 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 		dialog = new JDialog(frame, "CyNDEx2 Browser", ModalityType.APPLICATION_MODAL);
 		// ensure modality type
 		dialog.getModalityType();
-
-	}
-
-	public static boolean loadFailed() {
-		return loadFailed;
 	}
 
 	public static void setLoadFailed(String reason) {
-		entry.setDisabled();
+		getEntry().setDisabled();
 		logger.error("CyNDEx2 ERROR: " + reason);
-		//entry.setToolTipText(reason);
 		loadFailed = true;
-
+	}
+	
+	public static Entry getEntry(){
+		if (entry == null)
+			entry = new Entry();
+		return entry;
 	}
 
 	public static void cleanup() {
@@ -86,7 +84,7 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 		}
 	}
 
-	private class Entry extends JTextField {
+	private static class Entry extends JTextField {
 		/**
 		 * 
 		 */
@@ -195,12 +193,12 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 	}
 
 	public JComponent getQueryComponent() {
-		return entry;
+		return getEntry();
 	}
 
 	@Override
 	public String getQuery() {
-		return entry.getQuery();
+		return getEntry().getQuery();
 	}
 
 	@Override

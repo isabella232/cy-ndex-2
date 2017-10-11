@@ -21,7 +21,6 @@ import java.util.Enumeration;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -74,8 +73,6 @@ import com.teamdev.jxbrowser.chromium.events.DisposeEvent;
 import com.teamdev.jxbrowser.chromium.events.DisposeListener;
 import com.teamdev.jxbrowser.chromium.events.LoadAdapter;
 import com.teamdev.jxbrowser.chromium.events.LoadEvent;
-import com.teamdev.jxbrowser.chromium.internal.IPCLogger;
-import com.teamdev.jxbrowser.chromium.internal.ipc.IPC;
 import com.teamdev.jxbrowser.chromium.swing.BrowserView;
 
 public class CyActivator extends AbstractCyActivator {
@@ -108,18 +105,16 @@ public class CyActivator extends AbstractCyActivator {
 		}
 	}
 
-	private static boolean chromiumInstanceExists() {
+	private static boolean lockFileExists() {
 		// return whether libjxbrowser dylib/dll exists, which would cause
 		// Browser instantiation to fail
 		File[] instances = jxbrowserConfigLocation.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
-				return name.startsWith("libjxbrowser-common64-") && name.endsWith(".dylib");
+				//return name.startsWith("libjxbrowser-common64-") && name.endsWith(".dylib");
+				return name.endsWith("_0.lock");
 			}
 		});
-		for (File f : instances){
-			f.deleteOnExit();
-		}
 		return instances.length > 0;
 	}
 	
@@ -128,8 +123,8 @@ public class CyActivator extends AbstractCyActivator {
 
 		if (browser == null) {
 
-			if (chromiumInstanceExists()) {
-				throw new BrowserCreationError("Chromium instance already running.");
+			if (lockFileExists()) {
+				throw new BrowserCreationError("A .lock file exists in CytoscapeConfiguration/jxbrowser. The JXBrowser process must already be running.");
 			}
 			// Uncomment for development port
 			BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222", "--ipc-connection-timeout=2");
@@ -137,9 +132,6 @@ public class CyActivator extends AbstractCyActivator {
 
 			// Create the binary in the CytoscapeConfig
 			System.setProperty("jxbrowser.chromium.dir", jxbrowserConfigLocation.getAbsolutePath());
-
-			// try to disable logging as much as possible
-			IPCLogger.getGlobal().setLevel(Level.OFF);
 
 			try {
 				BrowserContextParams params = new BrowserContextParams(jxbrowserConfigLocation.getAbsolutePath());
@@ -284,8 +276,7 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, new NdexNetworkResourceImpl(ndexClient, errorBuilder, appManager, netmgr, tfManager,
 				loadNetworkTF, ciExceptionFactory, ciErrorFactory), NdexNetworkResource.class, new Properties());
 		
-		//if (chromiumInstanceExists())
-		//	OpenExternalAppTaskFactory.setLoadFailed();
+		
 	}
 
 
@@ -329,11 +320,8 @@ public class CyActivator extends AbstractCyActivator {
 
 	private final void extractWebapp(final Bundle bundle, final String path, final String targetDir) {
 		Enumeration<String> ress = bundle.getEntryPaths(path);
-		if (ress == null){
-			OpenExternalAppTaskFactory.setLoadFailed("CyNDEx2 webapp directory not found");
-			return;
-		}
-		while (ress.hasMoreElements()) {
+		
+		while (ress != null && ress.hasMoreElements()) {
 			String fileName = ress.nextElement();
 
 			File f = new File(targetDir, fileName);
@@ -398,17 +386,16 @@ public class CyActivator extends AbstractCyActivator {
 			httpServer.stopServer();
 		} catch (Exception e) {
 			logger.debug("Failed to stop server. Did it ever start?\n" + e.getMessage());
-			//e.printStackTrace();
 		}
 		
-		for (Browser browser : IPC.getBrowsers()){
-			browser.getCacheStorage().clearCache();
-			browser.dispose();
-		}
 		OpenExternalAppTaskFactory.cleanup();
 		
-		if (browser != null && !browser.isDisposed())
+		System.out.println("Browser = " + browser);
+		if (browser != null && !browser.isDisposed()){
+			browser.getCacheStorage().clearCache();
 			browser.dispose();
+			System.out.println("Browser disposed: " + browser.isDisposed());
+		}
 
 	}
 
