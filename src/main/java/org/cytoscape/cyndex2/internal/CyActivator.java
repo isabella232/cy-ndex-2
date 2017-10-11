@@ -117,6 +117,9 @@ public class CyActivator extends AbstractCyActivator {
 				return name.startsWith("libjxbrowser-common64-") && name.endsWith(".dylib");
 			}
 		});
+		for (File f : instances){
+			f.deleteOnExit();
+		}
 		return instances.length > 0;
 	}
 	
@@ -404,7 +407,7 @@ public class CyActivator extends AbstractCyActivator {
 		}
 		OpenExternalAppTaskFactory.cleanup();
 		
-		if (!browser.isDisposed())
+		if (browser != null && !browser.isDisposed())
 			browser.dispose();
 
 	}
