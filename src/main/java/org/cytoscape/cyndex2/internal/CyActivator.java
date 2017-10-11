@@ -390,11 +390,9 @@ public class CyActivator extends AbstractCyActivator {
 		
 		OpenExternalAppTaskFactory.cleanup();
 		
-		System.out.println("Browser = " + browser);
 		if (browser != null && !browser.isDisposed()){
 			browser.getCacheStorage().clearCache();
 			browser.dispose();
-			System.out.println("Browser disposed: " + browser.isDisposed());
 		}
 
 	}
