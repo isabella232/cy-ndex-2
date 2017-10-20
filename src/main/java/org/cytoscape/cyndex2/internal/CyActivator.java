@@ -51,6 +51,7 @@ import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.session.CyNetworkNaming;
+import org.cytoscape.util.swing.LookAndFeelUtil;
 import org.cytoscape.view.model.CyNetworkViewFactory;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.vizmap.VisualMappingManager;
@@ -122,10 +123,11 @@ public class CyActivator extends AbstractCyActivator {
 		// returns non-null Browser object or an Exception
 
 		if (browser == null) {
-
-			if (lockFileExists()) {
+			
+			if (LookAndFeelUtil.isMac() && lockFileExists()) {
 				throw new BrowserCreationError("A .lock file exists in CytoscapeConfiguration/jxbrowser. The JXBrowser process must already be running.");
 			}
+			
 			// Uncomment for development port
 			BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222", "--ipc-connection-timeout=2");
 			// BrowserPreferences.setChromiumSwitches("--ipc-connection-timeout=2");
@@ -134,11 +136,13 @@ public class CyActivator extends AbstractCyActivator {
 			System.setProperty("jxbrowser.chromium.dir", jxbrowserConfigLocation.getAbsolutePath());
 
 			try {
+				
 				BrowserContextParams params = new BrowserContextParams(jxbrowserConfigLocation.getAbsolutePath());
 				
 				BrowserContext context = new BrowserContext(params);
 		        browser = new Browser(BrowserType.LIGHTWEIGHT, context);
-				
+		        
+		        
 			} catch (Exception e) {
 				throw new BrowserCreationError(e.getMessage());
 			}
@@ -169,6 +173,7 @@ public class CyActivator extends AbstractCyActivator {
 
 	@SuppressWarnings("unchecked")
 	public void start(BundleContext bc) {
+		
 		// Import dependencies
 		final CyApplicationConfiguration config = getService(bc, CyApplicationConfiguration.class);
 
@@ -230,7 +235,7 @@ public class CyActivator extends AbstractCyActivator {
 		// Set local storage directory to CytoscapeConfiguration
 
 		jxbrowserConfigLocation = new File(config.getConfigurationDirectoryLocation(), "jxbrowser");
-
+		
 		if (!jxbrowserConfigLocation.exists())
 			try {
 				jxbrowserConfigLocation.mkdir();
@@ -239,6 +244,9 @@ public class CyActivator extends AbstractCyActivator {
 			}
 		BrowserPreferences.setChromiumDir(jxbrowserConfigLocation.getAbsolutePath());
 		System.setProperty(BrowserPreferences.TEMP_DIR_PROPERTY, jxbrowserConfigLocation.getAbsolutePath());
+		System.setProperty(BrowserPreferences.CHROMIUM_DIR_PROPERTY, jxbrowserConfigLocation.getAbsolutePath());
+		System.setProperty(BrowserPreferences.USER_AGENT_PROPERTY, jxbrowserConfigLocation.getAbsolutePath());
+		
 
 		// TF for NDEx Save
 		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory(
@@ -276,7 +284,22 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, new NdexNetworkResourceImpl(ndexClient, errorBuilder, appManager, netmgr, tfManager,
 				loadNetworkTF, ciExceptionFactory, ciErrorFactory), NdexNetworkResource.class, new Properties());
 		
-		
+		// Remove lock files on start, in case Cytoscape closed unexpectedly
+		// TODO: This causes the 120 second wait when a previous browser instance was not closed (eg on update)
+		removeLockFiles();
+	}
+	
+	private final void removeLockFiles(){
+		File[] instances = jxbrowserConfigLocation.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				//return name.startsWith("libjxbrowser-common64-") && name.endsWith(".dylib");
+				return name.endsWith("_0.lock");
+			}
+		});
+		for (File f : instances){
+			f.delete();
+		}
 	}
 
 
@@ -394,6 +417,9 @@ public class CyActivator extends AbstractCyActivator {
 			browser.getCacheStorage().clearCache();
 			browser.dispose();
 		}
+
+		removeLockFiles();
+		
 
 	}
 
