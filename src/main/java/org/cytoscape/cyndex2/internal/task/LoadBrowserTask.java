@@ -70,7 +70,7 @@ public class LoadBrowserTask extends AbstractTask {
 						}
 
 					});
-					OpenExternalAppTaskFactory.setLoadFailed(e.getMessage());
+					ExternalAppManager.setLoadFailed(e.getMessage());
 				}
 				complete = true;
 			}

@@ -13,4 +13,5 @@ public class SaveParameters implements AppStatusParameters {
 	public String rights;
 	public String reference;
 	public String description;
+	public Boolean writeCollection;
 }

@@ -17,9 +17,6 @@ import io.swagger.annotations.ApiOperation;
 @Api(tags="Apps: CyNDEx-2")
 @Path("/cyndex2/v1/status")
 public interface NdexStatusResource {
-
-	public final static String NDEX_UUID_TAG = "ndex.uuid";
-	public static final String SINGLETON_COLUMN_NAME = "ndex.createdFromSingleton";
 	
 	@ApiModel(
 			value="App Status Response",

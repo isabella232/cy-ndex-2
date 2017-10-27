@@ -26,6 +26,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
+
+import org.cytoscape.app.swing.CySwingAppAdapter;
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
@@ -41,12 +43,16 @@ import org.cytoscape.cyndex2.internal.rest.endpoints.impl.NdexNetworkResourceImp
 import org.cytoscape.cyndex2.internal.rest.endpoints.impl.NdexStatusResourceImpl;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.reader.LoadNetworkStreamTaskFactoryImpl;
-import org.cytoscape.cyndex2.internal.task.OpenExternalAppTaskFactory;
+import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
+import org.cytoscape.cyndex2.internal.task.OpenBrowseTaskFactory;
+import org.cytoscape.cyndex2.internal.task.OpenSaveTaskFactory;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.cyndex2.server.StaticContentsServer;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.io.write.CyNetworkViewWriterFactory;
 import org.cytoscape.model.CyNetworkManager;
+import org.cytoscape.model.CyNetworkTableManager;
+import org.cytoscape.model.events.NetworkAboutToBeDestroyedListener;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.service.util.CyServiceRegistrar;
@@ -93,8 +99,7 @@ public class CyActivator extends AbstractCyActivator {
 	public CyActivator() {
 		super();
 	}
-	
-	
+
 	public static class BrowserCreationError extends Exception {
 		/**
 		 * 
@@ -106,28 +111,30 @@ public class CyActivator extends AbstractCyActivator {
 		}
 	}
 
-	private static boolean lockFileExists() {
+	private static File[] getLockFiles() {
 		// return whether libjxbrowser dylib/dll exists, which would cause
 		// Browser instantiation to fail
 		File[] instances = jxbrowserConfigLocation.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
-				//return name.startsWith("libjxbrowser-common64-") && name.endsWith(".dylib");
+				// return name.startsWith("libjxbrowser-common64-") &&
+				// name.endsWith(".dylib");
 				return name.endsWith("_0.lock");
 			}
 		});
-		return instances.length > 0;
+		return instances;
 	}
-	
+
 	public static BrowserView getBrowserView() throws BrowserCreationError {
 		// returns non-null Browser object or an Exception
 
 		if (browser == null) {
-			
-			if (LookAndFeelUtil.isMac() && lockFileExists()) {
-				throw new BrowserCreationError("A .lock file exists in CytoscapeConfiguration/jxbrowser. The JXBrowser process must already be running.");
+
+			if (LookAndFeelUtil.isMac() && getLockFiles().length > 0) {
+				throw new BrowserCreationError(
+						"A .lock file exists in CytoscapeConfiguration/jxbrowser. The JXBrowser process must already be running.");
 			}
-			
+
 			// Uncomment for development port
 			BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222", "--ipc-connection-timeout=2");
 			// BrowserPreferences.setChromiumSwitches("--ipc-connection-timeout=2");
@@ -136,13 +143,11 @@ public class CyActivator extends AbstractCyActivator {
 			System.setProperty("jxbrowser.chromium.dir", jxbrowserConfigLocation.getAbsolutePath());
 
 			try {
-				
+
 				BrowserContextParams params = new BrowserContextParams(jxbrowserConfigLocation.getAbsolutePath());
-				
 				BrowserContext context = new BrowserContext(params);
-		        browser = new Browser(BrowserType.LIGHTWEIGHT, context);
-		        
-		        
+				browser = new Browser(BrowserType.LIGHTWEIGHT, context);
+
 			} catch (Exception e) {
 				throw new BrowserCreationError(e.getMessage());
 			}
@@ -162,10 +167,10 @@ public class CyActivator extends AbstractCyActivator {
 					browser.executeJavaScript("localStorage");
 				}
 			});
-			
+
 			browser.setPopupHandler(new CustomPopupHandler());
 			browserView = new BrowserView(browser);
-			
+
 		}
 
 		return browserView;
@@ -173,7 +178,7 @@ public class CyActivator extends AbstractCyActivator {
 
 	@SuppressWarnings("unchecked")
 	public void start(BundleContext bc) {
-		
+
 		// Import dependencies
 		final CyApplicationConfiguration config = getService(bc, CyApplicationConfiguration.class);
 
@@ -182,6 +187,16 @@ public class CyActivator extends AbstractCyActivator {
 		cyProps = getService(bc, CyProperty.class, "(cyPropertyName=cytoscape3.props)");
 
 		final CySwingApplication swingApp = getService(bc, CySwingApplication.class);
+		final CySwingAppAdapter appAdapter = getService(bc, CySwingAppAdapter.class);
+		final CyNetworkTableManager networkTableManager = getService(bc, CyNetworkTableManager.class);
+
+		// Register these with the CyObjectManager singleton.
+		CyObjectManager manager = CyObjectManager.INSTANCE;
+		File configDir = config.getAppConfigurationDirectoryLocation(CyActivator.class);
+		configDir.mkdirs();
+		manager.setConfigDir(configDir);
+		manager.setCySwingAppAdapter(appAdapter);
+		manager.setNetworkTableManager(networkTableManager);
 
 		pm = new ExternalAppManager();
 
@@ -232,37 +247,43 @@ public class CyActivator extends AbstractCyActivator {
 		// get QueryPanel icon
 		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
 
-		// Set local storage directory to CytoscapeConfiguration
-
+		// JXBrowser configuration
 		jxbrowserConfigLocation = new File(config.getConfigurationDirectoryLocation(), "jxbrowser");
-		
+
 		if (!jxbrowserConfigLocation.exists())
 			try {
 				jxbrowserConfigLocation.mkdir();
 			} catch (SecurityException e) {
-				OpenExternalAppTaskFactory.setLoadFailed("Failed to create JXBrowser directory in CytoscapeConfiguration");
+				ExternalAppManager.setLoadFailed("Failed to create JXBrowser directory in CytoscapeConfiguration");
 			}
 		BrowserPreferences.setChromiumDir(jxbrowserConfigLocation.getAbsolutePath());
 		System.setProperty(BrowserPreferences.TEMP_DIR_PROPERTY, jxbrowserConfigLocation.getAbsolutePath());
 		System.setProperty(BrowserPreferences.CHROMIUM_DIR_PROPERTY, jxbrowserConfigLocation.getAbsolutePath());
 		System.setProperty(BrowserPreferences.USER_AGENT_PROPERTY, jxbrowserConfigLocation.getAbsolutePath());
-		
 
 		// TF for NDEx Save
-		final OpenExternalAppTaskFactory ndexSaveTaskFactory = new OpenExternalAppTaskFactory(
-				ExternalAppManager.APP_NAME_SAVE, appManager, icon, pm, swingApp, cyProps);
-		final Properties ndexSaveTaskFactoryProps = new Properties();
-		// ndexSaveTaskFactoryProps.setProperty(ENABLE_FOR,
-		// ActionEnableSupport.ENABLE_FOR_NETWORK);
-		ndexSaveTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export");
-		ndexSaveTaskFactoryProps.setProperty(MENU_GRAVITY, "0.0");
-		ndexSaveTaskFactoryProps.setProperty(TITLE, "Network Collection to NDEx...");
-		
-		registerService(bc, ndexSaveTaskFactory, TaskFactory.class, ndexSaveTaskFactoryProps);
+		final OpenSaveTaskFactory ndexSaveNetworkTaskFactory = new OpenSaveTaskFactory(
+				ExternalAppManager.APP_NAME_SAVE_NETWORK, appManager, pm, swingApp, cyProps);
+		final Properties ndexSaveNetworkTaskFactoryProps = new Properties();
+
+		ndexSaveNetworkTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export.To NDex");
+		ndexSaveNetworkTaskFactoryProps.setProperty(MENU_GRAVITY, "0.0");
+		ndexSaveNetworkTaskFactoryProps.setProperty(TITLE, "Network...");
+		registerService(bc, ndexSaveNetworkTaskFactory, TaskFactory.class, ndexSaveNetworkTaskFactoryProps);
+
+		// TF for NDEx Save
+		final OpenSaveTaskFactory ndexSaveCollectionTaskFactory = new OpenSaveTaskFactory(
+				ExternalAppManager.APP_NAME_SAVE_COLLECTION, appManager, pm, swingApp, cyProps);
+		final Properties ndexSaveCollectionTaskFactoryProps = new Properties();
+
+		ndexSaveCollectionTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export.To NDex");
+		ndexSaveCollectionTaskFactoryProps.setProperty(MENU_GRAVITY, "0.01");
+		ndexSaveCollectionTaskFactoryProps.setProperty(TITLE, "Network Collection...");
+		registerService(bc, ndexSaveCollectionTaskFactory, TaskFactory.class, ndexSaveCollectionTaskFactoryProps);
 
 		// TF for NDEx Load
-		final OpenExternalAppTaskFactory ndexTaskFactory = new OpenExternalAppTaskFactory(
-				ExternalAppManager.APP_NAME_LOAD, appManager, icon, pm, swingApp, cyProps);
+		final OpenBrowseTaskFactory ndexTaskFactory = new OpenBrowseTaskFactory(appManager, icon, pm, swingApp,
+				cyProps);
 		final Properties ndexTaskFactoryProps = new Properties();
 		ndexTaskFactoryProps.setProperty(IN_MENU_BAR, "false");
 
@@ -283,25 +304,21 @@ public class CyActivator extends AbstractCyActivator {
 		// Network IO
 		registerService(bc, new NdexNetworkResourceImpl(ndexClient, errorBuilder, appManager, netmgr, tfManager,
 				loadNetworkTF, ciExceptionFactory, ciErrorFactory), NdexNetworkResource.class, new Properties());
-		
+
+		// add Handler to remove networks from NetworkManager when deleted
+		registerService(bc, new NdexNetworkAboutToBeDestroyedListener(), NetworkAboutToBeDestroyedListener.class,
+				new Properties());
+
 		// Remove lock files on start, in case Cytoscape closed unexpectedly
-		// TODO: This causes the 120 second wait when a previous browser instance was not closed (eg on update)
 		removeLockFiles();
+
 	}
-	
-	private final void removeLockFiles(){
-		File[] instances = jxbrowserConfigLocation.listFiles(new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String name) {
-				//return name.startsWith("libjxbrowser-common64-") && name.endsWith(".dylib");
-				return name.endsWith("_0.lock");
-			}
-		});
-		for (File f : instances){
+
+	private static final void removeLockFiles() {
+		for (File f : getLockFiles()) {
 			f.delete();
 		}
 	}
-
 
 	private final void installWebApp(final String configDir, final BundleContext bc) {
 
@@ -324,14 +341,14 @@ public class CyActivator extends AbstractCyActivator {
 
 	private final boolean isInstalled(final String configDir, final String bundleVersion) {
 		// This is the indicator of installation.
-		
+
 		final File cyndexDir = new File(configDir, STATIC_CONTENT_DIR);
-		if (!cyndexDir.exists()){
+		if (!cyndexDir.exists()) {
 			return false;
 		}
 		final String markerFileName = INSTALL_MAKER_FILE_NAME + "-" + bundleVersion + ".txt";
 		final File markerFile = new File(cyndexDir, markerFileName);
-		
+
 		if (markerFile.exists()) {
 			// Exact match required. Otherwise, simply override the existing
 			// contents.
@@ -343,7 +360,7 @@ public class CyActivator extends AbstractCyActivator {
 
 	private final void extractWebapp(final Bundle bundle, final String path, final String targetDir) {
 		Enumeration<String> ress = bundle.getEntryPaths(path);
-		
+
 		while (ress != null && ress.hasMoreElements()) {
 			String fileName = ress.nextElement();
 
@@ -384,43 +401,40 @@ public class CyActivator extends AbstractCyActivator {
 
 		logger.info("CyNDEx-2 web application root directory: " + path);
 		if (!checkPort(2222)) {
-			OpenExternalAppTaskFactory.setLoadFailed("Port 2222 is not available");
+			ExternalAppManager.setLoadFailed("Port 2222 is not available");
 			return;
 		}
-		
+
 		httpServer = new StaticContentsServer(path);
 		ExecutorService executor = Executors.newSingleThreadExecutor();
 		executor.submit(() -> {
 			try {
 				httpServer.startServer();
 			} catch (Exception e) {
-				OpenExternalAppTaskFactory.setLoadFailed("Failed to start local server.\n" + e.getMessage());
+				ExternalAppManager.setLoadFailed("Failed to start local server.\n" + e.getMessage());
 				throw new RuntimeException("Could not start Static Content server in separate thread.", e);
 			}
 		});
 	}
 
-	
 	@Override
 	public void shutDown() {
 		logger.info("Shutting down CyNDEx-2...");
-		
+
 		try {
 			httpServer.stopServer();
 		} catch (Exception e) {
 			logger.debug("Failed to stop server. Did it ever start?\n" + e.getMessage());
 		}
-		
-		OpenExternalAppTaskFactory.cleanup();
-		
-		if (browser != null && !browser.isDisposed()){
+
+		if (browser != null) {
 			browser.getCacheStorage().clearCache();
-			browser.dispose();
+			if (!browser.isDisposed())
+				browser.dispose();
 		}
 
 		removeLockFiles();
-		
-
+		super.shutDown();
 	}
 
 	private static class CustomPopupHandler implements PopupHandler {

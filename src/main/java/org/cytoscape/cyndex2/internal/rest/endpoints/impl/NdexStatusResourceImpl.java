@@ -1,5 +1,7 @@
 package org.cytoscape.cyndex2.internal.rest.endpoints.impl;
 
+import java.util.UUID;
+
 import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.application.CyApplicationManager;
@@ -12,6 +14,7 @@ import org.cytoscape.cyndex2.internal.rest.parameter.AppStatusParameters;
 import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
 import org.cytoscape.cyndex2.internal.rest.parameter.SaveParameters;
 import org.cytoscape.cyndex2.internal.rest.response.AppStatusResponse;
+import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyRow;
@@ -24,11 +27,10 @@ import org.slf4j.LoggerFactory;
 public class NdexStatusResourceImpl implements NdexStatusResource {
 
 	private static final Logger logger = LoggerFactory.getLogger(NdexStatusResourceImpl.class);
-
+	
 	private final ExternalAppManager pm;
 	private final ErrorBuilder errorBuilder;
 	private final CyApplicationManager appManager;
-
 	private AppStatusResponse<AppStatusParameters> status;
 
 	public NdexStatusResourceImpl(final ExternalAppManager pm, ErrorBuilder errorBuilder,
@@ -38,7 +40,7 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 		this.appManager = appManager;
 	}
 
-	private AppStatusParameters setSaveProps() {
+	private AppStatusParameters setSaveProps(String widget) {
 		final CyNetwork network = appManager.getCurrentNetwork();
 
 		if (network == null) {
@@ -46,20 +48,42 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 			logger.error(message);
 			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INTERNAL);
 		}
-
+		
 		final CyRootNetwork root = ((CySubNetwork) network).getRootNetwork();
-		return buildProps(root);
+		UUID uuid = null;
+		if (NetworkManager.INSTANCE != null)
+			uuid = NetworkManager.INSTANCE.getNdexNetworkId(network.getSUID());
+		return widget.equals(ExternalAppManager.APP_NAME_SAVE_COLLECTION) ? buildCollectionProps(uuid, root) : buildNetworkProps(uuid, network);
 	}
 
-	private final AppStatusParameters buildProps(final CyRootNetwork root) {
+
+	private final AppStatusParameters buildNetworkProps(final UUID uuid, final CyNetwork network) {
+		final SaveParameters summary = new SaveParameters();
+		final CyTable table = network.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS);
+		
+		final CyRow row = table.getRow(network.getSUID());
+		summary.suid = network.getSUID();
+		if (uuid != null)
+			summary.uuid = uuid.toString();
+		populateSummary(summary, row);
+		return summary;
+	}
+	
+	private final AppStatusParameters buildCollectionProps(final UUID uuid, final CyRootNetwork root) {
 		final SaveParameters summary = new SaveParameters();
 		final CyTable table = root.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS);
-
-		// Network local table
+		
 		final CyRow row = table.getRow(root.getSUID());
 		summary.suid = root.getSUID();
-		summary.uuid = row.get(NdexStatusResource.NDEX_UUID_TAG, String.class);
-		summary.createdFromSingleton = row.get(NdexStatusResource.SINGLETON_COLUMN_NAME, Boolean.class);
+		if (uuid != null)
+			summary.uuid = uuid.toString();
+		populateSummary(summary, row);
+		return summary;
+	}
+	
+	private void populateSummary(SaveParameters summary, CyRow row){
+		//summary.uuid = row.get(NdexStatusResource.NDEX_UUID_TAG, String.class);
+		//summary.createdFromSingleton = row.get(NdexStatusResource.SINGLETON_COLUMN_NAME, Boolean.class);
 		summary.name = row.get(CyNetwork.NAME, String.class);
 		summary.author = row.get("author", String.class);
 		summary.description = row.get("description", String.class);
@@ -69,8 +93,8 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 		summary.rights = row.get("rights", String.class);
 		summary.rightsHolder = row.get("rightsHolder", String.class);
 		summary.tissue = row.get("tissue", String.class);
-
-		return summary;
+		summary.writeCollection = pm.getAppName().equals(ExternalAppManager.APP_NAME_SAVE_COLLECTION);
+		
 	}
 
 	private AppStatusParameters setLoadProps() {
@@ -91,14 +115,20 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 		}
 
 		status = new AppStatusResponse<>();
-		status.widget = widget;
 
-		if (widget.equals(ExternalAppManager.APP_NAME_LOAD)) {
+		if ( widget.equals(ExternalAppManager.APP_NAME_LOAD)) {
 			status.parameters = setLoadProps();
+			status.widget = "choose";
 		} else {
-			status.parameters = setSaveProps();
+			status.widget = "save";
+			try{
+				status.parameters = setSaveProps(widget);
+			}catch(Exception e){
+				e.printStackTrace();
+				System.out.println("FAILED");
+			}
 		}
-
+		
 		try {
 			return CIProvider.getCIResponseFactory().getCIResponse(status, CIAppStatusResponse.class);
 		} catch (InstantiationException | IllegalAccessException e) {

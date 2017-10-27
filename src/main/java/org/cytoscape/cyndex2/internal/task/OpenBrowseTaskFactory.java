@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Dialog.ModalityType;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
@@ -25,66 +24,42 @@ import javax.swing.ToolTipManager;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.search.AbstractNetworkSearchTaskFactory;
-import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
-import org.cytoscape.model.CyNetwork;
 import org.cytoscape.property.CyProperty;
-import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskIterator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory implements TaskFactory {
+public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 
 	private static final String ID = "cyndex2";
 	private static final String NAME = "CyNDEx-2";
 
-	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
 	private final String appName;
 	private final ExternalAppManager pm;
-	private final CyApplicationManager appManager;
 	private static Entry entry;
 	private String port;
-	private static boolean loadFailed = false;
-	private static JDialog dialog;
+	private final JDialog dialog;
 
-	public OpenExternalAppTaskFactory(final String appName, final CyApplicationManager appManager, final Icon icon,
+	public OpenBrowseTaskFactory(final CyApplicationManager appManager, final Icon icon,
 			final ExternalAppManager pm, final CySwingApplication swingApp, final CyProperty<Properties> cyProps) {
 		super(ID, NAME, icon);
-		this.appName = appName;
-		this.appManager = appManager;
+		this.appName = ExternalAppManager.APP_NAME_LOAD;
 		this.pm = pm;
 		port = cyProps.getProperties().getProperty("rest.port");
 
 		if (port == null)
 			port = "1234";
-
+		
 		JFrame frame = swingApp.getJFrame();
-		dialog = new JDialog(frame, "CyNDEx2 Browser", ModalityType.APPLICATION_MODAL);
-		// ensure modality type
-		dialog.getModalityType();
+		dialog = pm.getDialog(frame);
 	}
 
-	public static void setLoadFailed(String reason) {
-		getEntry().setDisabled();
-		logger.error("CyNDEx2 ERROR: " + reason);
-		loadFailed = true;
-	}
-	
-	public static Entry getEntry(){
+	public static Entry getEntry() {
 		if (entry == null)
 			entry = new Entry();
 		return entry;
 	}
 
-	public static void cleanup() {
-		if (dialog != null) {
-			dialog.setVisible(false);
-			dialog.dispose();
-		}
-	}
-
-	private static class Entry extends JTextField {
+	public static class Entry extends JTextField {
 		/**
 		 * 
 		 */
@@ -219,18 +194,6 @@ public class OpenExternalAppTaskFactory extends AbstractNetworkSearchTaskFactory
 
 	@Override
 	public boolean isReady() {
-		if (loadFailed)
-			return false;
-
-		if (appName == ExternalAppManager.APP_NAME_SAVE) {
-			final CyNetwork curNetwork = appManager.getCurrentNetwork();
-			if (curNetwork == null) {
-				return false;
-			} else {
-				return true;
-			}
-		} else {
-			return true;
-		}
+		return !ExternalAppManager.loadFailed;
 	}
 }

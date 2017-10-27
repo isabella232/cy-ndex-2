@@ -4,6 +4,7 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
@@ -60,6 +61,7 @@ public class OpenExternalAppTask extends AbstractTask {
 						}
 					});
 					browser.loadURL("http://localhost:2222");
+					
 					dialog.setAlwaysOnTop(false);
 					dialog.setVisible(true);
 					
@@ -69,7 +71,7 @@ public class OpenExternalAppTask extends AbstractTask {
 					JOptionPane.showMessageDialog(null,
 							"An error occurred communicating with JxBrowser. Restart and try again.", "JxBrowser Error",
 							JOptionPane.ERROR_MESSAGE);
-					OpenExternalAppTaskFactory.setLoadFailed("Failed to load browser instance.\n" + e.getMessage());
+					ExternalAppManager.setLoadFailed("Failed to load browser instance.\n" + e.getMessage());
 				}
 
 			}

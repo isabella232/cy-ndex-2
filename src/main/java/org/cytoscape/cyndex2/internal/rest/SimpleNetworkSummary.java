@@ -6,7 +6,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel(description = "Summary of a network.")
-public class NetworkSummary {
+public class SimpleNetworkSummary {
 
 	@ApiModelProperty(value = "SUID of the current network")
 	public Long suid;
