@@ -12,7 +12,6 @@ import javax.ws.rs.core.MediaType;
 import org.cytoscape.ci.model.CIResponse;
 import org.cytoscape.cyndex2.internal.rest.parameter.NdexImportParams;
 import org.cytoscape.cyndex2.internal.rest.parameter.NdexSaveParameters;
-import org.cytoscape.cyndex2.internal.rest.parameter.NdexUpdateParameters;
 import org.cytoscape.cyndex2.internal.rest.response.NdexBaseResponse;
 import org.cytoscape.cyndex2.internal.rest.response.SummaryResponse;
 
@@ -42,6 +41,16 @@ public interface NdexNetworkResource {
 	@Path("/current")
 	@Produces(MediaType.APPLICATION_JSON)
 	public CISummaryResponse getCurrentNetworkSummary();
+	
+	@ApiOperation(
+			value = "Get the summary of specified network and collection.",
+			notes = "Returns summary of collection containing the specified network.",
+			response = CISummaryResponse.class)
+	@GET
+	@Path("/{suid}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public CISummaryResponse getNetworkSummary(
+			@ApiParam(value="Cytoscape Collection/Subnetwork SUID") @PathParam("suid")final Long suid);
 
 
 	@ApiModel(
@@ -84,7 +93,7 @@ public interface NdexNetworkResource {
 	@ApiResponses(value = {
 			@ApiResponse(code = 404, message = "Network does not exist", response = CINdexBaseResponse.class), })
 	public CINdexBaseResponse saveNetworkToNdex(
-			@ApiParam(value="Cytoscape Subetwork SUID") @PathParam("suid") Long suid,
+			@ApiParam(value="Cytoscape Collection/Subnetwork SUID") @PathParam("suid") Long suid,
 			@ApiParam(value = "Properties required to save network to NDEx.", required = true) final NdexSaveParameters params);
 
 	
@@ -96,8 +105,8 @@ public interface NdexNetworkResource {
 	@ApiResponses(value = {
 			@ApiResponse(code = 404, message = "Network does not exist", response = CINdexBaseResponse.class), })
 	public CINdexBaseResponse updateNetworkInNdex(
-			@ApiParam(value="Cytoscape Subetwork SUID") @PathParam("suid") Long suid,
-			@ApiParam(value = "Properties required to update a network record in NDEx.", required = true) final NdexUpdateParameters params);
+			@ApiParam(value="Cytoscape Collection/Subnetwork SUID") @PathParam("suid") Long suid,
+			@ApiParam(value = "Properties required to update a network record in NDEx.", required = true) final NdexSaveParameters params);
 	
 	@PUT
 	@Produces("application/json")
@@ -105,11 +114,11 @@ public interface NdexNetworkResource {
 	@Path("/current")
 	@ApiOperation(
 			value = "Update current Cytoscape network record in NDEx", 
-			notes = "Update current netwprk's record in NDEx", 
+			notes = "Update current network's record in NDEx", 
 			response = CINdexBaseResponse.class)
 	@ApiResponses(
 			value = {
 					@ApiResponse(code = 404, message = "Network does not exist", response = CINdexBaseResponse.class), })
 	public CINdexBaseResponse updateCurrentNetworkInNdex(
-			@ApiParam(value = "Properties required to update a network record in NDEx.", required = true) final NdexUpdateParameters params);
+			@ApiParam(value = "Properties required to update a network record in NDEx.", required = true) final NdexSaveParameters params);
 }

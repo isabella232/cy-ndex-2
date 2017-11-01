@@ -77,8 +77,9 @@ public class NetworkImportTask extends AbstractTask {
 	final NdexRestClientModelAccessLayer mal;
 	final NetworkSummary networkSummary;
 	private Long suid = null;
-	
-	public NetworkImportTask(String userId, String password, String serverUrl, String uuid) throws IOException, NdexException {
+
+	public NetworkImportTask(String userId, String password, String serverUrl, String uuid)
+			throws IOException, NdexException {
 		super();
 		NdexRestClient client = new NdexRestClient(userId, password, serverUrl);
 		mal = new NdexRestClientModelAccessLayer(client);
@@ -98,7 +99,7 @@ public class NetworkImportTask extends AbstractTask {
 		boolean doLayout = niceCX.getNodeAssociatedAspect(CartesianLayoutElement.ASPECT_NAME) == null;
 
 		List<CyNetwork> networks = cxToCy.createNetwork(niceCX, null, networkFactory, null, true);
-		
+
 		if (!niceCX.getOpaqueAspectTable().containsKey(SubNetworkElement.ASPECT_NAME)) {
 			// populate the CXInfoHolder object.
 			CXInfoHolder cxInfoHolder = new CXInfoHolder();
@@ -133,16 +134,14 @@ public class NetworkImportTask extends AbstractTask {
 			for (CyNetwork subNetwork : networks) {
 				NetworkManager.INSTANCE.setCXInfoHolder(subNetwork.getSUID(), cxInfoHolder);
 			}
-
-		} else {
-			for (CyNetwork subNetwork : networks) {
-				NetworkManager.INSTANCE.addNetworkUUID(subNetwork.getSUID(), networkSummary.getExternalId());
-			}
-
 		}
 
 		CyRootNetwork rootNetwork = ((CySubNetwork) networks.get(0)).getRootNetwork();
 		suid = rootNetwork.getSUID();
+
+		NetworkManager.INSTANCE.addNetworkUUID(networks.size() == 1 ? networks.get(0).getSUID() : rootNetwork.getSUID(),
+				networkSummary.getExternalId());
+
 		String collectionName = networkSummary.getName();
 		rootNetwork.getRow(rootNetwork).set(CyNetwork.NAME, collectionName);
 
@@ -161,8 +160,8 @@ public class NetworkImportTask extends AbstractTask {
 			CyObjectManager.INSTANCE.getNetworkViewManager().addNetworkView(cyNetworkView);
 		}
 	}
-	
-	public Long getSUID(){
+
+	public Long getSUID() {
 		return suid;
 	}
 
@@ -222,9 +221,10 @@ public class NetworkImportTask extends AbstractTask {
 
 		};
 		worker.execute();
-		//This is a hack, to wait until the SUID of the root is available to return
-		
-		while (suid == null){
+		// This is a hack, to wait until the SUID of the root is available to
+		// return
+
+		while (suid == null) {
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
@@ -233,14 +233,14 @@ public class NetworkImportTask extends AbstractTask {
 		}
 		return;
 	}
-	
+
 	public class NetworkImportException extends Exception {
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = -1186105413302386171L;
 
-		public NetworkImportException(String message){
+		public NetworkImportException(String message) {
 			super(message);
 		}
 	}

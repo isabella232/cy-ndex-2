@@ -30,6 +30,7 @@ public interface NdexStatusResource {
 	@ApiOperation(
 			value = "Get current status of the CyNDEx app.",
 			notes = "Application status (choose or save) and other properties will be returned.",
+			hidden=true,
 			response = CIAppStatusResponse.class)
 	public CIAppStatusResponse getAppStatus();
 }

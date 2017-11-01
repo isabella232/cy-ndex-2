@@ -21,10 +21,10 @@ public class OpenSaveTaskFactory extends AbstractTaskFactory {
 	private final JDialog dialog;
 	
 
-	public OpenSaveTaskFactory(final String appName, final CyApplicationManager appManager,
+	public OpenSaveTaskFactory(final CyApplicationManager appManager,
 			final ExternalAppManager pm, final CySwingApplication swingApp, final CyProperty<Properties> cyProps) {
 		super();
-		this.appName = appName;
+		this.appName = ExternalAppManager.APP_NAME_SAVE;
 		this.appManager = appManager;
 		this.pm = pm;
 		port = cyProps.getProperties().getProperty("rest.port");

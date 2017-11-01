@@ -9,8 +9,7 @@ import org.cytoscape.cyndex2.internal.task.OpenBrowseTaskFactory;
 
 public class ExternalAppManager {
 
-	public static final String APP_NAME_SAVE_NETWORK = "save network";
-	public static final String APP_NAME_SAVE_COLLECTION = "save collection";
+	public static final String APP_NAME_SAVE = "save";
 	public static final String APP_NAME_LOAD = "choose";
 
 	private String port;

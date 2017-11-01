@@ -39,7 +39,9 @@ import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
 import org.cytoscape.model.subnetwork.CySubNetwork;
 import org.cytoscape.cyndex2.internal.rest.parameter.NdexSaveParameters;
+import org.cytoscape.cyndex2.internal.singletons.CXInfoHolder;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
+import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
 import org.cytoscape.cyndex2.io.cxio.writer.CxNetworkWriter;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.model.VisualLexicon;
@@ -55,15 +57,25 @@ public class NetworkExportTask extends AbstractTask {
 
 	private final CyNetwork network;
 	private final NdexSaveParameters params;
+	private boolean isUpdate;
 	private final NdexRestClientModelAccessLayer mal;
 	private UUID networkUUID = null;
+	private boolean writeCollection = false;
 
-	public NetworkExportTask(CyNetwork network, NdexSaveParameters params) {
+	public NetworkExportTask(CyNetwork network, NdexSaveParameters params, boolean isUpdate) {
 		super();
 		this.params = params;
-		this.network = network;
+		this.isUpdate = isUpdate;
+		// network must refer to a subnetwork, but writeCollection is used to
+		// export the entire collection
+		if (network instanceof CyRootNetwork) {
+			writeCollection = true;
+			this.network = ((CyRootNetwork) network).getSubNetworkList().get(0);
+		} else {
+			this.network = network;
+		}
 
-		NdexRestClient client = new NdexRestClient(params.userId, params.password, params.serverUrl);
+		NdexRestClient client = new NdexRestClient(params.username, params.password, params.serverUrl);
 		mal = new NdexRestClientModelAccessLayer(client);
 	}
 
@@ -72,10 +84,10 @@ public class NetworkExportTask extends AbstractTask {
 		final CyNetworkViewManager nvm = CyObjectManager.INSTANCE.getNetworkViewManager();
 		final CyGroupManager gm = CyObjectManager.INSTANCE.getCyGroupManager();
 		final VisualLexicon lexicon = CyObjectManager.INSTANCE.getDefaultVisualLexicon();
-		
+
 		CxNetworkWriter writer = new CxNetworkWriter(out, cyNetwork, vmm, nvm, gm, lexicon, isUpdate);
 
-		writer.setWriteSiblings(params.writeCollection);
+		writer.setWriteSiblings(writeCollection);
 
 		TaskIterator ti = new TaskIterator(writer);
 		DialogTaskManager tm = CyObjectManager.INSTANCE.getTaskManager();
@@ -83,7 +95,7 @@ public class NetworkExportTask extends AbstractTask {
 	}
 
 	@Override
-	public void run(TaskMonitor taskMonitor) throws NetworkExportException{
+	public void run(TaskMonitor taskMonitor) throws NetworkExportException {
 		networkUUID = null;
 
 		if (network.getEdgeCount() > 10000) {
@@ -96,18 +108,23 @@ public class NetworkExportTask extends AbstractTask {
 			if (choice == JOptionPane.NO_OPTION)
 				return;
 		}
-
 		CyRootNetwork rootNetwork = ((CySubNetwork) network).getRootNetwork();
 
-		String collectionName = rootNetwork.getRow(rootNetwork).get(CyNetwork.NAME, String.class);
-		String uploadName = params.metadata.get(CyNetwork.NAME);
-		String networkName = network.getRow(network).get(CyNetwork.NAME, String.class);
 		
+		String collectionName = rootNetwork.getRow(rootNetwork).get(CyNetwork.NAME, String.class);
+		String networkName = network.getRow(network).get(CyNetwork.NAME, String.class);
+
+		String uploadName = (params.metadata != null && params.metadata.containsKey(CyNetwork.NAME))
+				? params.metadata.get(CyNetwork.NAME) : (writeCollection ? collectionName : networkName);
+
+		Long suid;
 		// Set root or network name
-		if (params.writeCollection == null || !params.writeCollection){
-			network.getRow(network).set(CyNetwork.NAME, uploadName);
-		}else{
+		if (writeCollection) {
 			rootNetwork.getRow(rootNetwork).set(CyNetwork.NAME, uploadName);
+			suid = rootNetwork.getSUID();
+		}else{
+			network.getRow(network).set(CyNetwork.NAME, uploadName);
+			suid = network.getSUID();
 		}
 		PipedInputStream in = null;
 		PipedOutputStream out = null;
@@ -117,12 +134,19 @@ public class NetworkExportTask extends AbstractTask {
 			out = new PipedOutputStream(in);
 
 			prepareToWriteNetworkToCXStream(network, out, false);
-			networkUUID = mal.createCXNetwork(in);
-
+			if (!isUpdate) {
+				networkUUID = mal.createCXNetwork(in);
+				NetworkManager.INSTANCE.addNetworkUUID(suid, networkUUID);
+			} else {
+				prepareForUpdate(suid);
+				mal.updateCXNetwork(networkUUID, in);
+			}
+		} catch (NetworkUpdateException e) {
+			throw new NetworkExportException("Only networks imported from CyNDEx2 can be updated.");
 		} catch (IOException e) {
-			throw new NetworkExportException("Failed to create CX stream for network");
+			throw new NetworkExportException("Failed to create CX stream for network.");
 		} catch (Exception e) {
-			throw new NetworkExportException("An error occurred loading the network to NDEx");
+			throw new NetworkExportException("An error occurred loading the network to NDEx.");
 		} finally {
 
 			if (in != null) {
@@ -143,6 +167,10 @@ public class NetworkExportTask extends AbstractTask {
 			rootNetwork.getRow(rootNetwork).set(CyNetwork.NAME, collectionName);
 			network.getRow(network).set(CyNetwork.NAME, networkName);
 
+			NetworkManager.INSTANCE.addNetworkUUID(suid, networkUUID);
+			CXInfoHolder cxInfo = NetworkManager.INSTANCE.getCXInfoHolder(suid);
+			if (cxInfo != null)
+				cxInfo.setNetworkId(networkUUID);
 			CyObjectManager.INSTANCE.getApplicationFrame().revalidate();
 		}
 
@@ -152,17 +180,40 @@ public class NetworkExportTask extends AbstractTask {
 
 	}
 
+	private void prepareForUpdate(long suid) throws NetworkUpdateException {
+		CXInfoHolder cxInfo = NetworkManager.INSTANCE.getCXInfoHolder(suid);
+		if (cxInfo != null)
+			networkUUID = cxInfo.getNetworkId();
+		if (networkUUID == null)
+			networkUUID = NetworkManager.INSTANCE.getNdexNetworkId(suid);
+		if (networkUUID == null) {
+			throw new NetworkUpdateException(
+					"NDEx network UUID not found. You can only update networks that were imported with CyNDEx2");
+		}
+	}
+
 	public UUID getNetworkUUID() {
 		return networkUUID;
 	}
-	
-	public class NetworkExportException extends Exception{
+
+	public class NetworkExportException extends Exception {
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = -4168495871463038598L;
 
-		public NetworkExportException(String message){
+		public NetworkExportException(String message) {
+			super(message);
+		}
+	}
+
+	public class NetworkUpdateException extends Exception {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		public NetworkUpdateException(String message) {
 			super(message);
 		}
 	}
