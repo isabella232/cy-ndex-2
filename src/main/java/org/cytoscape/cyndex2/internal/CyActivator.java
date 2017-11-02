@@ -267,7 +267,7 @@ public class CyActivator extends AbstractCyActivator {
 
 		ndexSaveNetworkTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export");
 		ndexSaveNetworkTaskFactoryProps.setProperty(MENU_GRAVITY, "0.0");
-		ndexSaveNetworkTaskFactoryProps.setProperty(TITLE, "Network/Collection to NDex...");
+		ndexSaveNetworkTaskFactoryProps.setProperty(TITLE, "Network/Collection to NDEx...");
 		registerService(bc, ndexSaveNetworkTaskFactory, TaskFactory.class, ndexSaveNetworkTaskFactoryProps);
 
 		
