@@ -173,9 +173,9 @@ public class NetworkImportTask extends AbstractTask {
 		// while references named cyNetwork, cyNode, and cyEdge generally refer
 		// to the Cytoscape object model.
 
-		boolean largeNetwork = false;
+		/*boolean largeNetwork = false;
 
-		largeNetwork = networkSummary.getEdgeCount() > 10000;
+		largeNetwork = networkSummary.getEdgeCount() > 100000;
 
 		if (largeNetwork) {
 			JFrame parent = CyObjectManager.INSTANCE.getApplicationFrame();
@@ -186,7 +186,7 @@ public class NetworkImportTask extends AbstractTask {
 			int choice = JOptionPane.showConfirmDialog(parent, msg, dialogTitle, JOptionPane.YES_NO_OPTION);
 			if (choice == JOptionPane.NO_OPTION)
 				return;
-		}
+		}*/
 
 		SwingWorker<Integer, Integer> worker = new SwingWorker<Integer, Integer>() {
 

@@ -97,8 +97,8 @@ public class NetworkExportTask extends AbstractTask {
 	@Override
 	public void run(TaskMonitor taskMonitor) throws NetworkExportException {
 		networkUUID = null;
-
-		if (network.getEdgeCount() > 10000) {
+		/*
+		if (network.getEdgeCount() > 100000) {
 			JFrame parent = CyObjectManager.INSTANCE.getApplicationFrame();
 			String msg = "You have chosen to upload a network that has more than 10,000 edges.\n";
 			msg += "The upload will occur in the background and you can continue working,\n";
@@ -108,6 +108,7 @@ public class NetworkExportTask extends AbstractTask {
 			if (choice == JOptionPane.NO_OPTION)
 				return;
 		}
+		*/
 		CyRootNetwork rootNetwork = ((CySubNetwork) network).getRootNetwork();
 
 		
