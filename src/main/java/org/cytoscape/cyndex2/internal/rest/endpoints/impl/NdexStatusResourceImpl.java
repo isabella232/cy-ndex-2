@@ -9,6 +9,7 @@ import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorType;
 import org.cytoscape.cyndex2.internal.rest.parameter.AppStatusParameters;
 import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
+import org.cytoscape.cyndex2.internal.rest.parameter.SaveParameters;
 import org.cytoscape.cyndex2.internal.rest.response.AppStatusResponse;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.slf4j.Logger;
@@ -32,6 +33,12 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 		loadParameters.searchTerm = pm.getQuery();
 		return loadParameters;
 	}
+	
+	private AppStatusParameters setSaveProps(){
+		final SaveParameters saveParameters = new SaveParameters();
+		saveParameters.saveType = pm.getSaveType();
+		return saveParameters;
+	}
 
 	@Override
 	@CIWrapping
@@ -51,8 +58,7 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 			status.widget = "choose";
 		} else {
 			status.widget = "save";
-			status.parameters = new AppStatusParameters() {
-			};
+			status.parameters = setSaveProps();
 		}
 		
 		try {

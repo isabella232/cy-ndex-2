@@ -34,8 +34,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 
 import org.cxio.aspects.datamodels.CartesianLayoutElement;
@@ -87,7 +85,7 @@ public class NetworkImportTask extends AbstractTask {
 	}
 
 	private void createCyNetworkFromCX(InputStream cxStream,
-			NetworkSummary networkSummary/* , boolean stopLayout */) throws IOException {
+			NetworkSummary networkSummary) throws IOException {
 
 		// Create the CyNetwork to copy to.
 		CyNetworkFactory networkFactory = CyObjectManager.INSTANCE.getNetworkFactory();
@@ -95,9 +93,9 @@ public class NetworkImportTask extends AbstractTask {
 		CxImporter cxImporter = new CxImporter();
 
 		NiceCXNetwork niceCX = cxImporter.getCXNetworkFromStream(cxStream);
-
-		boolean doLayout = niceCX.getNodeAssociatedAspect(CartesianLayoutElement.ASPECT_NAME) == null;
-
+		
+		boolean doLayout = (networkSummary.getEdgeCount() < 5000) && niceCX.getNodeAssociatedAspect(CartesianLayoutElement.ASPECT_NAME) == null;
+		
 		List<CyNetwork> networks = cxToCy.createNetwork(niceCX, null, networkFactory, null, true);
 
 		if (!niceCX.getOpaqueAspectTable().containsKey(SubNetworkElement.ASPECT_NAME)) {
@@ -153,7 +151,6 @@ public class NetworkImportTask extends AbstractTask {
 			VisualMappingManager vmm = CyObjectManager.INSTANCE.getVisualMappingManager();
 			VisualStyleFactory vsf = CyObjectManager.INSTANCE.getVisualStyleFactory();
 
-			// Map<CyNetworkView, Boolean> cyNetworkViewMap =
 			CyNetworkView cyNetworkView = ViewMaker.makeView(cyNetwork, cxToCy, collectionName, nvf, rem, vmm, vsf,
 					doLayout);
 

@@ -31,9 +31,6 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.UUID;
 
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-
 import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.subnetwork.CyRootNetwork;

@@ -261,16 +261,26 @@ public class CyActivator extends AbstractCyActivator {
 		System.setProperty(BrowserPreferences.CHROMIUM_DIR_PROPERTY, jxbrowserConfigLocation.getAbsolutePath());
 		System.setProperty(BrowserPreferences.USER_AGENT_PROPERTY, jxbrowserConfigLocation.getAbsolutePath());
 
-		// TF for NDEx Save
-		final OpenSaveTaskFactory ndexSaveNetworkTaskFactory = new OpenSaveTaskFactory(appManager, pm, swingApp, cyProps);
+		// TF for NDEx Save Network
+		final OpenSaveTaskFactory ndexSaveNetworkTaskFactory = new OpenSaveTaskFactory(ExternalAppManager.SAVE_NETWORK, appManager, pm, swingApp,
+				cyProps);
 		final Properties ndexSaveNetworkTaskFactoryProps = new Properties();
 
 		ndexSaveNetworkTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export");
 		ndexSaveNetworkTaskFactoryProps.setProperty(MENU_GRAVITY, "0.0");
-		ndexSaveNetworkTaskFactoryProps.setProperty(TITLE, "Network/Collection to NDEx...");
+		ndexSaveNetworkTaskFactoryProps.setProperty(TITLE, "Network to NDEx...");
 		registerService(bc, ndexSaveNetworkTaskFactory, TaskFactory.class, ndexSaveNetworkTaskFactoryProps);
 
-		
+		// TF for NDEx Save Network
+		final OpenSaveTaskFactory ndexSaveCollectionTaskFactory = new OpenSaveTaskFactory(ExternalAppManager.SAVE_COLLECTION, appManager, pm, swingApp,
+				cyProps);
+		final Properties ndexSaveCollectionTaskFactoryProps = new Properties();
+
+		ndexSaveCollectionTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export");
+		ndexSaveCollectionTaskFactoryProps.setProperty(MENU_GRAVITY, "0.1");
+		ndexSaveCollectionTaskFactoryProps.setProperty(TITLE, "Collection to NDEx...");
+		registerService(bc, ndexSaveCollectionTaskFactory, TaskFactory.class, ndexSaveCollectionTaskFactoryProps);
+
 		// TF for NDEx Load
 		final OpenBrowseTaskFactory ndexTaskFactory = new OpenBrowseTaskFactory(appManager, icon, pm, swingApp,
 				cyProps);
@@ -288,8 +298,7 @@ public class CyActivator extends AbstractCyActivator {
 				NdexBaseResource.class, new Properties());
 
 		// Status
-		registerService(bc, new NdexStatusResourceImpl(pm, errorBuilder), NdexStatusResource.class,
-				new Properties());
+		registerService(bc, new NdexStatusResourceImpl(pm, errorBuilder), NdexStatusResource.class, new Properties());
 
 		// Network IO
 		registerService(bc, new NdexNetworkResourceImpl(ndexClient, errorBuilder, appManager, netmgr, tfManager,

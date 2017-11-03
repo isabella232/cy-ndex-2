@@ -16,14 +16,17 @@ public class OpenSaveTaskFactory extends AbstractTaskFactory {
 	private final String appName;
 	private final ExternalAppManager pm;
 	private final CyApplicationManager appManager;
+	private final String saveType;
 	private String port;
+	
 	
 	private final JDialog dialog;
 	
 
-	public OpenSaveTaskFactory(final CyApplicationManager appManager,
+	public OpenSaveTaskFactory(final String saveType, final CyApplicationManager appManager,
 			final ExternalAppManager pm, final CySwingApplication swingApp, final CyProperty<Properties> cyProps) {
 		super();
+		this.saveType = saveType;
 		this.appName = ExternalAppManager.APP_NAME_SAVE;
 		this.appManager = appManager;
 		this.pm = pm;
@@ -34,7 +37,6 @@ public class OpenSaveTaskFactory extends AbstractTaskFactory {
 
 		JFrame frame = swingApp.getJFrame();
 		dialog = pm.getDialog(frame);
-		
 	}
 	
 	@Override
@@ -42,7 +44,8 @@ public class OpenSaveTaskFactory extends AbstractTaskFactory {
 		// Store query info
 		pm.setAppName(appName);
 		pm.setPort(port);
-
+		pm.setSaveType(saveType);
+		
 		dialog.setSize(1000, 700);
 		dialog.setLocationRelativeTo(null);
 

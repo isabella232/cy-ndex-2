@@ -11,11 +11,17 @@ public class ExternalAppManager {
 
 	public static final String APP_NAME_SAVE = "save";
 	public static final String APP_NAME_LOAD = "choose";
+	
+	public static final String SAVE_NETWORK = "network";
+	public static final String SAVE_COLLECTION = "collection";
+	
 
 	private String port;
 	private String query;
 	private String appName;
+	private String saveType;
 	private JDialog dialog;
+	
 	public static boolean loadFailed = false;
 	
 	public JDialog getDialog(JFrame parent){
@@ -30,7 +36,6 @@ public class ExternalAppManager {
 	public static void setLoadFailed(String reason){
 		OpenBrowseTaskFactory.getEntry().setDisabled();
 		loadFailed = true;
-		
 	}
 
 	public void setQuery(String query) {
@@ -54,5 +59,13 @@ public class ExternalAppManager {
 
 	public void setAppName(String appName) {
 		this.appName = appName;
+	}
+
+	public void setSaveType(String saveType) {
+		this.saveType = saveType;
+	}
+	
+	public String getSaveType(){
+		return saveType;
 	}
 }
