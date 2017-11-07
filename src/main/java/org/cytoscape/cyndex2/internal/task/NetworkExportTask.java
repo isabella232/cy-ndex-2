@@ -83,7 +83,7 @@ public class NetworkExportTask extends AbstractTask {
 		final VisualLexicon lexicon = CyObjectManager.INSTANCE.getDefaultVisualLexicon();
 
 		CxNetworkWriter writer = new CxNetworkWriter(out, cyNetwork, vmm, nvm, gm, lexicon, isUpdate);
-
+		
 		writer.setWriteSiblings(writeCollection);
 
 		TaskIterator ti = new TaskIterator(writer);

@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 
 import org.cxio.aspects.datamodels.CartesianLayoutElement;
@@ -84,8 +86,7 @@ public class NetworkImportTask extends AbstractTask {
 		networkSummary = mal.getNetworkSummaryById(uuid);
 	}
 
-	private void createCyNetworkFromCX(InputStream cxStream,
-			NetworkSummary networkSummary) throws IOException {
+	private void createCyNetworkFromCX(InputStream cxStream, NetworkSummary networkSummary) throws IOException {
 
 		// Create the CyNetwork to copy to.
 		CyNetworkFactory networkFactory = CyObjectManager.INSTANCE.getNetworkFactory();
@@ -93,9 +94,16 @@ public class NetworkImportTask extends AbstractTask {
 		CxImporter cxImporter = new CxImporter();
 
 		NiceCXNetwork niceCX = cxImporter.getCXNetworkFromStream(cxStream);
-		
-		boolean doLayout = (networkSummary.getEdgeCount() < 5000) && niceCX.getNodeAssociatedAspect(CartesianLayoutElement.ASPECT_NAME) == null;
-		
+
+		boolean doLayout = niceCX.getNodeAssociatedAspect(CartesianLayoutElement.ASPECT_NAME) != null || networkSummary.getEdgeCount() < 5000;
+
+		if (!doLayout) {
+			JFrame parent = CyObjectManager.INSTANCE.getApplicationFrame();
+			int response = JOptionPane.showConfirmDialog(parent,
+					"Do you want to create a view for your large network? This could take a while.", "Importing Large Network", JOptionPane.YES_NO_OPTION);
+			doLayout = response == JOptionPane.YES_OPTION;
+		}
+
 		List<CyNetwork> networks = cxToCy.createNetwork(niceCX, null, networkFactory, null, true);
 
 		if (!niceCX.getOpaqueAspectTable().containsKey(SubNetworkElement.ASPECT_NAME)) {
@@ -146,15 +154,17 @@ public class NetworkImportTask extends AbstractTask {
 		for (CyNetwork cyNetwork : networks) {
 			CyObjectManager.INSTANCE.getNetworkManager().addNetwork(cyNetwork);
 
-			CyNetworkViewFactory nvf = CyObjectManager.INSTANCE.getNetworkViewFactory();
-			RenderingEngineManager rem = CyObjectManager.INSTANCE.getRenderingEngineManager();
-			VisualMappingManager vmm = CyObjectManager.INSTANCE.getVisualMappingManager();
-			VisualStyleFactory vsf = CyObjectManager.INSTANCE.getVisualStyleFactory();
+			if (doLayout) {
+				CyNetworkViewFactory nvf = CyObjectManager.INSTANCE.getNetworkViewFactory();
+				RenderingEngineManager rem = CyObjectManager.INSTANCE.getRenderingEngineManager();
+				VisualMappingManager vmm = CyObjectManager.INSTANCE.getVisualMappingManager();
+				VisualStyleFactory vsf = CyObjectManager.INSTANCE.getVisualStyleFactory();
 
-			CyNetworkView cyNetworkView = ViewMaker.makeView(cyNetwork, cxToCy, collectionName, nvf, rem, vmm, vsf,
-					doLayout);
+				CyNetworkView cyNetworkView = ViewMaker.makeView(cyNetwork, cxToCy, collectionName, nvf, rem, vmm, vsf,
+						doLayout);
 
-			CyObjectManager.INSTANCE.getNetworkViewManager().addNetworkView(cyNetworkView);
+				CyObjectManager.INSTANCE.getNetworkViewManager().addNetworkView(cyNetworkView);
+			}
 		}
 	}
 
@@ -170,20 +180,23 @@ public class NetworkImportTask extends AbstractTask {
 		// while references named cyNetwork, cyNode, and cyEdge generally refer
 		// to the Cytoscape object model.
 
-		/*boolean largeNetwork = false;
-
-		largeNetwork = networkSummary.getEdgeCount() > 100000;
-
-		if (largeNetwork) {
-			JFrame parent = CyObjectManager.INSTANCE.getApplicationFrame();
-			String msg = "You have chosen to download a network that has more than 10,000 edges.\n";
-			msg += "The download will occur in the background and you can continue working,\n";
-			msg += "but it may take a while to appear in Cytoscape. Would you like to proceed?";
-			String dialogTitle = "Proceed?";
-			int choice = JOptionPane.showConfirmDialog(parent, msg, dialogTitle, JOptionPane.YES_NO_OPTION);
-			if (choice == JOptionPane.NO_OPTION)
-				return;
-		}*/
+		/*
+		 * boolean largeNetwork = false;
+		 * 
+		 * largeNetwork = networkSummary.getEdgeCount() > 100000;
+		 * 
+		 * if (largeNetwork) { JFrame parent =
+		 * CyObjectManager.INSTANCE.getApplicationFrame(); String msg =
+		 * "You have chosen to download a network that has more than 10,000 edges.\n"
+		 * ; msg +=
+		 * "The download will occur in the background and you can continue working,\n"
+		 * ; msg +=
+		 * "but it may take a while to appear in Cytoscape. Would you like to proceed?"
+		 * ; String dialogTitle = "Proceed?"; int choice =
+		 * JOptionPane.showConfirmDialog(parent, msg, dialogTitle,
+		 * JOptionPane.YES_NO_OPTION); if (choice == JOptionPane.NO_OPTION)
+		 * return; }
+		 */
 
 		SwingWorker<Integer, Integer> worker = new SwingWorker<Integer, Integer>() {
 

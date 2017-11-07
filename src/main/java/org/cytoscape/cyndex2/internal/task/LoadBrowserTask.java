@@ -37,7 +37,6 @@ public class LoadBrowserTask extends AbstractTask {
 			@Override
 			public void run() {
 				taskMonitor.setTitle("Loading CyNDEx-2 Browser");
-				taskMonitor.setStatusMessage("If this takes longer than 30 seconds, CyNDEx2 will require a restart of Cytoscape.");
 				try {
 					browserView = CyActivator.getBrowserView();
 					
@@ -80,6 +79,19 @@ public class LoadBrowserTask extends AbstractTask {
 		Thread thread = new Thread(runnable);
 		
 		thread.start();
+		
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(20000);
+					taskMonitor.setStatusMessage("CyNDEx2 is having trouble rendering the JXBrowser window. If the issue persists, try restarting Cytoscape.");
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}).start();
 		while (true){
 			if (cancelled){
 				thread.interrupt();
