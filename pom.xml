@@ -256,21 +256,15 @@
 
 		<dependency>
 			<groupId>org.cytoscape</groupId>
-			<artifactId>work-json-api</artifactId>
-			<version>0.1.0-SNAPSHOT</version>
+			<artifactId>work-api</artifactId>
+			<version>${cytoscape.api.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.cytoscape</groupId>
 			<artifactId>ci-api</artifactId>
-			<version>0.1.0-SNAPSHOT</version>
+			<version>${cytoscape.api.version}</version>
 			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.cytoscape-ci</groupId>
-			<artifactId>ci-bridge-impl</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
 		<!--  JXBrowser -->
@@ -322,8 +316,8 @@
 
 		<dependency>
 			<groupId>org.cytoscape</groupId>
-			<artifactId>swing-util-impl</artifactId>
-			<version>3.6.0-SNAPSHOT</version>
+			<artifactId>swing-util-api</artifactId>
+			<version>3.5.0</version>
 			<type>bundle</type>
 		</dependency>
 		<dependency>

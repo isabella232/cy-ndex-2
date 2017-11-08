@@ -14,9 +14,9 @@ import javax.ws.rs.core.Response.Status;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.ci.CIErrorFactory;
 import org.cytoscape.ci.CIExceptionFactory;
+import org.cytoscape.ci.CIResponseFactory;
 import org.cytoscape.ci.CIWrapping;
 import org.cytoscape.ci.model.CIError;
-import org.cytoscape.ci_bridge_impl.CIProvider;
 import org.cytoscape.cyndex2.internal.CxTaskFactoryManager;
 import org.cytoscape.cyndex2.internal.rest.HeadlessTaskMonitor;
 import org.cytoscape.cyndex2.internal.rest.NdexClient;
@@ -65,6 +65,8 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	private final CyNetworkManager networkManager;
 	private final CyApplicationManager appManager;
 
+
+	private final CIResponseFactory ciResponseFactory;
 	private final CIExceptionFactory ciExceptionFactory;
 	private final CIErrorFactory ciErrorFactory;
 
@@ -72,11 +74,13 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 	public NdexNetworkResourceImpl(final NdexClient client, final ErrorBuilder errorBuilder,
 			CyApplicationManager appManager, CyNetworkManager networkManager, CxTaskFactoryManager tfManager,
-			TaskFactory loadNetworkTF, CIExceptionFactory ciExceptionFactory, CIErrorFactory ciErrorFactory) {
+			TaskFactory loadNetworkTF, CIResponseFactory ciResponseFactory, CIExceptionFactory ciExceptionFactory, CIErrorFactory ciErrorFactory) {
 
 		this.client = client;
+		this.ciResponseFactory = ciResponseFactory;
 		this.ciErrorFactory = ciErrorFactory;
 		this.ciExceptionFactory = ciExceptionFactory;
+		
 		this.errorBuilder = errorBuilder;
 
 		this.networkManager = networkManager;
@@ -108,7 +112,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 		final NdexBaseResponse response = new NdexBaseResponse(importer.getSUID(), params.uuid);
 		try {
-			return CIProvider.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
+			return ciResponseFactory.getCIResponse(response, CINdexBaseResponse.class);
 		} catch (InstantiationException | IllegalAccessException e) {
 			final String message = "Could not create wrapped CI JSON.";
 			logger.error(message);
@@ -163,7 +167,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			}
 
 			final NdexBaseResponse response = new NdexBaseResponse(suid, newUUID);
-			return CIProvider.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
+			return ciResponseFactory.getCIResponse(response, CINdexBaseResponse.class);
 		} catch (NetworkExportException e1) {
 			final String message = "Error exporting network to CX:" + e1.getMessage();
 			logger.error(message);
@@ -260,7 +264,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 		final SummaryResponse response = buildSummary(root, (CySubNetwork) network);
 		try {
-			return CIProvider.getCIResponseFactory().getCIResponse(response, CISummaryResponse.class);
+			return ciResponseFactory.getCIResponse(response, CISummaryResponse.class);
 		} catch (InstantiationException | IllegalAccessException e) {
 			final String message = "Could not create wrapped CI JSON.";
 			logger.error(message);
@@ -298,7 +302,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 		final SummaryResponse response = buildSummary(rootNetwork, (CySubNetwork) network);
 		try {
-			return CIProvider.getCIResponseFactory().getCIResponse(response, CISummaryResponse.class);
+			return ciResponseFactory.getCIResponse(response, CISummaryResponse.class);
 		} catch (InstantiationException | IllegalAccessException e) {
 			final String message = "Could not create wrapped CI JSON.";
 			logger.error(message);
@@ -427,7 +431,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 		final NdexBaseResponse response = new NdexBaseResponse(suid, uuidStr);
 		try {
-			return CIProvider.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
+			return ciResponseFactory.getCIResponse(response, CINdexBaseResponse.class);
 		} catch (InstantiationException | IllegalAccessException e) {
 			final String message = "Could not create wrapped CI JSON.";
 			logger.error(message);

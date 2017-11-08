@@ -33,7 +33,7 @@ import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.ci.CIErrorFactory;
 import org.cytoscape.ci.CIExceptionFactory;
-import org.cytoscape.ci_bridge_impl.CIProvider;
+import org.cytoscape.ci.CIResponseFactory;
 import org.cytoscape.cyndex2.internal.rest.NdexClient;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexBaseResource;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexNetworkResource;
@@ -212,18 +212,9 @@ public class CyActivator extends AbstractCyActivator {
 		// CIErrorFactory ciErrorFactory = this.getService(bc,
 		// CIErrorFactory.class);
 
-		CIExceptionFactory ciExceptionFactory = CIProvider.getCIExceptionFactory();
-
-		CIErrorFactory ciErrorFactory = null;
-		try {
-			ciErrorFactory = CIProvider.getCIErrorFactory(bc);
-		} catch (IOException e) {
-			throw new RuntimeException("Could not create CIErrorFactory.", e);
-		}
-
-		if (ciErrorFactory == null) {
-			throw new RuntimeException("Could not create CIErrorFactory.");
-		}
+		CIExceptionFactory ciExceptionFactory = this.getService(bc, CIExceptionFactory.class);
+		CIErrorFactory ciErrorFactory = this.getService(bc, CIErrorFactory.class);
+		CIResponseFactory ciResponseFactory = this.getService(bc, CIResponseFactory.class);
 
 		// For loading networks...
 		final CyNetworkManager netmgr = getService(bc, CyNetworkManager.class);
@@ -294,15 +285,15 @@ public class CyActivator extends AbstractCyActivator {
 		final NdexClient ndexClient = new NdexClient(errorBuilder);
 
 		// Base
-		registerService(bc, new NdexBaseResourceImpl(bc.getBundle().getVersion().toString(), errorBuilder),
+		registerService(bc, new NdexBaseResourceImpl(bc.getBundle().getVersion().toString(), errorBuilder, ciResponseFactory),
 				NdexBaseResource.class, new Properties());
 
 		// Status
-		registerService(bc, new NdexStatusResourceImpl(pm, errorBuilder), NdexStatusResource.class, new Properties());
+		registerService(bc, new NdexStatusResourceImpl(pm, errorBuilder, ciResponseFactory), NdexStatusResource.class, new Properties());
 
 		// Network IO
 		registerService(bc, new NdexNetworkResourceImpl(ndexClient, errorBuilder, appManager, netmgr, tfManager,
-				loadNetworkTF, ciExceptionFactory, ciErrorFactory), NdexNetworkResource.class, new Properties());
+				loadNetworkTF, ciResponseFactory, ciExceptionFactory, ciErrorFactory), NdexNetworkResource.class, new Properties());
 
 		// add Handler to remove networks from NetworkManager when deleted
 		registerService(bc, new NdexNetworkAboutToBeDestroyedListener(), NetworkAboutToBeDestroyedListener.class,
