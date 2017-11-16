@@ -47,8 +47,11 @@ import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.swing.DialogTaskManager;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class NetworkExportTask extends AbstractTask {
 
@@ -59,7 +62,7 @@ public class NetworkExportTask extends AbstractTask {
 	private UUID networkUUID = null;
 	private boolean writeCollection = false;
 
-	public NetworkExportTask(CyNetwork network, NdexSaveParameters params, boolean isUpdate) {
+	public NetworkExportTask(CyNetwork network, NdexSaveParameters params, boolean isUpdate) throws JsonProcessingException, IOException, NdexException {
 		super();
 		this.params = params;
 		this.isUpdate = isUpdate;
@@ -94,18 +97,7 @@ public class NetworkExportTask extends AbstractTask {
 	@Override
 	public void run(TaskMonitor taskMonitor) throws NetworkExportException {
 		networkUUID = null;
-		/*
-		if (network.getEdgeCount() > 100000) {
-			JFrame parent = CyObjectManager.INSTANCE.getApplicationFrame();
-			String msg = "You have chosen to upload a network that has more than 10,000 edges.\n";
-			msg += "The upload will occur in the background and you can continue working,\n";
-			msg += "but it may take a while to appear in NDEx. Would you like to proceed?";
-			String dialogTitle = "Proceed?";
-			int choice = JOptionPane.showConfirmDialog(parent, msg, dialogTitle, JOptionPane.YES_NO_OPTION);
-			if (choice == JOptionPane.NO_OPTION)
-				return;
-		}
-		*/
+
 		CyRootNetwork rootNetwork = ((CySubNetwork) network).getRootNetwork();
 
 		

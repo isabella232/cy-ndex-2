@@ -8,7 +8,13 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Properties;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -17,6 +23,7 @@ import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.JToolTip;
 import javax.swing.ToolTipManager;
@@ -26,12 +33,15 @@ import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.search.AbstractNetworkSearchTaskFactory;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.property.CyProperty;
+import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskIterator;
+import org.cytoscape.work.TaskMonitor;
+import org.ndexbio.model.exceptions.NdexException;
 
 public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 
 	private static final String ID = "cyndex2";
-	private static final String NAME = "CyNDEx-2";
+	private static final String NAME = "NDEx Database";
 
 	private final String appName;
 	private final ExternalAppManager pm;
@@ -39,8 +49,8 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 	private String port;
 	private final JDialog dialog;
 
-	public OpenBrowseTaskFactory(final CyApplicationManager appManager, final Icon icon,
-			final ExternalAppManager pm, final CySwingApplication swingApp, final CyProperty<Properties> cyProps) {
+	public OpenBrowseTaskFactory(final CyApplicationManager appManager, final Icon icon, final ExternalAppManager pm,
+			final CySwingApplication swingApp, final CyProperty<Properties> cyProps) {
 		super(ID, NAME, icon);
 		this.appName = ExternalAppManager.APP_NAME_LOAD;
 		this.pm = pm;
@@ -48,7 +58,7 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 
 		if (port == null)
 			port = "1234";
-		
+
 		JFrame frame = swingApp.getJFrame();
 		dialog = pm.getDialog(frame);
 	}
@@ -68,7 +78,7 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 		private final Color TEXT_COLOR = Color.decode("#444444");
 		private final static String SEARCH_TEXT = "Enter search terms for NDEx...";
 		private boolean disabled = false;
-		private final JToolTip tip;
+		private JToolTip tip;
 
 		public Entry() {
 			super(SEARCH_TEXT);
@@ -119,9 +129,11 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 			return getForeground() == Color.GRAY ? "" : getText();
 		}
 
-		public void setDisabled() {
+		public void setDisabled(String message) {
 			setEnabled(false);
-			setText("Restart Cytoscape to use CyNDEx2");
+			setText("Unable to start CyNDEx2");
+			tip = new JToolTip();
+			tip.add(new JLabel(message));
 			setForeground(Color.GRAY);
 			disabled = true;
 			firePropertyChange(QUERY_PROPERTY, null, null);
@@ -147,7 +159,7 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 			pane.setContentType("text/html");
 			final String help = "<h3>NDEx Database Search</h3>"
 					+ "<p>Enter search query for NDEx database. You can use</p>"
-					+ "<br/>  - Gene names<br/>  - Gene IDs<br/>  - Keywords<br/>  - etc.<br/>"
+					+ "<br/>  - Gene names<br/>  - Gene IDs<br/>  - Keywords<br/>  - Shared Network URL<br/>  - etc.<br/>"
 					+ "<p>If you want to browse the database, simply send empty query. For more details, please visit <i>www.ndexbio.org</i></p>";
 			pane.setText(help);
 			pane.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
@@ -178,22 +190,73 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 
 	@Override
 	public TaskIterator createTaskIterator() {
+		TaskIterator ti = new TaskIterator();
+
+		if (ExternalAppManager.busy)
+			return ti;
+		String query = getQuery();
+		try {
+			
+			URL url = new URL(query);
+			assert url.getHost().contains("ndexbio.org");
+			
+			Pattern pattern = Pattern
+					.compile("^(https?://www\\.[^#]*ndexbio.org/)#/network/([^\\?]*)(\\?accesskey=(.*))?$", Pattern.CASE_INSENSITIVE);
+			Matcher matcher = pattern.matcher(query);
+			String hostName = null, uuid = null, accessKey = null;
+			if (matcher.find()) {
+				hostName = matcher.group(1);
+				uuid = matcher.group(2);
+				accessKey = matcher.group(4);
+			}
+			hostName += "v2/";
+			System.out.println(hostName + " " + uuid + " " + accessKey);
+			if (hostName != null && uuid != null){
+				NetworkImportTask importer = new NetworkImportTask(hostName, UUID.fromString(uuid));
+				if (accessKey != null)
+					importer.setAccessKey(accessKey);
+				ti.append(importer);
+				return ti;
+			}
+		} catch (MalformedURLException e) {
+			// NOT a url
+		} catch (IOException e){
+			
+		} catch(NdexException e){
+			ti.append(new Task() {
+				
+				@Override
+				public void run(TaskMonitor arg0) throws Exception {
+					JOptionPane.showMessageDialog(null, e.getMessage());
+					
+				}
+				
+				@Override
+				public void cancel() {
+					// TODO Auto-generated method stub
+					
+				}
+			});
+		}
+
 		// Store query info
 		pm.setQuery(getQuery());
 		pm.setAppName(appName);
 		pm.setPort(port);
+		ExternalAppManager.busy = true;
 
 		dialog.setSize(1000, 700);
 		dialog.setLocationRelativeTo(null);
 
-		TaskIterator ti = new TaskIterator();
 		LoadBrowserTask loader = new LoadBrowserTask(pm, dialog, ti);
 		ti.append(loader);
+
 		return ti;
 	}
 
 	@Override
 	public boolean isReady() {
-		return !ExternalAppManager.loadFailed;
+		return !ExternalAppManager.busy && !ExternalAppManager.loadFailed;
 	}
+
 }

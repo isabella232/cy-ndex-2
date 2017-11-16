@@ -124,10 +124,22 @@ public class CyActivator extends AbstractCyActivator {
 		});
 		return instances;
 	}
-
+	
+	private static boolean supportedOSAndArchitecture(){
+		String os = System.getProperty("os.name");
+		if (os.contains("Windows") || os.contains("Mac"))
+			return true;
+		String arch = System.getProperty("os.arch");
+		return arch.endsWith("64");
+	}
+	
 	public static BrowserView getBrowserView() throws BrowserCreationError {
 		// returns non-null Browser object or an Exception
 
+		if (!supportedOSAndArchitecture()){
+			throw new BrowserCreationError("JxBrowser is not supported on your system.");
+		}
+		
 		if (browser == null) {
 
 			if (LookAndFeelUtil.isMac() && getLockFiles().length > 0) {
@@ -423,7 +435,7 @@ public class CyActivator extends AbstractCyActivator {
 				browser.dispose();
 		}
 
-		removeLockFiles();
+		//removeLockFiles();
 		super.shutDown();
 	}
 
@@ -444,13 +456,13 @@ public class CyActivator extends AbstractCyActivator {
 							frame.pack();
 							frame.setLocation(initialBounds.getLocation());
 							frame.setVisible(true);
-							frame.addWindowListener(new WindowAdapter() {
+							/*frame.addWindowListener(new WindowAdapter() {
 								@Override
 								public void windowClosing(WindowEvent e) {
 									browser.dispose();
 								}
 							});
-
+							*/
 							browser.addDisposeListener(new DisposeListener<Browser>() {
 								public void onDisposed(DisposeEvent<Browser> event) {
 									frame.setVisible(false);

@@ -22,6 +22,7 @@ public class ExternalAppManager {
 	private String saveType;
 	private JDialog dialog;
 	
+	public static boolean busy = false;
 	public static boolean loadFailed = false;
 	
 	public JDialog getDialog(JFrame parent){
@@ -34,7 +35,7 @@ public class ExternalAppManager {
 	}
 	
 	public static void setLoadFailed(String reason){
-		OpenBrowseTaskFactory.getEntry().setDisabled();
+		OpenBrowseTaskFactory.getEntry().setDisabled(reason);
 		loadFailed = true;
 	}
 

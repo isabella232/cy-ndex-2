@@ -32,14 +32,14 @@ public class LoadBrowserTask extends AbstractTask {
 	public void run(TaskMonitor taskMonitor) {
 		// Load browserView and start external task, or show error message
 		LoadBrowserTask task = this;
-		Runnable runnable = new Runnable(){
-			
+		Runnable runnable = new Runnable() {
+
 			@Override
 			public void run() {
 				taskMonitor.setTitle("Loading CyNDEx-2 Browser");
 				try {
 					browserView = CyActivator.getBrowserView();
-					
+
 					if (browserView == null || browserView.getBrowser() == null)
 						throw new BrowserCreationError("Browser failed to initialize.");
 
@@ -73,27 +73,27 @@ public class LoadBrowserTask extends AbstractTask {
 				}
 				complete = true;
 			}
-			
-			
+
 		};
 		Thread thread = new Thread(runnable);
-		
+
 		thread.start();
-		
+
 		new Thread(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				try {
-					Thread.sleep(20000);
-					taskMonitor.setStatusMessage("CyNDEx2 is having trouble rendering the JXBrowser window. If the issue persists, try restarting Cytoscape.");
+					Thread.sleep(40000);
+					taskMonitor.setStatusMessage(
+							"CyNDEx2 is having trouble rendering the JXBrowser window. If the issue persists, try restarting Cytoscape.");
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
 		}).start();
-		while (true){
-			if (cancelled){
+		while (true) {
+			if (cancelled) {
 				thread.interrupt();
 				break;
 			}

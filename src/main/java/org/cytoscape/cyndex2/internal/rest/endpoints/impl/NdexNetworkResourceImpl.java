@@ -46,12 +46,13 @@ import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskMonitor;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.Permissions;
-import org.ndexbio.model.object.User;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
@@ -96,7 +97,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 		NetworkImportTask importer;
 		try {
-			importer = new NetworkImportTask(params.username, params.password, params.serverUrl, params.uuid);
+			importer = new NetworkImportTask(params.username, params.password, params.serverUrl, UUID.fromString(params.uuid));
 			importer.run(tm);
 		} catch (IOException | NdexException e2) {
 			final String message = "Failed to connect to server and retrieve network. " + e2.getMessage();
@@ -157,8 +158,8 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			}
 		}
 		
-		NetworkExportTask exporter = new NetworkExportTask(network, params, false);
 		try {
+			NetworkExportTask exporter = new NetworkExportTask(network, params, false);
 			exporter.run(tm);
 			String newUUID = exporter.getNetworkUUID().toString();
 
@@ -179,6 +180,10 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		} catch(NullPointerException e){
 			logger.error(e.getMessage());
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, "NULL EXCEPTION: " + e.getMessage(), ErrorType.INTERNAL);
+		} catch (IOException | NdexException e) {
+			logger.error(e.getMessage());
+			final String message = "Unable to connect to the NDEx Java Client.";
+			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 		}
 
 	}
@@ -442,12 +447,17 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	private final boolean updateExistingNetwork(final CyNetworkViewWriterFactory writerFactory, final CyNetwork network,
 			final NdexSaveParameters params, final UUID uuid) {
 
-		NetworkExportTask updater = new NetworkExportTask(network, params, true);
+		
 		try {
+			NetworkExportTask updater = new NetworkExportTask(network, params, true);
 			updater.run(tm);
 		} catch (NetworkExportException e) {
 			logger.error(e.getMessage());
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, e.getMessage(), ErrorType.INTERNAL);
+		} catch (IOException | NdexException e) {
+			logger.error(e.getMessage());
+			final String message = "Unable to connect to the NDEx Java Client.";
+			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 		}
 		return true;
 	}
@@ -481,8 +491,8 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		final NdexRestClient nc = new NdexRestClient(params.username, params.password, params.serverUrl);
 		final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
 		try {
-			final User user = mal.authenticateUser(params.username, params.password);
-			Map<String, Permissions> permissionTable = mal.getUserNetworkPermission(user.getExternalId(), ndexNetworkId,
+			
+			Map<String, Permissions> permissionTable = mal.getUserNetworkPermission(nc.getUserUid(), ndexNetworkId,
 					false);
 			if (permissionTable == null || permissionTable.get(ndexNetworkId.toString()) == Permissions.READ)
 				throw new Exception("You don't have permission to write to this network.");
@@ -493,7 +503,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 		NetworkSummary ns = null;
 		try {
-			ns = mal.getNetworkSummaryById(ndexNetworkId.toString());
+			ns = mal.getNetworkSummaryById(ndexNetworkId);
 			if (ns.getIsReadOnly())
 				throw new Exception("The network is read only.");
 

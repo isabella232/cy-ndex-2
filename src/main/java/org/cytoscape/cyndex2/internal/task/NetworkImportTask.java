@@ -77,15 +77,27 @@ public class NetworkImportTask extends AbstractTask {
 	final NdexRestClientModelAccessLayer mal;
 	final NetworkSummary networkSummary;
 	private Long suid = null;
+	private String accessKey = null;
 
-	public NetworkImportTask(String userId, String password, String serverUrl, String uuid)
+	public NetworkImportTask(String userId, String password, String serverUrl, UUID uuid)
 			throws IOException, NdexException {
 		super();
 		NdexRestClient client = new NdexRestClient(userId, password, serverUrl);
 		mal = new NdexRestClientModelAccessLayer(client);
 		networkSummary = mal.getNetworkSummaryById(uuid);
 	}
-
+	
+	public NetworkImportTask(String serverUrl, UUID uuid) throws IOException, NdexException{
+		super();
+		NdexRestClient client = new NdexRestClient(serverUrl);
+		mal = new NdexRestClientModelAccessLayer(client);
+		networkSummary = mal.getNetworkSummaryById(uuid);
+	}
+	
+	public void setAccessKey(String accessKey){
+		this.accessKey = accessKey;
+	}
+	
 	private void createCyNetworkFromCX(InputStream cxStream, NetworkSummary networkSummary) throws IOException {
 
 		// Create the CyNetwork to copy to.
@@ -95,12 +107,18 @@ public class NetworkImportTask extends AbstractTask {
 
 		NiceCXNetwork niceCX = cxImporter.getCXNetworkFromStream(cxStream);
 
-		boolean doLayout = niceCX.getNodeAssociatedAspect(CartesianLayoutElement.ASPECT_NAME) != null || networkSummary.getEdgeCount() < 5000;
+		boolean doLayout;
+		boolean hasCoords = niceCX.getNodeAssociatedAspect(CartesianLayoutElement.ASPECT_NAME) != null;
 
-		if (!doLayout) {
+		if (hasCoords) {
+			doLayout = false;
+		} else if (networkSummary.getEdgeCount() < 5000) {
+			doLayout = true;
+		} else {
 			JFrame parent = CyObjectManager.INSTANCE.getApplicationFrame();
 			int response = JOptionPane.showConfirmDialog(parent,
-					"Do you want to create a view for your large network? This could take a while.", "Importing Large Network", JOptionPane.YES_NO_OPTION);
+					"Do you want to create a view for your large network? This could take a while.",
+					"Importing Large Network", JOptionPane.YES_NO_OPTION);
 			doLayout = response == JOptionPane.YES_OPTION;
 		}
 
@@ -154,7 +172,7 @@ public class NetworkImportTask extends AbstractTask {
 		for (CyNetwork cyNetwork : networks) {
 			CyObjectManager.INSTANCE.getNetworkManager().addNetwork(cyNetwork);
 
-			if (doLayout) {
+			if (doLayout || hasCoords) {
 				CyNetworkViewFactory nvf = CyObjectManager.INSTANCE.getNetworkViewFactory();
 				RenderingEngineManager rem = CyObjectManager.INSTANCE.getRenderingEngineManager();
 				VisualMappingManager vmm = CyObjectManager.INSTANCE.getVisualMappingManager();
@@ -164,6 +182,7 @@ public class NetworkImportTask extends AbstractTask {
 						doLayout);
 
 				CyObjectManager.INSTANCE.getNetworkViewManager().addNetworkView(cyNetworkView);
+				cyNetworkView.fitContent();
 			}
 		}
 	}
@@ -174,29 +193,6 @@ public class NetworkImportTask extends AbstractTask {
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws NetworkImportException {
-
-		// Note: In this code, references named network, node, and edge
-		// generally refer to the NDEx object model
-		// while references named cyNetwork, cyNode, and cyEdge generally refer
-		// to the Cytoscape object model.
-
-		/*
-		 * boolean largeNetwork = false;
-		 * 
-		 * largeNetwork = networkSummary.getEdgeCount() > 100000;
-		 * 
-		 * if (largeNetwork) { JFrame parent =
-		 * CyObjectManager.INSTANCE.getApplicationFrame(); String msg =
-		 * "You have chosen to download a network that has more than 10,000 edges.\n"
-		 * ; msg +=
-		 * "The download will occur in the background and you can continue working,\n"
-		 * ; msg +=
-		 * "but it may take a while to appear in Cytoscape. Would you like to proceed?"
-		 * ; String dialogTitle = "Proceed?"; int choice =
-		 * JOptionPane.showConfirmDialog(parent, msg, dialogTitle,
-		 * JOptionPane.YES_NO_OPTION); if (choice == JOptionPane.NO_OPTION)
-		 * return; }
-		 */
 
 		SwingWorker<Integer, Integer> worker = new SwingWorker<Integer, Integer>() {
 
@@ -211,10 +207,12 @@ public class NetworkImportTask extends AbstractTask {
 					if (success) {
 						UUID id = networkSummary.getExternalId();
 						try {
-							InputStream cxStream = mal.getNetworkAsCXStream(id.toString());
-							createCyNetworkFromCX(cxStream, networkSummary); // ,
-																				// finalLargeNetwork);
-							// me.setVisible(false);
+							InputStream cxStream = null;
+							if (accessKey == null)
+								 cxStream = mal.getNetworkAsCXStream(id);
+							else
+								cxStream = mal.getNetworkAsCXStream(id, accessKey);
+							createCyNetworkFromCX(cxStream, networkSummary); 
 						} catch (IOException ex) {
 							throw new NetworkImportException(ErrorMessage.failedToParseJson);
 						} catch (RuntimeException ex2) {
