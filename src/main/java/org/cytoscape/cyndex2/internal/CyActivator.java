@@ -431,8 +431,8 @@ public class CyActivator extends AbstractCyActivator {
 
 		if (browser != null) {
 			browser.getCacheStorage().clearCache();
-			if (!browser.isDisposed())
-				browser.dispose();
+			//if (!browser.isDisposed())
+			//	browser.dispose();
 		}
 
 		//removeLockFiles();
@@ -456,13 +456,7 @@ public class CyActivator extends AbstractCyActivator {
 							frame.pack();
 							frame.setLocation(initialBounds.getLocation());
 							frame.setVisible(true);
-							/*frame.addWindowListener(new WindowAdapter() {
-								@Override
-								public void windowClosing(WindowEvent e) {
-									browser.dispose();
-								}
-							});
-							*/
+							
 							browser.addDisposeListener(new DisposeListener<Browser>() {
 								public void onDisposed(DisposeEvent<Browser> event) {
 									frame.setVisible(false);

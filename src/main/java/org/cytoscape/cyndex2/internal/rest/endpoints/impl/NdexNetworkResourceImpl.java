@@ -94,10 +94,17 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	@Override
 	@CIWrapping
 	public CINdexBaseResponse createNetworkFromNdex(final NdexImportParams params) {
-
+		if (params.serverUrl == null || params.uuid == null){
+			final String message = "Must provide a serverUrl and uuid to import a network";
+			logger.error(message);
+			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INVALID_PARAMETERS);
+		}
 		NetworkImportTask importer;
 		try {
-			importer = new NetworkImportTask(params.username, params.password, params.serverUrl, UUID.fromString(params.uuid));
+			if (params.username != null && params.password != null)
+				importer = new NetworkImportTask(params.username, params.password, params.serverUrl, UUID.fromString(params.uuid));
+			else
+				importer = new NetworkImportTask(params.serverUrl, UUID.fromString(params.uuid));
 			importer.run(tm);
 		} catch (IOException | NdexException e2) {
 			final String message = "Failed to connect to server and retrieve network. " + e2.getMessage();
@@ -105,7 +112,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 
 		} catch (Exception e) {
-			final String message = "Unable to create CyNetwork from NDEx.\n" + e.getMessage();
+			final String message = "Unable to create CyNetwork from NDEx." + e.getMessage();
 			logger.error(message);
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 

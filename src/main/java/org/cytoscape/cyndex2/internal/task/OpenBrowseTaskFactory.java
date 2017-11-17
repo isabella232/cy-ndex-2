@@ -198,7 +198,8 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 		try {
 			
 			URL url = new URL(query);
-			assert url.getHost().contains("ndexbio.org");
+			if(!url.getHost().contains("ndexbio.org"))
+				throw new MalformedURLException();
 			
 			Pattern pattern = Pattern
 					.compile("^(https?://www\\.[^#]*ndexbio.org/)#/network/([^\\?]*)(\\?accesskey=(.*))?$", Pattern.CASE_INSENSITIVE);
@@ -221,20 +222,17 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 		} catch (MalformedURLException e) {
 			// NOT a url
 		} catch (IOException e){
-			
+			e.printStackTrace();
 		} catch(NdexException e){
 			ti.append(new Task() {
-				
 				@Override
 				public void run(TaskMonitor arg0) throws Exception {
 					JOptionPane.showMessageDialog(null, e.getMessage());
 					
 				}
-				
 				@Override
 				public void cancel() {
 					// TODO Auto-generated method stub
-					
 				}
 			});
 		}
