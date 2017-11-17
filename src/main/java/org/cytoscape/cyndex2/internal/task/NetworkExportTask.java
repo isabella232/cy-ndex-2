@@ -153,12 +153,12 @@ public class NetworkExportTask extends AbstractTask {
 	            creationEvent.addInput(oldProvenanceEntity);
 	        cytoscapeProvenanceEntity.setCreationEvent(creationEvent);
 	        List<SimplePropertyValuePair> provenanceProps = new ArrayList<>(5);
-	        provenanceProps.add(new SimplePropertyValuePair ("uuid", networkUUID.toString()));
+	     //   provenanceProps.add(new SimplePropertyValuePair ("uuid", networkUUID.toString()));
 	        provenanceProps.add(new SimplePropertyValuePair ("dc:title", uploadName));
-	        provenanceProps.add(new SimplePropertyValuePair ("host", mal.getNdexRestClient().getBaseroute().substring(0, mal.getNdexRestClient().getBaseroute().length()-3 )));
+	      //  provenanceProps.add(new SimplePropertyValuePair ("host", mal.getNdexRestClient().getBaseroute().substring(0, mal.getNdexRestClient().getBaseroute().length()-3 )));
 	        provenanceProps.add(new SimplePropertyValuePair ("AppName", "cyNDEx-2"));
         
-	        cytoscapeProvenanceEntity.setUri(mal.getNdexRestClient().getBaseroute()+ "");
+	        cytoscapeProvenanceEntity.setUri(mal.getNdexRestClient().getBaseroute()+ "/network/" + networkUUID + "/summary");
 	        cytoscapeProvenanceEntity.setProperties(provenanceProps);
 	        Thread.sleep(500);
 	        NetworkSummary s = mal.getNetworkSummaryById(networkUUID);
