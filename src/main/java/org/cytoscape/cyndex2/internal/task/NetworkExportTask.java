@@ -29,6 +29,10 @@ package org.cytoscape.cyndex2.internal.task;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 import java.util.UUID;
 
 import org.cytoscape.group.CyGroupManager;
@@ -48,6 +52,10 @@ import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.swing.DialogTaskManager;
 import org.ndexbio.model.exceptions.NdexException;
+import org.ndexbio.model.object.ProvenanceEntity;
+import org.ndexbio.model.object.ProvenanceEvent;
+import org.ndexbio.model.object.SimplePropertyValuePair;
+import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
@@ -131,6 +139,42 @@ public class NetworkExportTask extends AbstractTask {
 				prepareForUpdate(suid);
 				mal.updateCXNetwork(networkUUID, in);
 			}
+			
+			// set customized provenance 
+			CXInfoHolder cxInfoHolder = NetworkManager.INSTANCE.getCXInfoHolder(suid);
+	        ProvenanceEntity oldProvenanceEntity = ((cxInfoHolder !=null && cxInfoHolder.getProvenance() !=null)? 
+	        		cxInfoHolder.getProvenance().getEntity() : null); 
+	        
+	        ProvenanceEntity cytoscapeProvenanceEntity = new ProvenanceEntity();
+	        
+	        ProvenanceEvent creationEvent = new ProvenanceEvent((String) (isUpdate ? "Cytoscape Update" : "Cytoscape Upload"),
+	        		     new Timestamp(Calendar.getInstance().getTimeInMillis() ));
+	        if( oldProvenanceEntity != null )
+	            creationEvent.addInput(oldProvenanceEntity);
+	        cytoscapeProvenanceEntity.setCreationEvent(creationEvent);
+	        List<SimplePropertyValuePair> provenanceProps = new ArrayList<>(5);
+	        provenanceProps.add(new SimplePropertyValuePair ("uuid", networkUUID.toString()));
+	        provenanceProps.add(new SimplePropertyValuePair ("dc:title", uploadName));
+	        provenanceProps.add(new SimplePropertyValuePair ("host", mal.getNdexRestClient().getBaseroute().substring(0, -3)));
+	        provenanceProps.add(new SimplePropertyValuePair ("AppName", "cyNDEx-2"));
+        
+	        cytoscapeProvenanceEntity.setUri(mal.getNdexRestClient().getBaseroute()+ "");
+	        cytoscapeProvenanceEntity.setProperties(provenanceProps);
+	        Thread.sleep(500);
+	        NetworkSummary s = mal.getNetworkSummaryById(networkUUID);
+	        int counter = 0;
+	        while ( ! s.getIsValid() ) {
+	        		if ( counter > 20) {
+	        			//TODO: need to warn user that the provenance was not set because the server is too busy.
+	        			break;
+	        		}
+	        		counter ++;
+	        		Thread.sleep(1500);
+	        		s = mal.getNetworkSummaryById(networkUUID);
+	        		
+	        }
+	        mal.setNetworkProvenance(networkUUID, cytoscapeProvenanceEntity);
+	        
 		} catch (NetworkUpdateException e) {
 			throw new NetworkExportException("Only networks imported from CyNDEx2 can be updated.");
 		} catch (IOException e) {
