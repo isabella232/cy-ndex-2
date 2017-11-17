@@ -211,7 +211,6 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 				accessKey = matcher.group(4);
 			}
 			hostName += "v2/";
-			System.out.println(hostName + " " + uuid + " " + accessKey);
 			if (hostName != null && uuid != null){
 				NetworkImportTask importer = new NetworkImportTask(hostName, UUID.fromString(uuid));
 				if (accessKey != null)
