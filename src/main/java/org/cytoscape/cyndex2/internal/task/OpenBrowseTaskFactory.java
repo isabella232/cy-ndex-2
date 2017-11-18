@@ -194,47 +194,6 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 
 		if (ExternalAppManager.busy)
 			return ti;
-		String query = getQuery();
-		try {
-			
-			URL url = new URL(query);
-			if(!url.getHost().contains("ndexbio.org"))
-				throw new MalformedURLException();
-			
-			Pattern pattern = Pattern
-					.compile("^(https?://www\\.[^#]*ndexbio.org/)#/network/([^\\?]*)(\\?accesskey=(.*))?$", Pattern.CASE_INSENSITIVE);
-			Matcher matcher = pattern.matcher(query);
-			String hostName = null, uuid = null, accessKey = null;
-			if (matcher.find()) {
-				hostName = matcher.group(1);
-				uuid = matcher.group(2);
-				accessKey = matcher.group(4);
-			}
-			hostName += "v2/";
-			if (hostName != null && uuid != null){
-				NetworkImportTask importer = new NetworkImportTask(hostName, UUID.fromString(uuid));
-				if (accessKey != null)
-					importer.setAccessKey(accessKey);
-				ti.append(importer);
-				return ti;
-			}
-		} catch (MalformedURLException e) {
-			// NOT a url
-		} catch (IOException e){
-			e.printStackTrace();
-		} catch(NdexException e){
-			ti.append(new Task() {
-				@Override
-				public void run(TaskMonitor arg0) throws Exception {
-					JOptionPane.showMessageDialog(null, e.getMessage());
-					
-				}
-				@Override
-				public void cancel() {
-					// TODO Auto-generated method stub
-				}
-			});
-		}
 
 		// Store query info
 		pm.setQuery(getQuery());
