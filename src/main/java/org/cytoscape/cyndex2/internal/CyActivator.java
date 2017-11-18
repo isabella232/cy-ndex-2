@@ -8,12 +8,9 @@ import static org.cytoscape.work.ServiceProperties.TITLE;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.Rectangle;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
@@ -110,20 +107,6 @@ public class CyActivator extends AbstractCyActivator {
 			super("JXBrowser instance creation failed.\n" + message);
 		}
 	}
-
-	private static File[] getLockFiles() {
-		// return whether libjxbrowser dylib/dll exists, which would cause
-		// Browser instantiation to fail
-		File[] instances = jxbrowserConfigLocation.listFiles(new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String name) {
-				// return name.startsWith("libjxbrowser-common64-") &&
-				// name.endsWith(".dylib");
-				return name.endsWith("_0.lock");
-			}
-		});
-		return instances;
-	}
 	
 	private static boolean supportedOSAndArchitecture(){
 		String os = System.getProperty("os.name");
@@ -141,11 +124,6 @@ public class CyActivator extends AbstractCyActivator {
 		}
 		
 		if (browser == null) {
-
-			if (LookAndFeelUtil.isMac() && getLockFiles().length > 0) {
-				throw new BrowserCreationError(
-						"A .lock file exists in CytoscapeConfiguration/jxbrowser. The JXBrowser process must already be running.");
-			}
 
 			// Uncomment for development port
 			BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222", "--ipc-connection-timeout=2");
@@ -311,17 +289,11 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, new NdexNetworkAboutToBeDestroyedListener(), NetworkAboutToBeDestroyedListener.class,
 				new Properties());
 
-		// Remove lock files on start, in case Cytoscape closed unexpectedly
-		removeLockFiles();
+		
 
 	}
 
-	private static final void removeLockFiles() {
-		for (File f : getLockFiles()) {
-			f.delete();
-		}
-	}
-
+	
 	private final void installWebApp(final String configDir, final BundleContext bc) {
 
 		// This bundle's version
@@ -431,11 +403,8 @@ public class CyActivator extends AbstractCyActivator {
 
 		if (browser != null) {
 			browser.getCacheStorage().clearCache();
-			//if (!browser.isDisposed())
-			//	browser.dispose();
 		}
 
-		//removeLockFiles();
 		super.shutDown();
 	}
 

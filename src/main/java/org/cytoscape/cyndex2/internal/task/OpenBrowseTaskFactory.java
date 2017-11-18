@@ -8,14 +8,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Properties;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -23,7 +16,6 @@ import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.JToolTip;
 import javax.swing.ToolTipManager;
@@ -33,10 +25,7 @@ import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.search.AbstractNetworkSearchTaskFactory;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.property.CyProperty;
-import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskIterator;
-import org.cytoscape.work.TaskMonitor;
-import org.ndexbio.model.exceptions.NdexException;
 
 public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 
