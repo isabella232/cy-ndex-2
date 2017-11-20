@@ -298,12 +298,12 @@ public final class CxExporter {
             w.writeAspectElements(nsAspect);
         }
         
-     /*   Provenance cytoscapeProvenance = new Provenance();
+        Provenance cytoscapeProvenance = new Provenance();
         
         ProvenanceEntity oldProvenanceEntity = ((cxInfoHolder !=null && cxInfoHolder.getProvenance() !=null)? 
         		cxInfoHolder.getProvenance().getEntity() : null); 
         
-        ProvenanceEvent creationEvent = new ProvenanceEvent((isUpdate ? "Cytoscape Update" : "Cytoscape Upload"),
+        ProvenanceEvent creationEvent = new ProvenanceEvent((isUpdate ? "Cytoscape Update (cyNDEx-2)" : "Cytoscape Upload (cyNDEx-2)"),
         		     new Timestamp(Calendar.getInstance().getTimeInMillis() ));
         if( oldProvenanceEntity != null )
             creationEvent.addInput(oldProvenanceEntity);
@@ -312,7 +312,7 @@ public final class CxExporter {
         final List<AspectElement> provAspect = new ArrayList<>(1);
         provAspect.add(cytoscapeProvenance);
 
-        w.writeAspectElements(provAspect); */
+        w.writeAspectElements(provAspect); 
         
         try {
                 writeNodes(network, write_siblings, w, cxInfoHolder);
