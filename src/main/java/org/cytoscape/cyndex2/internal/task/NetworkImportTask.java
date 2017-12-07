@@ -98,7 +98,7 @@ public class NetworkImportTask extends AbstractTask {
 		this.accessKey = accessKey;
 	}
 	
-	private void createCyNetworkFromCX(InputStream cxStream, NetworkSummary networkSummary) throws IOException {
+	private void createCyNetworkFromCX(InputStream cxStream) throws IOException {
 
 		// Create the CyNetwork to copy to.
 		CyNetworkFactory networkFactory = CyObjectManager.INSTANCE.getNetworkFactory();
@@ -178,11 +178,12 @@ public class NetworkImportTask extends AbstractTask {
 				VisualMappingManager vmm = CyObjectManager.INSTANCE.getVisualMappingManager();
 				VisualStyleFactory vsf = CyObjectManager.INSTANCE.getVisualStyleFactory();
 
-				CyNetworkView cyNetworkView = ViewMaker.makeView(cyNetwork, cxToCy, collectionName, nvf, rem, vmm, vsf,
+				//CyNetworkView cyNetworkView =
+						ViewMaker.makeView(cyNetwork, cxToCy, collectionName, nvf, rem, vmm, vsf,
 						doLayout);
 
-				CyObjectManager.INSTANCE.getNetworkViewManager().addNetworkView(cyNetworkView);
-				cyNetworkView.fitContent();
+			//	CyObjectManager.INSTANCE.getNetworkViewManager().addNetworkView(cyNetworkView);
+			//	cyNetworkView.fitContent();
 			}
 		}
 	}
@@ -212,7 +213,7 @@ public class NetworkImportTask extends AbstractTask {
 								 cxStream = mal.getNetworkAsCXStream(id);
 							else
 								cxStream = mal.getNetworkAsCXStream(id, accessKey);
-							createCyNetworkFromCX(cxStream, networkSummary); 
+							createCyNetworkFromCX(cxStream); 
 						} catch (IOException ex) {
 							throw new NetworkImportException(ErrorMessage.failedToParseJson);
 						} catch (RuntimeException ex2) {

@@ -43,7 +43,7 @@ public final class ViewMaker {
     public static final Pattern DIRECT_NET_PROPS_PATTERN = Pattern
             .compile("GRAPH_VIEW_(ZOOM|CENTER_(X|Y))|NETWORK_(WIDTH|HEIGHT|SCALE_FACTOR|CENTER_(X|Y|Z)_LOCATION)");
 
-    public final static  CyNetworkView  makeView(final CyNetwork network,
+    public final static  void  makeView(final CyNetwork network,
                                                final CxToCy cx_to_cy,
                                                final String network_collection_name,
                                                final CyNetworkViewFactory networkview_factory,
@@ -57,28 +57,27 @@ public final class ViewMaker {
     		
         final long t0 = System.currentTimeMillis();
         final VisualElementCollectionMap collection = cx_to_cy.getVisualElementCollectionMap();
-        final CyNetworkView view = networkview_factory.createNetworkView(network);
     //    hasLayoutMap.put(view, Boolean.FALSE);
         
         if ((collection == null) || collection.isEmpty()) {
-             return ViewMaker.applyStyle(visual_mapping_manager.getDefaultVisualStyle(), view, doLayout);
+            final CyNetworkView view = networkview_factory.createNetworkView(network);
+            ViewMaker.applyStyle(visual_mapping_manager.getDefaultVisualStyle(), view, doLayout);
+            return;
         }
 
         final Long network_id = cx_to_cy.getNetworkSuidToNetworkRelationsMap().get(network.getSUID());
 
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        // PLEASE NOTE
-        // -----------
-        // For now, Cytoscape has only one view per
-        // sub-network, but in the future this
-        // might change, which means instead of "get(0)" we will need a
-        // loop.
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       
 		if (network_id == null || !cx_to_cy.getSubNetworkToViewsMap().containsKey(network_id)) {
-				return ViewMaker.applyStyle(visual_mapping_manager.getDefaultVisualStyle(), view, doLayout);
+            final CyNetworkView view = networkview_factory.createNetworkView(network);
+            ViewMaker.applyStyle(visual_mapping_manager.getDefaultVisualStyle(), view, doLayout);
+            return;
 		}
 
-        final Long view_id = cx_to_cy.getSubNetworkToViewsMap().get(network_id).get(0);
+		// loop
+        for (Long view_id : cx_to_cy.getSubNetworkToViewsMap().get(network_id)) {
+        final CyNetworkView view = networkview_factory.createNetworkView(network);
+
         if (Settings.INSTANCE.isDebug()) {
             System.out.println("making view " + view_id + " (network " + network_id + ")");
         }
@@ -161,7 +160,14 @@ public final class ViewMaker {
             TimingUtil.reportTimeDifference(t0, "time to make view", -1);
         }
         
-        return ViewMaker.applyStyle(new_visual_style, view, doLayout);
+        		ViewMaker.applyStyle(new_visual_style, view, doLayout);
+        }
+        
+        return;
+        
+       // CyNetworkView
+       // CyObjectManager.INSTANCE.getNetworkViewManager().addNetworkView(cyNetworkView);
+		//cyNetworkView.fitContent();
         
    /*     CyNetworkView cyNetworkView = null;
         for ( CyNetworkView v : cyNetworkViewMap.keySet()) {
@@ -197,7 +203,11 @@ public final class ViewMaker {
         }
         style.apply(networkView);
         networkView.updateView();	
+        CyObjectManager.INSTANCE.getNetworkViewManager().addNetworkView(networkView);
+        networkView.fitContent();
+        
         return networkView;
+        
     }
     
     @SuppressWarnings({ "rawtypes", "unchecked" })
