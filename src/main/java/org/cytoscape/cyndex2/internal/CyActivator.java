@@ -90,6 +90,8 @@ public class CyActivator extends AbstractCyActivator {
 	private static BrowserView browserView;
 	private static CyProperty<Properties> cyProps;
 	private static File jxbrowserConfigLocation;
+    private static String appVersion;
+    private static String cytoscapeVersion;
 
 	private StaticContentsServer httpServer;
 
@@ -166,8 +168,17 @@ public class CyActivator extends AbstractCyActivator {
 		return browserView;
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public void start(BundleContext bc) {
+
+	   for ( Bundle b : bc.getBundles()) {
+	        		if (b.getSymbolicName().equals("org.cytoscape.api-bundle")) {
+	        			cytoscapeVersion = b.getVersion().toString();
+	        			break;
+	        		}
+	    } 
+		appVersion = bc.getBundle().getVersion().toString();
 
 		// Import dependencies
 		final CyApplicationConfiguration config = getService(bc, CyApplicationConfiguration.class);
@@ -437,5 +448,9 @@ public class CyActivator extends AbstractCyActivator {
 			};
 		}
 	}
+	
+    public static String getAppVersion() {return appVersion;}
+    public static String getCyVersion() { return cytoscapeVersion;}
+
 
 }
