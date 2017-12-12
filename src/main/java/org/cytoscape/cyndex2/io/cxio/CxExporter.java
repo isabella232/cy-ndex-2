@@ -47,7 +47,10 @@ import org.cxio.core.interfaces.AspectFragmentWriter;
 import org.cxio.metadata.MetaDataCollection;
 import org.cxio.metadata.MetaDataElement;
 import org.cxio.misc.AspectElementCounts;
-import org.cxio.misc.OpaqueElement;
+import org.cytoscape.cyndex2.internal.CyActivator;
+import org.cytoscape.cyndex2.internal.singletons.CXInfoHolder;
+import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
+import org.cytoscape.cyndex2.io.cxio.writer.VisualPropertiesGatherer;
 import org.cytoscape.group.CyGroup;
 import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.model.CyColumn;
@@ -58,10 +61,6 @@ import org.cytoscape.model.CyRow;
 import org.cytoscape.model.SUIDFactory;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
 import org.cytoscape.model.subnetwork.CySubNetwork;
-import org.cytoscape.cyndex2.internal.CyActivator;
-import org.cytoscape.cyndex2.internal.singletons.CXInfoHolder;
-import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
-import org.cytoscape.cyndex2.io.cxio.writer.VisualPropertiesGatherer;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.model.View;
@@ -152,7 +151,7 @@ public final class CxExporter {
     }
 
     
-    final Set<AspectFragmentWriter> getCySupportedAspectFragmentWriters() {
+    final static Set<AspectFragmentWriter> getCySupportedAspectFragmentWriters() {
         final Set<AspectFragmentWriter> writers = new HashSet<>();
             
         writers.add(CartesianLayoutFragmentWriter.createInstance());
@@ -517,7 +516,7 @@ public final class CxExporter {
         return subnets;
     }
 
-    private final void writeCartesianLayout(final CyNetworkView view, final CxWriter w, boolean writeSiblings, CXInfoHolder cxInfoHolder) throws IOException {
+    private final static void writeCartesianLayout(final CyNetworkView view, final CxWriter w, boolean writeSiblings, CXInfoHolder cxInfoHolder) throws IOException {
         final CyNetwork network = view.getModel();
         final List<AspectElement> elements = new ArrayList<>(network.getNodeCount());
 
@@ -750,7 +749,7 @@ public final class CxExporter {
     }
 
 
-	private final void addPostMetadata( final CxWriter w,
+	private final static void addPostMetadata( final CxWriter w,
 			final AspectElementCounts aspects_counts, boolean write_siblings, CXInfoHolder cxInfoHolder) {
 
 		final long t0 = System.currentTimeMillis();
@@ -802,111 +801,77 @@ public final class CxExporter {
 
 	}
 
-    private final void addPreMetadata(
+    private final static void addPreMetadata(
                                       final CyNetwork network,
                                       final boolean write_siblings,
                                       final CxWriter w,
                                       final Long consistency_group, CXInfoHolder cxInfoHolder) {
 
-        final CySubNetwork my_subnet = (CySubNetwork) network;
-        final long t0 = System.currentTimeMillis();
-        final MetaDataCollection pre_meta_data = new MetaDataCollection();
+		final CySubNetwork my_subnet = (CySubNetwork) network;
+		final long t0 = System.currentTimeMillis();
+		final MetaDataCollection pre_meta_data = new MetaDataCollection();
 
-        CyNetwork my_network;
-        if (write_siblings) {
-            my_network = my_subnet.getRootNetwork();
-        }
-        else {
-            my_network = my_subnet;
-        }
+		CyNetwork my_network;
+		if (write_siblings) {
+			my_network = my_subnet.getRootNetwork();
+		} else {
+			my_network = my_subnet;
+		}
 
-             addDataToMetaDataCollection(pre_meta_data,
-                Provenance.ASPECT_NAME,
-                consistency_group,
-                 null,
-                1L);
+		addDataToMetaDataCollection(pre_meta_data, Provenance.ASPECT_NAME, consistency_group, null, 1L);
 
+		addDataToMetaDataCollection(pre_meta_data, NodesElement.ASPECT_NAME, consistency_group,
+				((write_siblings || cxInfoHolder == null) ? SUIDFactory.getNextSUID() : null),
+				(long) my_network.getNodeList().size());
 
+		if (my_network.getEdgeList().size() > 0) {
+			addDataToMetaDataCollection(pre_meta_data, EdgesElement.ASPECT_NAME, consistency_group,
+					((write_siblings || cxInfoHolder == null) ? SUIDFactory.getNextSUID() : null),
+					Long.valueOf(my_network.getEdgeList().size()));
+		}
 
-            addDataToMetaDataCollection(pre_meta_data,
-                                        NodesElement.ASPECT_NAME,
-                                        consistency_group,
-                                        ((write_siblings || cxInfoHolder == null) ? SUIDFactory.getNextSUID(): null),
-                                        (long) my_network.getNodeList().size());
-        
+		if (write_siblings) {
+			addDataToMetaDataCollection(pre_meta_data, CyTableColumnElement.ASPECT_NAME, consistency_group, null, null);
+			addDataToMetaDataCollection(pre_meta_data, SubNetworkElement.ASPECT_NAME, consistency_group, null, null);
 
-            addDataToMetaDataCollection(pre_meta_data,
-                                        EdgesElement.ASPECT_NAME,
-                                        consistency_group,
-                                        ((write_siblings || cxInfoHolder == null)? SUIDFactory.getNextSUID(): null),
-                                        (long) my_network.getEdgeList().size());
-        
-        
-            if ( write_siblings) {
-            	addDataToMetaDataCollection(pre_meta_data,
-            								CyTableColumnElement.ASPECT_NAME,
-                                        consistency_group,
-                                        null,null);
-            	addDataToMetaDataCollection(pre_meta_data,
-                        SubNetworkElement.ASPECT_NAME,
-                        consistency_group,null,null);
-            	
-            	addDataToMetaDataCollection(pre_meta_data,
-                                                CyViewsElement.ASPECT_NAME,
-                                                consistency_group,null,null);
-                
-            	addDataToMetaDataCollection(pre_meta_data,
-                                                CyGroupsElement.ASPECT_NAME,
-                                                consistency_group,null,null);
-                
-            	addDataToMetaDataCollection(pre_meta_data,
-                                                NetworkRelationsElement.ASPECT_NAME,
-                                                consistency_group,null,null);  
-            } 	
-        
-            addDataToMetaDataCollection(pre_meta_data,
-                                        NetworkAttributesElement.ASPECT_NAME,
-                                        consistency_group, null,null);
+			addDataToMetaDataCollection(pre_meta_data, CyViewsElement.ASPECT_NAME, consistency_group, null, null);
 
-            addDataToMetaDataCollection(pre_meta_data,
-                                        NodeAttributesElement.ASPECT_NAME,
-                                        consistency_group, null,null);
+			addDataToMetaDataCollection(pre_meta_data, CyGroupsElement.ASPECT_NAME, consistency_group, null, null);
 
-            addDataToMetaDataCollection(pre_meta_data,
-                                        EdgeAttributesElement.ASPECT_NAME,
-                                        consistency_group, null,null);
+			addDataToMetaDataCollection(pre_meta_data, NetworkRelationsElement.ASPECT_NAME, consistency_group, null,
+					null);
+		}
 
-            addDataToMetaDataCollection(pre_meta_data,
-                                        CartesianLayoutElement.ASPECT_NAME,
-                                        consistency_group,
-                                        null,
-                                        (long)my_network.getNodeList().size());
-        
+		addDataToMetaDataCollection(pre_meta_data, NetworkAttributesElement.ASPECT_NAME, consistency_group, null, null);
 
-            addDataToMetaDataCollection(pre_meta_data,
-                                        CyVisualPropertiesElement.ASPECT_NAME,
-                                        consistency_group,
-                                        null,null);
-                   
-        	addDataToMetaDataCollection(pre_meta_data,
-                    HiddenAttributesElement.ASPECT_NAME,
-                    consistency_group, null,null);
+		addDataToMetaDataCollection(pre_meta_data, NodeAttributesElement.ASPECT_NAME, consistency_group, null, null);
 
-        if (cxInfoHolder !=null) {	
-        	MetaDataCollection originalCXMetadata = cxInfoHolder.getMetadata();
-        
-        	for ( MetaDataElement mdElement : originalCXMetadata) {
-        		if ( pre_meta_data.getMetaDataElement(mdElement.getName()) == null) { // not a cy supported aspect, then add it
-        			pre_meta_data.add(mdElement);
-        		}
-        	}
-        }
-        
-        w.addPreMetaData(pre_meta_data);
-        
-        if (Settings.INSTANCE.isTiming()) {
-            TimingUtil.reportTimeDifference(t0, "pre meta-data", -1);
-        }
+		addDataToMetaDataCollection(pre_meta_data, EdgeAttributesElement.ASPECT_NAME, consistency_group, null, null);
+
+		addDataToMetaDataCollection(pre_meta_data, CartesianLayoutElement.ASPECT_NAME, consistency_group, null,
+				(long) my_network.getNodeList().size());
+
+		addDataToMetaDataCollection(pre_meta_data, CyVisualPropertiesElement.ASPECT_NAME, consistency_group, null,
+				null);
+
+		addDataToMetaDataCollection(pre_meta_data, HiddenAttributesElement.ASPECT_NAME, consistency_group, null, null);
+
+		if (cxInfoHolder != null) {
+			MetaDataCollection originalCXMetadata = cxInfoHolder.getMetadata();
+
+			for (MetaDataElement mdElement : originalCXMetadata) {
+				if (pre_meta_data.getMetaDataElement(mdElement.getName()) == null) { // not a cy supported aspect, then
+																						// add it
+					pre_meta_data.add(mdElement);
+				}
+			}
+		}
+
+		w.addPreMetaData(pre_meta_data);
+
+		if (Settings.INSTANCE.isTiming()) {
+			TimingUtil.reportTimeDifference(t0, "pre meta-data", -1);
+		}
 
     }
 
@@ -1049,11 +1014,11 @@ public final class CxExporter {
             }
 
         }
-        final long t0 = System.currentTimeMillis();
+  //      final long t0 = System.currentTimeMillis();
         w.writeAspectElements(elements);
-        if (Settings.INSTANCE.isTiming()) {
+   /*     if (Settings.INSTANCE.isTiming()) {
             TimingUtil.reportTimeDifference(t0, "groups", elements.size());
-        }
+        } */
 
     }
 
