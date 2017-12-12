@@ -138,7 +138,7 @@ public final class CxExporter {
 
         ADDITIONAL_IGNORE_FOR_NETWORK_ATTRIBUTES.add(CxUtil.SHARED_NAME_COL);
         ADDITIONAL_IGNORE_FOR_NODE_ATTRIBUTES.add(CxUtil.SHARED_NAME_COL);
-        ADDITIONAL_IGNORE_FOR_NODE_ATTRIBUTES.add(CxUtil.NAME_COL);
+//        ADDITIONAL_IGNORE_FOR_NODE_ATTRIBUTES.add(CxUtil.NAME_COL);
         ADDITIONAL_IGNORE_FOR_NODE_ATTRIBUTES.add(CxUtil.REPRESENTS);
     }
 
@@ -436,6 +436,18 @@ public final class CxExporter {
     }
     
     
+    private final static <T> T getNodeAttributeValue(final CyNetwork network, final CyNode node,String colName, Class<? extends T> type) {
+        final CyRow row = network.getTable(CyNode.class, CyNetwork.DEFAULT_ATTRS).getRow(node.getSUID());
+        if (row != null) {
+            final T o = row.get(colName, type);
+            if ((o != null)) {
+                return o;
+            }
+        }
+        return null;
+    }
+    
+  /*  
     private final static String getRepresentsFromNodeTable(final CyNetwork network, final CyNode node) {
         final CyRow row = network.getTable(CyNode.class, CyNetwork.DEFAULT_ATTRS).getRow(node.getSUID());
         if (row != null) {
@@ -447,17 +459,17 @@ public final class CxExporter {
         return null;
     }
 
-    private final static String getSharedNameFromNodeTable(final CyNetwork network, final CyNode node) {
+    private final static String getNameFromNodeTable(final CyNetwork network, final CyNode node) {
     	
         final CyRow row = network.getTable(CyNode.class, CyNetwork.DEFAULT_ATTRS).getRow(node.getSUID());
         if (row != null) {
-            final Object o = row.getRaw(CxUtil.SHARED_NAME_COL);
-            if ((o != null) && (o instanceof String)) {
+            final String o = row.get(CxUtil.NAME_COL, String.class);
+            if (o != null) {
                 return String.valueOf(o);
             }
         }
         return null;
-    }
+    } */
 
  /*   private final static String getNameFromNodeTable(final CyNetwork network, final CyNode node) {
     	String myNodeName = network.getRow(node).get(CyNetwork.NAME, String.class);
@@ -653,32 +665,32 @@ public final class CxExporter {
 
     }
 
-    private final void writeNodes(final CyNetwork network, final boolean write_siblings, final CxWriter w, CXInfoHolder cxInfoHolder)
-            throws IOException {
-        final List<AspectElement> elements = new ArrayList<>(network.getNodeCount());
-        final CySubNetwork my_subnet = (CySubNetwork) network;
-        final CyRootNetwork my_root = my_subnet.getRootNetwork();
-        if (write_siblings) {
-            for (final CyNode cy_node : my_root.getNodeList()) {
-                elements.add(new NodesElement(cy_node.getSUID().longValue(),
-                                              getSharedNameFromNodeTable(my_root, cy_node),
-                                              getRepresentsFromNodeTable(my_root, cy_node)));
-            }
-        }
-        else {
-        	for (final CyNode cy_node : my_subnet.getNodeList()) {
-        			elements.add(new NodesElement(getNodeIdToExport(cy_node, cxInfoHolder),
-                                              getSharedNameFromNodeTable(my_root, cy_node),
-                                              getRepresentsFromNodeTable(network, cy_node)));
-        	}
-        	
-        }
-        final long t0 = System.currentTimeMillis();
-        w.writeAspectElements(elements);
-        if (Settings.INSTANCE.isTiming()) {
-            TimingUtil.reportTimeDifference(t0, "nodes", elements.size());
-        }
-    }
+	private final static void writeNodes(final CyNetwork network, final boolean write_siblings, final CxWriter w,
+			CXInfoHolder cxInfoHolder) throws IOException {
+		final List<AspectElement> elements = new ArrayList<>(network.getNodeCount());
+		final CySubNetwork my_subnet = (CySubNetwork) network;
+		final CyRootNetwork my_root = my_subnet.getRootNetwork();
+		if (write_siblings) {
+			for (final CyNode cy_node : my_root.getNodeList()) {
+				elements.add(new NodesElement(cy_node.getSUID().longValue(),
+						getNodeAttributeValue(my_root,cy_node,CxUtil.SHARED_NAME_COL, String.class),
+						getNodeAttributeValue(my_root, cy_node, CxUtil.REPRESENTS, String.class)));
+			}
+		} else {
+			for (final CyNode cy_node : my_subnet.getNodeList()) {
+				elements.add(new NodesElement(getNodeIdToExport(cy_node, cxInfoHolder),
+						getNodeAttributeValue(my_subnet,cy_node,CxUtil.NAME_COL, String.class),
+						getNodeAttributeValue(my_subnet, cy_node, CxUtil.REPRESENTS, String.class)
+						));
+			}
+
+		}
+		final long t0 = System.currentTimeMillis();
+		w.writeAspectElements(elements);
+		if (Settings.INSTANCE.isTiming()) {
+			TimingUtil.reportTimeDifference(t0, "nodes", elements.size());
+		}
+	}
 
     public static long getNodeIdToExport(CyNode cyNode, CXInfoHolder cxInfoHolder){
     	 long id = cyNode.getSUID().longValue();
@@ -1351,7 +1363,7 @@ public final class CxExporter {
     
     
     @SuppressWarnings("rawtypes")
-    private void writeNodeAttributesHelper(final String namespace,
+    private static void writeNodeAttributesHelper(final String namespace,
                                            final CySubNetwork my_network,
                                            final List<CyNode> nodes,
                                            final List<AspectElement> elements,
@@ -1368,13 +1380,16 @@ public final class CxExporter {
                         if (isIgnore(column_name, ADDITIONAL_IGNORE_FOR_NODE_ATTRIBUTES, Settings.INSTANCE)) {
                             continue;
                         }
+                        if ( writeSiblings == false && column_name.equals(CxUtil.NAME_COL)) {
+                        		continue;
+                        }
                         final Object value = values.get(column_name);
                         if (value == null) {
                             continue;
                         }
                         NodeAttributesElement e = null;
                         final Long subnet = writeSiblings? my_network.getSUID(): null;
-                        Long nodeId = Long.valueOf(this.getNodeIdToExport(cy_node, cxInfoHolder));
+                        Long nodeId = Long.valueOf(getNodeIdToExport(cy_node, cxInfoHolder));
                         
                         if (value instanceof List) {
                             final List<String> attr_values = new ArrayList<>();
