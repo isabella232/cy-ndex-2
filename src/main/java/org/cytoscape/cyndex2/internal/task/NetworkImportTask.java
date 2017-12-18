@@ -46,12 +46,7 @@ import org.cxio.aspects.datamodels.CyVisualPropertiesElement;
 import org.cxio.aspects.datamodels.HiddenAttributesElement;
 import org.cxio.aspects.datamodels.SubNetworkElement;
 import org.cxio.core.interfaces.AspectElement;
-import org.cytoscape.model.CyEdge;
-import org.cytoscape.model.CyNetwork;
-import org.cytoscape.model.CyNetworkFactory;
-import org.cytoscape.model.CyNode;
-import org.cytoscape.model.subnetwork.CyRootNetwork;
-import org.cytoscape.model.subnetwork.CySubNetwork;
+import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.singletons.CXInfoHolder;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
@@ -59,7 +54,12 @@ import org.cytoscape.cyndex2.internal.strings.ErrorMessage;
 import org.cytoscape.cyndex2.io.cxio.CxImporter;
 import org.cytoscape.cyndex2.io.cxio.reader.CxToCy;
 import org.cytoscape.cyndex2.io.cxio.reader.ViewMaker;
-import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.model.CyEdge;
+import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyNetworkFactory;
+import org.cytoscape.model.CyNode;
+import org.cytoscape.model.subnetwork.CyRootNetwork;
+import org.cytoscape.model.subnetwork.CySubNetwork;
 import org.cytoscape.view.model.CyNetworkViewFactory;
 import org.cytoscape.view.presentation.RenderingEngineManager;
 import org.cytoscape.view.vizmap.VisualMappingManager;
@@ -82,14 +82,14 @@ public class NetworkImportTask extends AbstractTask {
 	public NetworkImportTask(String userId, String password, String serverUrl, UUID uuid)
 			throws IOException, NdexException {
 		super();
-		NdexRestClient client = new NdexRestClient(userId, password, serverUrl);
+		NdexRestClient client = new NdexRestClient(userId, password, serverUrl, CyActivator.getAppName()+"("+CyActivator.getAppVersion()+")");
 		mal = new NdexRestClientModelAccessLayer(client);
 		networkSummary = mal.getNetworkSummaryById(uuid);
 	}
 	
 	public NetworkImportTask(String serverUrl, UUID uuid) throws IOException, NdexException{
 		super();
-		NdexRestClient client = new NdexRestClient(serverUrl);
+		NdexRestClient client = new NdexRestClient(null,null,serverUrl, CyActivator.getAppName()+"("+CyActivator.getAppVersion()+")");
 		mal = new NdexRestClientModelAccessLayer(client);
 		networkSummary = mal.getNetworkSummaryById(uuid);
 	}

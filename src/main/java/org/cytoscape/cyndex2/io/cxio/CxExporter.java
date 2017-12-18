@@ -49,6 +49,7 @@ import org.cxio.metadata.MetaDataElement;
 import org.cxio.misc.AspectElementCounts;
 import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.singletons.CXInfoHolder;
+import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
 import org.cytoscape.cyndex2.io.cxio.writer.VisualPropertiesGatherer;
 import org.cytoscape.group.CyGroup;
@@ -258,7 +259,7 @@ public final class CxExporter {
      *
      */
     
-    public final boolean writeNetwork(final CyNetwork network,
+	public final boolean writeNetwork(final CyNetwork network,
                                       final boolean write_siblings,
                                       final AspectSet aspects,
                                       final OutputStream out,
@@ -330,30 +331,30 @@ public final class CxExporter {
         w.writeAspectElements(provAspect); 
         
         try {
-                writeNodes(network, write_siblings, w, cxInfoHolder);
-            
-                writeEdges(network, write_siblings, w, cxInfoHolder);
-            
-            if (write_siblings) {
-            		writeTableColumnLabels(network, write_siblings, w );
-            
-        	}
-                writeNetworkAttributes(network, write_siblings, w);  //  CyNetwork.DEFAULT_ATTRS
-            
-                writeHiddenAttributes(network, write_siblings, w, CyNetwork.HIDDEN_ATTRS);
-            
-                writeNodeAttributes(network, write_siblings, w, CyNetwork.DEFAULT_ATTRS, cxInfoHolder);
-            
-                writeEdgeAttributes(network, write_siblings, w, CyNetwork.DEFAULT_ATTRS, cxInfoHolder);
-            
-                writeSubNetworks(network, write_siblings, w, aspects, cxInfoHolder);
-            
-            if (write_siblings) {
-                writeNetworkViews(network, w);
-                writeNetworkRelations(network, w, true);
-                writeGroups(network, w);
-            }
-            
+			writeNodes(network, write_siblings, w, cxInfoHolder);
+
+			writeEdges(network, write_siblings, w, cxInfoHolder);
+
+			if (write_siblings) {
+				writeTableColumnLabels(network, write_siblings, w);
+
+			}
+			writeNetworkAttributes(network, write_siblings, w); // CyNetwork.DEFAULT_ATTRS
+
+			writeHiddenAttributes(network, write_siblings, w, CyNetwork.HIDDEN_ATTRS);
+
+			writeNodeAttributes(network, write_siblings, w, CyNetwork.DEFAULT_ATTRS, cxInfoHolder);
+
+			writeEdgeAttributes(network, write_siblings, w, CyNetwork.DEFAULT_ATTRS, cxInfoHolder);
+
+			writeSubNetworks(network, write_siblings, w, aspects, cxInfoHolder);
+
+			if (write_siblings) {
+				writeNetworkViews(network, w);
+				writeNetworkRelations(network, w, true);
+				writeGroups(network, w);
+			}
+
             //write opaque aspects 
             if ( cxInfoHolder != null) {
             	for ( Map.Entry<String, Collection<AspectElement>> entry: cxInfoHolder.getOpaqueAspectsTable().entrySet()) {
@@ -1389,41 +1390,46 @@ public final class CxExporter {
                                         final CxWriter w,
                                         final AspectSet aspects,
                                         CXInfoHolder cxInfoHolder) throws IOException {
+    	
+		// write the subNetwork only when exporting the collection
+		if (write_siblings) {
+	        final CySubNetwork my_subnet = (CySubNetwork) network;
+	        final CyRootNetwork my_root = my_subnet.getRootNetwork();
+	        final List<CySubNetwork> subnets = makeSubNetworkList(write_siblings, my_subnet, my_root, true);
 
-        final CySubNetwork my_subnet = (CySubNetwork) network;
-        final CyRootNetwork my_root = my_subnet.getRootNetwork();
-        final List<CySubNetwork> subnets = makeSubNetworkList(write_siblings, my_subnet, my_root, true);
+	        // write the visual properties and coordinates
+	        for (final CySubNetwork subnet : subnets) {
+	            final Collection<CyNetworkView> views = _networkview_manager.getNetworkViews(subnet);
+	            for (final CyNetworkView view : views) {
 
-        // write the visual properties and coordinates
-        for (final CySubNetwork subnet : subnets) {
-            final Collection<CyNetworkView> views = _networkview_manager.getNetworkViews(subnet);
-            for (final CyNetworkView view : views) {
+	                 writeCartesianLayout(view, w, write_siblings, cxInfoHolder);
 
-                 writeCartesianLayout(view, w, write_siblings, cxInfoHolder);
-
-                 writeVisualProperties(view, _visual_mapping_manager, _lexicon, w, write_siblings, cxInfoHolder);
-                
-            }
-        }
-        
-        // write the subNetwork only when exporting the collection
-        if ( write_siblings ) {
-        	final List<AspectElement> elements = new ArrayList<>();
-        	for (final CySubNetwork subnet : subnets) {
-        		final SubNetworkElement subnetwork_element = new SubNetworkElement(subnet.getSUID());
-        		for (final CyEdge edgeview : subnet.getEdgeList()) {
-        			subnetwork_element.addEdge(edgeview.getSUID());
-        		}
-        		for (final CyNode nodeview : subnet.getNodeList()) {
-        			subnetwork_element.addNode(nodeview.getSUID());
-        		}
-        		elements.add(subnetwork_element);
-        	}
-        	final long t0 = System.currentTimeMillis();
-        	w.writeAspectElements(elements);
-        	if (Settings.INSTANCE.isTiming()) {
-        		TimingUtil.reportTimeDifference(t0, "subnetworks", elements.size());
-        	}
+	                 writeVisualProperties(view, _visual_mapping_manager, _lexicon, w, write_siblings, cxInfoHolder);
+	                
+	            }
+	        }
+	        
+			final List<AspectElement> elements = new ArrayList<>();
+			for (final CySubNetwork subnet : subnets) {
+				final SubNetworkElement subnetwork_element = new SubNetworkElement(subnet.getSUID());
+				for (final CyEdge edgeview : subnet.getEdgeList()) {
+					subnetwork_element.addEdge(edgeview.getSUID());
+				}
+				for (final CyNode nodeview : subnet.getNodeList()) {
+					subnetwork_element.addNode(nodeview.getSUID());
+				}
+				elements.add(subnetwork_element);
+			}
+			// final long t0 = System.currentTimeMillis();
+			w.writeAspectElements(elements);
+			/*
+			 * if (Settings.INSTANCE.isTiming()) { TimingUtil.reportTimeDifference(t0,
+			 * "subnetworks", elements.size()); }
+			 */
+		} else {
+	        CyNetworkView view = CyObjectManager.INSTANCE.getCurrentNetworkView();
+            writeCartesianLayout(view, w, write_siblings, cxInfoHolder);
+            writeVisualProperties(view, _visual_mapping_manager, _lexicon, w, write_siblings, cxInfoHolder);
 		}
     }
 

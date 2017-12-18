@@ -67,7 +67,7 @@ public class NdexClient {
 		return HttpClients.custom().setDefaultHeaders(headers).build();
 	}
 
-	public InputStream load(String url) throws IOException {
+/*	public InputStream load(String url) throws IOException {
 		return load(url, null, null);
 	}
 
@@ -98,7 +98,7 @@ public class NdexClient {
 					ErrorType.NDEX_API);
 		}
 		return is;
-	}
+	}  */
 
 	public Map<String, ?> getSummary(String url, String uuid) throws Exception {
 		return getSummary(url, uuid, null, null);
@@ -166,7 +166,7 @@ public class NdexClient {
 		}
 	}
 
-	public void updateNetwork(String baseUrl, String uuid, String networkName, InputStream cxis, String id, String pw) {
+/*	public void updateNetwork(String baseUrl, String uuid, String networkName, InputStream cxis, String id, String pw) {
 
 		String url = baseUrl + "/network/" + uuid;
 
@@ -212,7 +212,7 @@ public class NdexClient {
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.NDEX_API);
 		}
 	}
-
+*/
 	public void setVisibility(String url, String uuid, Boolean isPublic, String id, String pw) {
 		final String endpoint = url + "/network/" + uuid + "/systemproperty";
 

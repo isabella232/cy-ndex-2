@@ -29,21 +29,18 @@ package org.cytoscape.cyndex2.internal.task;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
 import java.util.UUID;
 
-import org.cytoscape.group.CyGroupManager;
-import org.cytoscape.model.CyNetwork;
-import org.cytoscape.model.subnetwork.CyRootNetwork;
-import org.cytoscape.model.subnetwork.CySubNetwork;
+import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.rest.parameter.NdexSaveParameters;
 import org.cytoscape.cyndex2.internal.singletons.CXInfoHolder;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
 import org.cytoscape.cyndex2.io.cxio.writer.CxNetworkWriter;
+import org.cytoscape.group.CyGroupManager;
+import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.subnetwork.CyRootNetwork;
+import org.cytoscape.model.subnetwork.CySubNetwork;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.model.VisualLexicon;
 import org.cytoscape.view.vizmap.VisualMappingManager;
@@ -52,10 +49,6 @@ import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.swing.DialogTaskManager;
 import org.ndexbio.model.exceptions.NdexException;
-import org.ndexbio.model.object.ProvenanceEntity;
-import org.ndexbio.model.object.ProvenanceEvent;
-import org.ndexbio.model.object.SimplePropertyValuePair;
-import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
@@ -83,7 +76,8 @@ public class NetworkExportTask extends AbstractTask {
 			this.network = network;
 		}
 
-		NdexRestClient client = new NdexRestClient(params.username, params.password, params.serverUrl);
+		NdexRestClient client = new NdexRestClient(params.username, params.password, params.serverUrl, 
+				CyActivator.getAppName()+"("+CyActivator.getAppVersion()+")");
 		mal = new NdexRestClientModelAccessLayer(client);
 	}
 

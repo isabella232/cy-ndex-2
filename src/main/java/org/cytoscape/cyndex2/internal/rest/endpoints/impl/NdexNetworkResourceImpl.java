@@ -18,6 +18,7 @@ import org.cytoscape.ci.CIResponseFactory;
 import org.cytoscape.ci.CIWrapping;
 import org.cytoscape.ci.model.CIError;
 import org.cytoscape.cyndex2.internal.CxTaskFactoryManager;
+import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.rest.HeadlessTaskMonitor;
 import org.cytoscape.cyndex2.internal.rest.NdexClient;
 import org.cytoscape.cyndex2.internal.rest.SimpleNetworkSummary;
@@ -51,8 +52,6 @@ import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
@@ -481,7 +480,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		return updateNetworkInNdex(network.getSUID(), params);
 	}
 
-	private UUID updateIsPossibleHelper(final long suid, final NdexSaveParameters params) throws Exception {
+	private static UUID updateIsPossibleHelper(final Long suid, final NdexSaveParameters params) throws Exception {
 
 		UUID ndexNetworkId = null;
 		CXInfoHolder cxInfo = NetworkManager.INSTANCE.getCXInfoHolder(suid);
@@ -495,7 +494,8 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 					"NDEx network UUID not found. You can only update networks that were imported with CyNDEx2");
 		}
 
-		final NdexRestClient nc = new NdexRestClient(params.username, params.password, params.serverUrl);
+		final NdexRestClient nc = new NdexRestClient(params.username, params.password, params.serverUrl,
+				CyActivator.getAppName()+"("+CyActivator.getAppVersion()+")");
 		final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
 		try {
 			

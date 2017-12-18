@@ -266,10 +266,11 @@ public final class ViewMaker {
         if (dmf != null) {
             int counter = 0;
             while (true) {
-                final String k = sp.get("K=" + counter);
+                String k = sp.get("K=" + counter);
                 if (k == null) {
                     break;
                 }
+                k = k.replaceAll(",,", ",");
                 final String v = sp.get("V=" + counter);
                 if (v != null) {
                     final Object pv = vp.parseSerializableString(v);
@@ -439,34 +440,32 @@ public final class ViewMaker {
             }
         }
 
-        if (maps != null) {
-            for (final Entry<String, Mapping> entry : maps.entrySet()) {
-                final String mapping_target = entry.getKey();
-                final Mapping mapping = entry.getValue();
-                final String mapping_type = mapping.getType();
-                final VisualProperty vp = lexicon.lookup(my_class, mapping_target);
-                final StringParser sp = new StringParser(mapping.getDefintion());
-                String col = sp.get(CxUtil.VM_COL);
-                if ( cy_visual_properties_element.getProperties_of().equals("edges:default") && col.equals("interaction") ) 
-                	col = "shared interaction";
-                final String type = sp.get(CxUtil.VM_TYPE);
-                final Class<?> type_class = ViewMaker.toClass(type);
-                if (vp != null) {
-                    if (mapping_type.equals(CxUtil.PASSTHROUGH)) {
-                        addPasstroughMapping(style, vp, col, type_class);
-                    }
-                    else if (mapping_type.equals(CxUtil.CONTINUOUS)) {
-                        addContinuousMapping(style, vp, sp, col, type, type_class);
-                    }
-                    else if (mapping_type.equals(CxUtil.DISCRETE)) {
-                        addDiscreteMapping(style, vp, sp, col, type, type_class);
-                    }
-                    else {
-                        throw new IOException("unknown mapping type: " + mapping_type);
-                    }
-                }
-            }
-        }
+		if (maps != null) {
+			for (final Entry<String, Mapping> entry : maps.entrySet()) {
+				final String mapping_target = entry.getKey();
+				final Mapping mapping = entry.getValue();
+				final String mapping_type = mapping.getType();
+				final VisualProperty vp = lexicon.lookup(my_class, mapping_target);
+				final StringParser sp = new StringParser(mapping.getDefintion());
+				String col = sp.get(CxUtil.VM_COL);
+				if (cy_visual_properties_element.getProperties_of().equals("edges:default")
+						&& col.equals("interaction"))
+					col = "shared interaction";
+				final String type = sp.get(CxUtil.VM_TYPE);
+				final Class<?> type_class = ViewMaker.toClass(type);
+				if (vp != null) {
+					if (mapping_type.equals(CxUtil.PASSTHROUGH)) {
+						addPasstroughMapping(style, vp, col, type_class);
+					} else if (mapping_type.equals(CxUtil.CONTINUOUS)) {
+						addContinuousMapping(style, vp, sp, col, type, type_class);
+					} else if (mapping_type.equals(CxUtil.DISCRETE)) {
+						addDiscreteMapping(style, vp, sp, col, type, type_class);
+					} else {
+						throw new IOException("unknown mapping type: " + mapping_type);
+					}
+				}
+			}
+		}
         if (dependencies != null) {
             for (final Entry<String, String> entry : dependencies.entrySet()) {
                 final String k = entry.getKey();

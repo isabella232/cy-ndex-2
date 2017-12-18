@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
+import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
@@ -92,7 +93,8 @@ public class CyActivator extends AbstractCyActivator {
 	private static File jxbrowserConfigLocation;
     private static String appVersion;
     private static String cytoscapeVersion;
-
+    private static String appName;
+    
 	private StaticContentsServer httpServer;
 
 	public CyActivator() {
@@ -177,8 +179,12 @@ public class CyActivator extends AbstractCyActivator {
 	        			cytoscapeVersion = b.getVersion().toString();
 	        			break;
 	        		}
-	    } 
-		appVersion = bc.getBundle().getVersion().toString();
+	    }
+	   	Bundle currentBundle = bc.getBundle();
+		appVersion = currentBundle.getVersion().toString();
+		
+		Dictionary d = currentBundle.getHeaders();
+		appName = (String) d.get("Bundle-name");
 
 		// Import dependencies
 		final CyApplicationConfiguration config = getService(bc, CyApplicationConfiguration.class);
@@ -451,6 +457,7 @@ public class CyActivator extends AbstractCyActivator {
 	
     public static String getAppVersion() {return appVersion;}
     public static String getCyVersion() { return cytoscapeVersion;}
+    public static String getAppName () { return appName;}
 
 
 }
