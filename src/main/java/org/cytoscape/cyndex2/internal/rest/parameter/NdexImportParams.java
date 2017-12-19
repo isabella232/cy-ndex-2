@@ -19,11 +19,14 @@ public class NdexImportParams {
 	@ApiModelProperty(value = "Password for the NDEx account", example="password")
 	public String password;
 
-
-	public NdexImportParams(String uuid, String username, String password, String serverUrl) {
+	@ApiModelProperty(value="NDEx access key", example="", required=false)
+	  public String accessKey;
+	
+	public NdexImportParams(String uuid, String username, String password, String serverUrl, String accessKey) {
 		this.uuid = uuid;
 		this.serverUrl = serverUrl;
 		this.password = password;
 		this.username = username;
+	    this.accessKey = accessKey;
 	}
 }
