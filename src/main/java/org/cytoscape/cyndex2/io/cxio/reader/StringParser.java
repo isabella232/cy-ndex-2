@@ -18,9 +18,7 @@ public final class StringParser {
     private static final Pattern p = Pattern.compile("^((K|V|L|E|G|OV)=([0-9]+))=(.*)$");
 
     public static List<String> commaDelimitedListStringToStringList2(String list) {
-      /*  if (!list.matches("^(([^,]|,,)*(,|$))+")) {
-            return null;
-        } */
+
         Matcher matcher = p0.matcher(list);
         ArrayList<String> result = new ArrayList<>();
         while (matcher.find()) {
@@ -33,7 +31,6 @@ public final class StringParser {
 
     public StringParser(final String str) throws IOException {
     	
-    		//String array[] = str.split("(?<!\\\\),");
     		List<String> array = commaDelimitedListStringToStringList2(str);
         for( String n : array) {
         		if(n.startsWith("COL=")) {
@@ -41,28 +38,15 @@ public final class StringParser {
         			_data.put(CxUtil.VM_COL, v.replace(",,", ","));
         		} else if ( n.startsWith("T=")) {
         			String v = n.substring(2);
-        			_data.put(CxUtil.VM_TYPE, v);       			
+        			_data.put(CxUtil.VM_TYPE, v.replace(",,", ","));       			
         		} else {
         			Matcher m = p.matcher(n);
         			if ( !m.matches())
         				throw new IOException ("Failed to parse mapping string: "+ n);
-       // 			System.out.println(m.group(1));
-       // 			System.out.println(m.group(4));
-        			_data.put(m.group(1), m.group(4));
+
+        			_data.put(m.group(1), m.group(4).replace(",,", ","));
         		} 
-        	
-        	
-        /*    final String[] m = n.split("=");
-            if (m.length == 2) {
-                if ((m[0] != null) && (m[1] != null)) {
-                    _data.put(m[0], m[1]);
-                }
-            }
-            else if (m.length == 3) {
-                if ((m[0] != null) && (m[1] != null) && (m[2] != null)) {
-                    _data.put(m[0] + "=" + m[1], m[2]);
-                }
-            } */
+
         }
     }
 
