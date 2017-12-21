@@ -55,7 +55,6 @@ import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.session.CyNetworkNaming;
-import org.cytoscape.util.swing.LookAndFeelUtil;
 import org.cytoscape.view.model.CyNetworkViewFactory;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.vizmap.VisualMappingManager;
@@ -157,8 +156,8 @@ public class CyActivator extends AbstractCyActivator {
 			browser.addLoadListener(new LoadAdapter() {
 				@Override
 				public void onDocumentLoadedInMainFrame(LoadEvent event) {
-					Browser browser = event.getBrowser();
-					browser.executeJavaScript("localStorage");
+					Browser browserLocal = event.getBrowser();
+					browserLocal.executeJavaScript("localStorage");
 				}
 			});
 
@@ -252,7 +251,7 @@ public class CyActivator extends AbstractCyActivator {
 			try {
 				jxbrowserConfigLocation.mkdir();
 			} catch (SecurityException e) {
-				ExternalAppManager.setLoadFailed("Failed to create JXBrowser directory in CytoscapeConfiguration");
+				ExternalAppManager.setLoadFailed("Failed to create JXBrowser directory in CytoscapeConfiguration: " + e.getMessage());
 			}
 		BrowserPreferences.setChromiumDir(jxbrowserConfigLocation.getAbsolutePath());
 		System.setProperty(BrowserPreferences.TEMP_DIR_PROPERTY, jxbrowserConfigLocation.getAbsolutePath());
@@ -330,7 +329,7 @@ public class CyActivator extends AbstractCyActivator {
 		}
 	}
 
-	private final boolean isInstalled(final String configDir, final String bundleVersion) {
+	private final static boolean isInstalled(final String configDir, final String bundleVersion) {
 		// This is the indicator of installation.
 
 		final File cyndexDir = new File(configDir, STATIC_CONTENT_DIR);
@@ -370,17 +369,17 @@ public class CyActivator extends AbstractCyActivator {
 		}
 	}
 
-	private final void copyEntry(final InputStream zis, final String filePath) throws IOException {
+	private final static void copyEntry(final InputStream zis, final String filePath) throws IOException {
 		final byte[] buffer = new byte[4096];
-		final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
-		int read = 0;
-		while ((read = zis.read(buffer)) != -1) {
-			bos.write(buffer, 0, read);
+		try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath))) {
+			int read = 0;
+			while ((read = zis.read(buffer)) != -1) {
+				bos.write(buffer, 0, read);
+			}
 		}
-		bos.close();
 	}
 
-	private final boolean checkPort(final int port) {
+	private final static boolean checkPort(final int port) {
 		try (Socket sock = new Socket("localhost", port)) {
 			return false;
 		} catch (IOException ex) {
@@ -426,24 +425,27 @@ public class CyActivator extends AbstractCyActivator {
 	}
 
 	private static class CustomPopupHandler implements PopupHandler {
+		@Override
 		public PopupContainer handlePopup(PopupParams params) {
 			return new PopupContainer() {
-				public void insertBrowser(final Browser browser, final Rectangle initialBounds) {
+				@Override
+				public void insertBrowser(final Browser browserParam, final Rectangle initialBounds) {
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
-							BrowserView browserView = new BrowserView(browser);
-							browserView.setPreferredSize(initialBounds.getSize());
+							BrowserView browserViewLocal = new BrowserView(browserParam);
+							browserViewLocal.setPreferredSize(initialBounds.getSize());
 
 							final JFrame frame = new JFrame("Popup");
 							frame.setModalExclusionType(Dialog.ModalExclusionType.APPLICATION_EXCLUDE);
 							frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-							frame.add(browserView, BorderLayout.CENTER);
+							frame.add(browserViewLocal, BorderLayout.CENTER);
 							frame.pack();
 							frame.setLocation(initialBounds.getLocation());
 							frame.setVisible(true);
 							
-							browser.addDisposeListener(new DisposeListener<Browser>() {
+							browserParam.addDisposeListener(new DisposeListener<Browser>() {
+								@Override
 								public void onDisposed(DisposeEvent<Browser> event) {
 									frame.setVisible(false);
 								}

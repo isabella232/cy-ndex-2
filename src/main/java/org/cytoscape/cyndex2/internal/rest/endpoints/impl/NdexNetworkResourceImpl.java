@@ -101,11 +101,9 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		NetworkImportTask importer;
 		try {
 			if (params.username != null && params.password != null)
-				importer = new NetworkImportTask(params.username, params.password, params.serverUrl, UUID.fromString(params.uuid));
+				importer = new NetworkImportTask(params.username, params.password, params.serverUrl, UUID.fromString(params.uuid), params.accessKey);
 			else
-				importer = new NetworkImportTask(params.serverUrl, UUID.fromString(params.uuid));
-			if ( params.accessKey != null)
-				importer.setAccessKey(params.accessKey);
+				importer = new NetworkImportTask(params.serverUrl, UUID.fromString(params.uuid), params.accessKey);
 			importer.run(tm);
 		} catch (IOException | NdexException e2) {
 			final String message = "Failed to connect to server and retrieve network. " + e2.getMessage();

@@ -57,7 +57,7 @@ public class StringParserTest {
 		sp = new StringParser("COL=name,T=string,K=0=Node,,1,V=0=#009933,K=1=Node=2,V=1=#003399");
 		assertEquals (sp.get("COL"), "name");
 		assertEquals (sp.get("T"), "string");
-		assertEquals (sp.get("K=0"), "Node,,1");
+		assertEquals (sp.get("K=0"), "Node,1");
 		assertEquals (sp.get("V=0"), "#009933");	
 		assertEquals (sp.get("K=1"), "Node=2");
 		assertEquals (sp.get("V=1"), "#003399");
@@ -65,7 +65,7 @@ public class StringParserTest {
 		sp = new StringParser("COL=name,T=string,K=0=Node,,1,,,V=0=#009933,K=1=Node 2,V=1=#003399");
 		assertEquals (sp.get("COL"), "name");
 		assertEquals (sp.get("T"), "string");
-		assertEquals (sp.get("K=0"), "Node,,1,,");
+		assertEquals (sp.get("K=0"), "Node,1,");
 		assertEquals (sp.get("V=0"), "#009933");	
 		assertEquals (sp.get("K=1"), "Node 2");
 		assertEquals (sp.get("V=1"), "#003399");
@@ -73,7 +73,7 @@ public class StringParserTest {
 		sp = new StringParser("COL=name,T=string,K=0=Node,,1,,,,,V=0=#009933,K=1=Node 2,V=1=#003399");
 		assertEquals (sp.get("COL"), "name");
 		assertEquals (sp.get("T"), "string");
-		assertEquals (sp.get("K=0"), "Node,,1,,,,");
+		assertEquals (sp.get("K=0"), "Node,1,,");
 		assertEquals (sp.get("V=0"), "#009933");	
 		assertEquals (sp.get("K=1"), "Node 2");
 		assertEquals (sp.get("V=1"), "#003399");
