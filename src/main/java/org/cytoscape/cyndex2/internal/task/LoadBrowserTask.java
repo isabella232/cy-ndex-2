@@ -57,7 +57,7 @@ public class LoadBrowserTask extends AbstractTask {
 					ti.append(new AbstractTask() {
 
 						@Override
-						public void run(TaskMonitor taskMonitor) throws Exception {
+						public void run(TaskMonitor taskMonitorParameter) throws Exception {
 							SwingUtilities.invokeLater(new Runnable() {
 
 								@Override

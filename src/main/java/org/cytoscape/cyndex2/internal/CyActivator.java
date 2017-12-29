@@ -78,6 +78,7 @@ import com.teamdev.jxbrowser.chromium.events.DisposeListener;
 import com.teamdev.jxbrowser.chromium.events.LoadAdapter;
 import com.teamdev.jxbrowser.chromium.events.LoadEvent;
 import com.teamdev.jxbrowser.chromium.swing.BrowserView;
+import org.apache.commons.io.FileUtils;
 
 public class CyActivator extends AbstractCyActivator {
 
@@ -236,6 +237,9 @@ public class CyActivator extends AbstractCyActivator {
 		final File configRoot = config.getConfigurationDirectoryLocation();
 		final String staticContentPath = configRoot.getAbsolutePath();
 
+		// JXBrowser configuration
+		jxbrowserConfigLocation = new File(config.getConfigurationDirectoryLocation(), "jxbrowser");
+				
 		// Create web app dir
 		installWebApp(staticContentPath, bc);
 		File staticPath = new File(staticContentPath, STATIC_CONTENT_DIR);
@@ -243,9 +247,6 @@ public class CyActivator extends AbstractCyActivator {
 
 		// get QueryPanel icon
 		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
-
-		// JXBrowser configuration
-		jxbrowserConfigLocation = new File(config.getConfigurationDirectoryLocation(), "jxbrowser");
 
 		if (!jxbrowserConfigLocation.exists())
 			try {
@@ -317,10 +318,16 @@ public class CyActivator extends AbstractCyActivator {
 
 		if (!isInstalled(configDir, version.toString())) {
 			final File webappDir = new File(configDir, STATIC_CONTENT_DIR);
-			webappDir.mkdir();
-			extractWebapp(bc.getBundle(), STATIC_CONTENT_DIR, configDir);
-			File markerFile = new File(webappDir, INSTALL_MAKER_FILE_NAME + "-" + version.toString() + ".txt");
+			
 			try {
+				FileUtils.deleteDirectory(webappDir);
+				if ( jxbrowserConfigLocation.exists()) {
+					File cacheDir = new File(jxbrowserConfigLocation.getAbsolutePath() , "Cache");
+					FileUtils.deleteDirectory(cacheDir);
+				}
+				webappDir.mkdir();
+				extractWebapp(bc.getBundle(), STATIC_CONTENT_DIR, configDir);
+				File markerFile = new File(webappDir, INSTALL_MAKER_FILE_NAME + "-" + version.toString() + ".txt");
 				markerFile.createNewFile();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
