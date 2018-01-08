@@ -18,7 +18,7 @@ public class NdexSaveParameters {
 	@ApiModelProperty(value = "Visibility of network", example="true", required=true)
 	public Boolean isPublic;
 
-	public NdexSaveParameters(String username, String password, String serverUrl, Map<String, String> metadata, boolean writeCollection) {
+	private NdexSaveParameters(String username, String password, String serverUrl, Map<String, String> metadata, boolean writeCollection) {
 		this.serverUrl = serverUrl;
 		this.password = password;
 		this.username = username;

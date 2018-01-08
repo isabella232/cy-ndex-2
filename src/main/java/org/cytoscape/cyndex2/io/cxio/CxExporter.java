@@ -692,41 +692,43 @@ public final class CxExporter {
 		}
 	}
 
-    public static long getNodeIdToExport(CyNode cyNode, CXInfoHolder cxInfoHolder){
-    	 long id = cyNode.getSUID().longValue();
-		 if( cxInfoHolder != null) {
-			   Long cxNodeId = cxInfoHolder.getCXNodeId(Long.valueOf(id));
-			   if ( cxNodeId != null) {   // this is a node in the original cx network
-				   return cxNodeId.longValue();
-			   } else {  //new node in cytoscape
-				   Long counter = cxInfoHolder.getMetadata().getIdCounter(NodesElement.ASPECT_NAME);
-				   long newid = counter.longValue()  + 1; 
-				   cxInfoHolder.addNodeMapping(Long.valueOf(id), Long.valueOf(newid));
-				   cxInfoHolder.getMetadata().setIdCounter(NodesElement.ASPECT_NAME, Long.valueOf(newid));
-				   return newid;
-			   }
+	public static long getNodeIdToExport(CyNode cyNode, CXInfoHolder cxInfoHolder) {
+		long id = cyNode.getSUID().longValue();
+		if (cxInfoHolder != null) {
+			Long cxNodeId = cxInfoHolder.getCXNodeId(Long.valueOf(id));
+			if (cxNodeId != null) { // this is a node in the original cx network
+				return cxNodeId.longValue();
+			} 
+			// new node in cytoscape
+			Long counter = cxInfoHolder.getMetadata().getIdCounter(NodesElement.ASPECT_NAME);
+			long newid = counter.longValue() + 1;
+			cxInfoHolder.addNodeMapping(Long.valueOf(id), Long.valueOf(newid));
+			cxInfoHolder.getMetadata().setIdCounter(NodesElement.ASPECT_NAME, Long.valueOf(newid));
+			return newid;
+
 		}
 		return id;
-    }
-    
-    public static long getEdgeIdToExport(CyEdge cyedge, CXInfoHolder cxInfoHolder){
-   	 long id = cyedge.getSUID().longValue();
-		 if( cxInfoHolder != null) {
-			   Long cxEdgeId = cxInfoHolder.getCXEdgeId(Long.valueOf(id));
-			   if ( cxEdgeId != null) {   // this is a node in the original cx network
-				   return cxEdgeId.longValue();
-			   } else {  //new edge in cytoscape
-				   Long counter = cxInfoHolder.getMetadata().getIdCounter(EdgesElement.ASPECT_NAME);
-				   long newid = counter.longValue()  + 1; 
-				   cxInfoHolder.addEdgeMapping(Long.valueOf(id), Long.valueOf(newid));
-				   cxInfoHolder.getMetadata().setIdCounter(EdgesElement.ASPECT_NAME, Long.valueOf(newid));
-				   return newid;
-			   }
+	}
+
+	public static long getEdgeIdToExport(CyEdge cyedge, CXInfoHolder cxInfoHolder) {
+		long id = cyedge.getSUID().longValue();
+		if (cxInfoHolder != null) {
+			Long cxEdgeId = cxInfoHolder.getCXEdgeId(Long.valueOf(id));
+			if (cxEdgeId != null) { // this is a node in the original cx network
+				return cxEdgeId.longValue();
+			}
+			// new edge in cytoscape
+			Long counter = cxInfoHolder.getMetadata().getIdCounter(EdgesElement.ASPECT_NAME);
+			long newid = counter.longValue() + 1;
+			cxInfoHolder.addEdgeMapping(Long.valueOf(id), Long.valueOf(newid));
+			cxInfoHolder.getMetadata().setIdCounter(EdgesElement.ASPECT_NAME, Long.valueOf(newid));
+			return newid;
+
 		}
 		return id;
-   }
+	}
     
-    private final void writeVisualProperties(final CyNetworkView view,
+    private final static void writeVisualProperties(final CyNetworkView view,
                                                     final VisualMappingManager visual_mapping_manager,
                                                     final VisualLexicon lexicon,
                                                     final CxWriter w,
@@ -876,7 +878,7 @@ public final class CxExporter {
 
     }
 
-    private final void writeEdgeAttributes(final CyNetwork network,
+    private final static void writeEdgeAttributes(final CyNetwork network,
                                            final boolean write_siblings,
                                            final CxWriter w,
                                            final String namespace,
@@ -915,7 +917,7 @@ public final class CxExporter {
     }
 
     @SuppressWarnings("rawtypes")
-    private void writeEdgeAttributesHelper(final String namespace,
+    private static void writeEdgeAttributesHelper(final String namespace,
                                            final CyNetwork my_network,
                                            final List<CyEdge> edges,
                                            final List<AspectElement> elements,
@@ -1023,7 +1025,7 @@ public final class CxExporter {
 
     }
 
-    private final void writeHiddenAttributes(final CyNetwork network,
+    private final static void writeHiddenAttributes(final CyNetwork network,
                                              final boolean write_siblings,
                                              final CxWriter w,
                                              final String namespace) throws IOException {
@@ -1046,7 +1048,7 @@ public final class CxExporter {
     }
 
     @SuppressWarnings("rawtypes")
-    private void writeHiddenAttributesHelper(final String namespace,
+    private static void writeHiddenAttributesHelper(final String namespace,
                                              final CyNetwork my_network,
                                              final List<AspectElement> elements,
                                              boolean writeSiblings) {
@@ -1093,7 +1095,7 @@ public final class CxExporter {
         }
     }
 
-    private final void writeNetworkAttributes(final CyNetwork network,
+    private final static void writeNetworkAttributes(final CyNetwork network,
                                               final boolean write_siblings,
                                               final CxWriter w
                                               ) throws IOException {
@@ -1141,7 +1143,7 @@ public final class CxExporter {
     }
 
     @SuppressWarnings("rawtypes")
-    private void writeNetworkAttributesHelper(final String namespace,
+    private static void writeNetworkAttributesHelper(final String namespace,
                                               final CyNetwork my_network,
                                               final List<AspectElement> elements,
                                               boolean writeSiblings) {
@@ -1193,7 +1195,7 @@ public final class CxExporter {
         }
     }
 
-    private final void writeNodeAttributes(final CyNetwork network,
+    private final static void writeNodeAttributes(final CyNetwork network,
                                            final boolean write_siblings,
                                            final CxWriter w,
                                            final String namespace, CXInfoHolder cxInfoHolder) throws IOException {
@@ -1216,7 +1218,7 @@ public final class CxExporter {
     }
 
 
-    private final void writeTableColumnLabels(final CyNetwork network,
+    private final static void writeTableColumnLabels(final CyNetwork network,
     		final boolean write_siblings,
     		final CxWriter w) throws IOException {
 

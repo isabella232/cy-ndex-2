@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 public class StaticContentsServer {
 	
 	private static final Logger logger = LoggerFactory.getLogger(StaticContentsServer.class);
-	private static final Integer PORT = 2222;
+	private static final int PORT = 2222;
 	
 	private Server server;
 	
@@ -43,7 +43,7 @@ public class StaticContentsServer {
 			ex.printStackTrace();
 			throw new RuntimeException("Faild to start static content server.", ex);
 		}
-		logger.info("Preview server is listening on port " + PORT.toString());
+		logger.info("Preview server is listening on port " + PORT);
 	}
 	
 	public void stopServer() throws Exception {

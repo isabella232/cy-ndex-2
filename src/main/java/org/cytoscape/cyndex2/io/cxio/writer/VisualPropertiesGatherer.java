@@ -224,7 +224,7 @@ public final class VisualPropertiesGatherer {
                 }
                 catch (final IOException e) {
                     System.out.println("WARNING: problem with mapping/column '" + col
-                            + "': column not present, ignoring corresponding passthrough mapping");
+                            + "': column not present, ignoring corresponding passthrough mapping. " + e.getMessage());
                     return;
                 }
                 final StringBuilder sb = new StringBuilder();
@@ -245,7 +245,7 @@ public final class VisualPropertiesGatherer {
                 }
                 catch (final IOException e) {
                     System.out.println("WARNING: problem with mapping/column '" + col
-                            + "': column not present, ignoring corresponding discrete mapping");
+                            + "': column not present, ignoring corresponding discrete mapping. " + e.getMessage());
                     return;
                 }
                 final Map<?, ?> map = dm.getAll();
@@ -290,7 +290,7 @@ public final class VisualPropertiesGatherer {
                 }
                 catch (final IOException e) {
                     System.out.println("WARNING: problem with mapping/column '" + col
-                            + "': column not present, ignoring corresponding continuous mapping");
+                            + "': column not present, ignoring corresponding continuous mapping." + e.getMessage());
                     return;
                 }
                 final StringBuilder sb = new StringBuilder();

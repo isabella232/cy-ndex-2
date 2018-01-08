@@ -109,7 +109,7 @@ abstract public class AbstractLoadNetworkTask extends AbstractTask {
 		int threshold;
 		try {
 			threshold = Integer.parseInt(vts);
-		} catch (Exception e) {
+		} catch (@SuppressWarnings("unused") Exception e) {
 			threshold = DEF_VIEW_THRESHOLD;
 		}
 

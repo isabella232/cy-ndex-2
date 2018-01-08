@@ -299,8 +299,8 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, new NdexStatusResourceImpl(pm, errorBuilder, ciResponseFactory), NdexStatusResource.class, new Properties());
 
 		// Network IO
-		registerService(bc, new NdexNetworkResourceImpl(ndexClient, errorBuilder, appManager, netmgr, tfManager,
-				loadNetworkTF, ciResponseFactory, ciExceptionFactory, ciErrorFactory), NdexNetworkResource.class, new Properties());
+		registerService(bc, new NdexNetworkResourceImpl(ndexClient, errorBuilder, appManager, netmgr, /*tfManager,
+				loadNetworkTF,*/ ciResponseFactory, ciExceptionFactory, ciErrorFactory), NdexNetworkResource.class, new Properties());
 
 		// add Handler to remove networks from NetworkManager when deleted
 		registerService(bc, new NdexNetworkAboutToBeDestroyedListener(), NetworkAboutToBeDestroyedListener.class,

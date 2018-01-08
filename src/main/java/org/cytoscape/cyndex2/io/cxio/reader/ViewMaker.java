@@ -431,7 +431,7 @@ public final class ViewMaker {
                             }
                             catch (final Exception e) {
                                 throw new IOException("could not parse serializable string from '" + entry.getValue()
-                                        + "' for '" + key + "'");
+                                        + "' for '" + key + "'. Error: " + e.getMessage());
                             }
                             if (parsed_value != null) {
                                 style.setDefaultValue(vp, parsed_value);
@@ -484,7 +484,7 @@ public final class ViewMaker {
                                 d.setDependency(Boolean.parseBoolean(v));
                             }
                             catch (final Exception e) {
-                                throw new IOException("could not parse boolean from '" + v + "'");
+                                throw new IOException("could not parse boolean from '" + v + "'. Error: " + e.getMessage());
                             }
                         }
                     }

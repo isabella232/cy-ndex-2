@@ -213,7 +213,7 @@ public class NdexClient {
 		}
 	}
 */
-	public void setVisibility(String url, String uuid, Boolean isPublic, String id, String pw) {
+	public void setVisibility(String url, String uuid, boolean isPublic, String id, String pw) {
 		final String endpoint = url + "/network/" + uuid + "/systemproperty";
 
 		String visibility;
