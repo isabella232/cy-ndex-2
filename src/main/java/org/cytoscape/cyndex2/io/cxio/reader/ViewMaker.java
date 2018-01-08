@@ -57,11 +57,12 @@ public final class ViewMaker {
     		
         final long t0 = System.currentTimeMillis();
         final VisualElementCollectionMap collection = cx_to_cy.getVisualElementCollectionMap();
+        int edgeCount = cx_to_cy.get_cxid_to_cyedge_map().size();
     //    hasLayoutMap.put(view, Boolean.FALSE);
         
         if ((collection == null) || collection.isEmpty()) {
             final CyNetworkView view = networkview_factory.createNetworkView(network);
-            ViewMaker.applyStyle(visual_mapping_manager.getDefaultVisualStyle(), view, doLayout);
+            ViewMaker.applyStyle(visual_mapping_manager.getDefaultVisualStyle(), view, doLayout, edgeCount);
             return;
         }
 
@@ -70,7 +71,7 @@ public final class ViewMaker {
        
 		if (network_id == null || !cx_to_cy.getSubNetworkToViewsMap().containsKey(network_id)) {
             final CyNetworkView view = networkview_factory.createNetworkView(network);
-            ViewMaker.applyStyle(visual_mapping_manager.getDefaultVisualStyle(), view, doLayout);
+            ViewMaker.applyStyle(visual_mapping_manager.getDefaultVisualStyle(), view, doLayout, edgeCount);
             return;
 		}
 
@@ -160,7 +161,7 @@ public final class ViewMaker {
             TimingUtil.reportTimeDifference(t0, "time to make view", -1);
         }
         
-        		ViewMaker.applyStyle(new_visual_style, view, doLayout);
+        		ViewMaker.applyStyle(new_visual_style, view, doLayout, edgeCount);
         }
         
         return;
@@ -191,11 +192,12 @@ public final class ViewMaker {
         return hasLayoutMap; */
     }
 
-    private static CyNetworkView applyStyle (VisualStyle style, CyNetworkView networkView, boolean doLayout) {
+    private static CyNetworkView applyStyle (VisualStyle style, CyNetworkView networkView, boolean doLayout, int edgeCount) {
         if( doLayout ) // && !stopLayout)
         {
             CyLayoutAlgorithmManager lam = CyObjectManager.INSTANCE.getLayoutAlgorithmManager();
-            CyLayoutAlgorithm algorithm = lam.getLayout("force-directed");
+            CyLayoutAlgorithm algorithm = lam.getLayout( 
+            							edgeCount > 5000 ? "grid":"force-directed");
             TaskIterator ti = algorithm.createTaskIterator(networkView, algorithm.getDefaultLayoutContext(), CyLayoutAlgorithm.ALL_NODE_VIEWS, "");
             DialogTaskManager tm = CyObjectManager.INSTANCE.getTaskManager();
             tm.execute(ti);

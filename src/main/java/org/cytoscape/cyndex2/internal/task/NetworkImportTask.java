@@ -114,15 +114,15 @@ public class NetworkImportTask extends AbstractTask {
 
 		if (hasCoords) {
 			doLayout = false;
-		} else if (networkSummary.getEdgeCount() < 5000) {
+		} else //if (networkSummary.getEdgeCount() < 5000) {
 			doLayout = true;
-		} else {
+	/*	} else {
 			JFrame parent = CyObjectManager.INSTANCE.getApplicationFrame();
 			int response = JOptionPane.showConfirmDialog(parent,
 					"Do you want to create a view for your large network? This could take a while.",
 					"Importing Large Network", JOptionPane.YES_NO_OPTION);
 			doLayout = response == JOptionPane.YES_OPTION;
-		}
+		} */
 
 		List<CyNetwork> networks = cxToCy.createNetwork(niceCX, null, networkFactory, null, true);
 
