@@ -138,7 +138,7 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 						+ "issue with existing JXBrowser instances."), BorderLayout.CENTER);
 				return tip;
 			}
-			final Dimension size = new Dimension(220, 270);
+			final Dimension size = new Dimension(220, 280);
 			final JEditorPane pane = new JEditorPane();
 			pane.setBackground(Color.white);
 			pane.setEditable(false);
