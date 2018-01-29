@@ -26,6 +26,18 @@ public class LoadBrowserTask extends AbstractTask {
 		this.ti = ti;
 		this.dialog = dialog;
 		this.port = pm.getPort();
+		
+		//give warnings if cyNDEX1 is found.
+		if ( CyActivator.hasCyNDEx1()) {
+			JOptionPane.showMessageDialog(dialog, 
+					"We have detected you have both the CyNDEx and CyNDEx-2 apps installed and ENABLED.\n" + 
+					"We recommend you DISABLE one of the two apps or you might run into compatibility "
+					+ "issues in Cytoscape.", 
+					"Warning", JOptionPane.WARNING_MESSAGE);
+			CyActivator.setHasCyNDEX1(false);
+		}
+		
+
 	}
 
 	@Override
@@ -36,6 +48,7 @@ public class LoadBrowserTask extends AbstractTask {
 
 			@Override
 			public void run() {
+				
 				taskMonitor.setTitle("Loading CyNDEx-2 Browser");
 				try {
 					browserView = CyActivator.getBrowserView();

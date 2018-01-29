@@ -293,7 +293,7 @@ public final class CxExporter {
         boolean success = true;
 
         //write namespaces out first 
-        if (cxInfoHolder !=null && cxInfoHolder.getNamespaces() != null) {
+        if (cxInfoHolder !=null && cxInfoHolder.getNamespaces() != null && cxInfoHolder.getNamespaces().size()>0) {
         	final List<AspectElement> nsAspect = new ArrayList<>(1);
             nsAspect.add(cxInfoHolder.getNamespaces());
 

@@ -297,4 +297,30 @@ public final class CxImporter {
     }
     
 
+    /* this function converts an old CX network (exported by very old version of cyNDEx app) to a new one. It basically does this aspect name changes:
+     *    visualProperties  --> cyVisualProperties
+     * 	  subNetworks       --> cySubNetworks
+     *    networkRelations  --> cyNetworkRelations
+     *    hiddenAttributes  --> cyHiddenAttributes
+     *  */
+  /*  
+    private static NiceCXNetwork migrateOldCyAspects(NiceCXNetwork oldNet) {
+        MetaDataCollection metadata = oldNet.getMetadata()
+    		
+        	if ( metadata.getMetaDataElement("visualProperties") != null) {
+        		
+        	}
+    	
+    }
+    
+    
+    private static void renameOpaqueAspect(String oldName, String newName, NiceCXNetwork network) {
+    		MetaDataCollection metadata = network.getMetadata();
+    		MetaDataElement metaDataElmt = metadata.remove(oldName);
+    		metaDataElmt.setName(newName);
+    		metadata.add(metaDataElmt);
+    		
+    		
+    }
+    */
 }

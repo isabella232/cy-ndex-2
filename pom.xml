@@ -257,15 +257,9 @@
 		<dependency>
 			<groupId>org.ndexbio.client</groupId>
 			<artifactId>ndex-java-client</artifactId>
-			<version>2.2.1</version>
+			<version>2.2.2</version>
 		</dependency>
-
-		<dependency>
-			<groupId>org.cytoscape</groupId>
-			<artifactId>work-api</artifactId>
-			<version>${cytoscape.api.version}</version>
-			<scope>provided</scope>
-		</dependency>
+		
 		<dependency>
 			<groupId>org.cytoscape</groupId>
 			<artifactId>ci-api</artifactId>

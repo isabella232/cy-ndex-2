@@ -8,6 +8,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Properties;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -58,6 +60,9 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 		return entry;
 	}
 
+	@Override
+	public String getName () {return "NDEx - Network Search";}
+	
 	public static class Entry extends JTextField {
 		/**
 		 * 
@@ -168,6 +173,7 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 
 	}
 
+	@Override
 	public JComponent getQueryComponent() {
 		return getEntry();
 	}
@@ -202,6 +208,29 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 	@Override
 	public boolean isReady() {
 		return !ExternalAppManager.busy && !ExternalAppManager.loadFailed;
+	}
+	
+	@Override
+	public String getDescription() {
+     return "<html>The Network Data Exchange (NDEx) is a cloud-based database <br />"
+				+ "and software infrastructure to store, share and publish <br />"
+				+ "biological network knowledge. NDEx provides a REST API and<br />"
+				+ "several client libraries are available for programmatic <br />"
+				+ "access. NDEx users can request DOIs for their networks and <br />"
+				+ "rely on full integration with Cytoscape. <br />"
+				+ "NDEx is also available as an installation bundle for users <br />"
+				+ "working with networks in a confidential environment. <br />"
+				+ "For more information on NDEx and its Advanced Search <br />"
+				+ "capabilities, please visit our website.</html>";
+	}
+	
+	@Override
+	public URL getWebsite() {
+		try {
+			return new URL("http://www.home.ndexbio.org/finding-and-querying-networks/#searchexamples");
+		} catch (@SuppressWarnings("unused") MalformedURLException e) {
+			return null;
+		}
 	}
 
 }

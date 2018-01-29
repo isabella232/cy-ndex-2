@@ -94,11 +94,13 @@ public class CyActivator extends AbstractCyActivator {
     private static String appVersion;
     private static String cytoscapeVersion;
     private static String appName;
+    private static boolean hasCyNDEx1;
     
 	private StaticContentsServer httpServer;
 
 	public CyActivator() {
 		super();
+		hasCyNDEx1 = false;
 	}
 
 	public static class BrowserCreationError extends Exception {
@@ -175,9 +177,17 @@ public class CyActivator extends AbstractCyActivator {
 	public void start(BundleContext bc) {
 
 	   for ( Bundle b : bc.getBundles()) {
+//		   		System.out.println(b.getSymbolicName());
 	        		if (b.getSymbolicName().equals("org.cytoscape.api-bundle")) {
 	        			cytoscapeVersion = b.getVersion().toString();
-	        			break;
+	       // 			break;
+	        		} else if (b.getSymbolicName().equals("org.cytoscape.ndex.cyNDEx")) {
+/*	        			Version v = b.getVersion();
+	        			System.out.println(v);
+	        			int st = b.getState();
+	        			System.out.println(st);
+*/	        			
+	        			hasCyNDEx1 = true;
 	        		}
 	    }
 	   	Bundle currentBundle = bc.getBundle();
@@ -467,6 +477,14 @@ public class CyActivator extends AbstractCyActivator {
     public static String getAppVersion() {return appVersion;}
     public static String getCyVersion() { return cytoscapeVersion;}
     public static String getAppName () { return appName;}
+
+	public static boolean hasCyNDEx1() {
+		return hasCyNDEx1;
+	}
+
+	public static void setHasCyNDEX1(boolean hasCyNDEx1) {
+		CyActivator.hasCyNDEx1 = hasCyNDEx1;
+	}
 
 
 }

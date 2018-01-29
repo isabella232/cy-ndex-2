@@ -217,14 +217,13 @@ public final class CxToCy {
 
         boolean isCollection = false;
 
-        if (niceCX.getOpaqueAspectTable().get(SubNetworkElement.ASPECT_NAME) != null ) {
-        	isCollection = true;
-            for (final AspectElement element : niceCX.getOpaqueAspectTable().get(SubNetworkElement.ASPECT_NAME)) {
-                final SubNetworkElement subnetwork_element = (SubNetworkElement) element;
-                _visual_element_collections.addSubNetworkElement(subnetwork_element.getId(),
-                                                                 subnetwork_element);
-            }
-        }
+		if (niceCX.getOpaqueAspectTable().get(SubNetworkElement.ASPECT_NAME) != null) {
+			isCollection = true;
+			for (final AspectElement element : niceCX.getOpaqueAspectTable().get(SubNetworkElement.ASPECT_NAME)) {
+				final SubNetworkElement subnetwork_element = (SubNetworkElement) element;
+				_visual_element_collections.addSubNetworkElement(subnetwork_element.getId(), subnetwork_element);
+			}
+		}
 
         // Dealing with subnetwork relations:
         Long parent_network_id = null;
@@ -299,9 +298,8 @@ public final class CxToCy {
             subnetworks_ary[i] = sub_network;
         }
         
-        if (isCollection )
-        	addNetworkCollectionAttributes( niceCX.getNetworkAttributes(), root_network);
-        
+		if (isCollection)
+			addNetworkCollectionAttributes(niceCX.getNetworkAttributes(), root_network);
 
         processColumnLabels(niceCX.getOpaqueAspectTable().get(CyTableColumnElement.ASPECT_NAME),
                             subnetwork_to_col_labels_map);
