@@ -492,7 +492,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		}
 
 		final NdexRestClient nc = new NdexRestClient(params.username, params.password, params.serverUrl,
-				CyActivator.getAppName()+"("+CyActivator.getAppVersion()+")");
+				CyActivator.getAppName()+"/"+CyActivator.getAppVersion());
 		final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
 		try {
 			

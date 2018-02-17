@@ -82,7 +82,7 @@ public class NetworkImportTask extends AbstractTask {
 	public NetworkImportTask(String userId, String password, String serverUrl, UUID uuid, String accessKey)
 			throws IOException, NdexException {
 		super();
-		NdexRestClient client = new NdexRestClient(userId, password, serverUrl, CyActivator.getAppName()+"("+CyActivator.getAppVersion()+")");
+		NdexRestClient client = new NdexRestClient(userId, password, serverUrl, CyActivator.getAppName()+"/"+CyActivator.getAppVersion());
 		mal = new NdexRestClientModelAccessLayer(client);
 		networkSummary = mal.getNetworkSummaryById(uuid, accessKey);
 		this.accessKey = accessKey;
@@ -90,7 +90,7 @@ public class NetworkImportTask extends AbstractTask {
 	
 	public NetworkImportTask(String serverUrl, UUID uuid, String accessKey) throws IOException, NdexException{
 		super();
-		NdexRestClient client = new NdexRestClient(null,null,serverUrl, CyActivator.getAppName()+"("+CyActivator.getAppVersion()+")");
+		NdexRestClient client = new NdexRestClient(null,null,serverUrl, CyActivator.getAppName()+"/"+CyActivator.getAppVersion());
 		mal = new NdexRestClientModelAccessLayer(client);
 		networkSummary = mal.getNetworkSummaryById(uuid, accessKey);
 		this.accessKey = accessKey;

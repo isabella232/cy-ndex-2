@@ -85,9 +85,7 @@ import org.ndexbio.model.object.SimplePropertyValuePair;
  * <li>
  * {@link #writeCX(CyNetworkView, AspectSet, OutputStream)}</li>
  * <li>
- * {@link #writeNetwork(CyNetwork, AspectSet, FilterSet, OutputStream)}</li>
  * <li>
- * {@link #writeNetworkView(CyNetworkView, AspectSet, FilterSet, OutputStream)}</li>
  * </ul>
  * <br>
  * <br>
@@ -96,14 +94,12 @@ import org.ndexbio.model.object.SimplePropertyValuePair;
  * <li>
  * {@link AspectSet} to control which aspects to serialize</li>
  * <li>
- * {@link FilterSet} to control which aspect keys/fields to include within an
  * aspect</li>
  * </ul>
  * <br>
  *
  * @see AspectSet
  * @see Aspect
- * @see FilterSet
  * @see CxOutput
  * @see CxImporter
  *
@@ -402,24 +398,20 @@ public final class CxExporter {
                                                           final Long consistency_group,
                                                           final Long id_counter,
                                                           final Long count) {
-        if(count !=null )
-        	pre_meta_data.setElementCount(aspect_name, count);
-        pre_meta_data.setVersion(aspect_name, "1.0");
-        pre_meta_data.setConsistencyGroup(aspect_name, consistency_group);
-        if (id_counter !=null) {
-            pre_meta_data.setIdCounter(aspect_name, id_counter);
-        }
+    		MetaDataElement e = new MetaDataElement(aspect_name, "1.0");
+    		e.setElementCount(count);
+        e.setConsistencyGroup(consistency_group);
+        e.setIdCounter(id_counter);
+        pre_meta_data.add(e);
     }
     
 
 	private final static void addDataToPostMetaDataCollection(final MetaDataCollection pre_meta_data,
 			final String aspect_name, final Long count, Long idCounter) {
-		final MetaDataElement element = new MetaDataElement(new TreeMap<String, Object>());
+		final MetaDataElement element = new MetaDataElement();
 		element.setName(aspect_name);
-		if ( count!=null)
-			element.setElementCount(count);
-		if ( idCounter != null)
-			element.setIdCounter(idCounter);
+		element.setElementCount(count);
+		element.setIdCounter(idCounter);
 		pre_meta_data.add(element);
 	}
 

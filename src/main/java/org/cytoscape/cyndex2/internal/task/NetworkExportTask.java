@@ -77,7 +77,7 @@ public class NetworkExportTask extends AbstractTask {
 		}
 
 		NdexRestClient client = new NdexRestClient(params.username, params.password, params.serverUrl, 
-				CyActivator.getAppName()+"("+CyActivator.getAppVersion()+")");
+				CyActivator.getAppName()+"/"+CyActivator.getAppVersion());
 		mal = new NdexRestClientModelAccessLayer(client);
 	}
 
