@@ -451,7 +451,7 @@ public final class ViewMaker {
 				final String mapping_type = mapping.getType();
 				final VisualProperty vp = lexicon.lookup(my_class, mapping_target);
 				try {
-					final StringParser sp = new StringParser(mapping.getDefintion());
+					final StringParser sp = new StringParser(mapping.getDefinition());
 					String col = sp.get(CxUtil.VM_COL);
 					if (cy_visual_properties_element.getProperties_of().equals("edges:default")
 							&& col.equals("interaction"))
