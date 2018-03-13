@@ -1282,10 +1282,10 @@ public final class CxExporter {
         if (attr_class == String.class) {
             return ATTRIBUTE_DATA_TYPE.STRING;
         }
-        else if ((attr_class == Float.class) || (attr_class == Double.class)) {
+        else if ( attr_class == Double.class) {
         	 return ATTRIBUTE_DATA_TYPE.DOUBLE;
         }
-        else if ((attr_class == Integer.class) || (attr_class == Short.class)) {
+        else if ((attr_class == Integer.class) ) {
         	 return ATTRIBUTE_DATA_TYPE.INTEGER;
         }
         else if (attr_class == Long.class) {
@@ -1303,10 +1303,10 @@ public final class CxExporter {
         if (attr_class == String.class) {
             return ATTRIBUTE_DATA_TYPE.LIST_OF_STRING;
         }
-        else if ((attr_class == Float.class) || (attr_class == Double.class)) {
+        else if ( (attr_class == Double.class)) {
             return ATTRIBUTE_DATA_TYPE.LIST_OF_DOUBLE;
         }
-        else if ((attr_class == Integer.class) || (attr_class == Short.class)) {
+        else if ((attr_class == Integer.class) ) {
             return ATTRIBUTE_DATA_TYPE.LIST_OF_INTEGER;
         }
         else if (attr_class == Long.class) {
