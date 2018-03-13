@@ -219,7 +219,9 @@ public class NetworkImportTask extends AbstractTask {
 						} catch (IOException ex) {
 							throw new NetworkImportException(ErrorMessage.failedToParseJson);
 						} catch (RuntimeException ex2) {
+							ex2.printStackTrace();
 							throw new NetworkImportException(ex2.getMessage());
+							
 						} catch (NdexException e) {
 							throw new NetworkImportException("Unable to read network from NDEx");
 						}

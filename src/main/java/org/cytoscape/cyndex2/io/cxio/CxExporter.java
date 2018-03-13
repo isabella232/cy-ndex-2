@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 import org.cxio.aspects.datamodels.ATTRIBUTE_DATA_TYPE;
 import org.cxio.aspects.datamodels.AttributesAspectUtils;
@@ -367,7 +366,7 @@ public final class CxExporter {
             
         } catch (final Exception e) {
             e.printStackTrace();
-            msg = e.getMessage();
+            msg = "Failed to create complete network from cyNDEx: " + e.getMessage();
             success = false;
         }
 

@@ -752,7 +752,7 @@ public final class CxToCy {
         }
     }
 
-    private void createColumn(final boolean is_single,
+    private static void createColumn(final boolean is_single,
                              final Class<?> data_type,
                              final String name,
                              final CyTable table) {
@@ -777,7 +777,7 @@ public final class CxToCy {
         }
     }
 
-    private boolean isSingle(final ATTRIBUTE_DATA_TYPE dt) {
+    private static boolean isSingle(final ATTRIBUTE_DATA_TYPE dt) {
 
         return ( dt == ATTRIBUTE_DATA_TYPE.BOOLEAN || dt == ATTRIBUTE_DATA_TYPE.BYTE || dt == ATTRIBUTE_DATA_TYPE.CHAR
                 || dt == ATTRIBUTE_DATA_TYPE.DOUBLE || dt == ATTRIBUTE_DATA_TYPE.FLOAT
@@ -973,7 +973,7 @@ public final class CxToCy {
 		}
 	}
 
-    private Class<?> getDataType(final ATTRIBUTE_DATA_TYPE type) {
+    private static Class<?> getDataType(final ATTRIBUTE_DATA_TYPE type) {
         switch (type) {
         case STRING:
         case LIST_OF_STRING:
@@ -983,25 +983,23 @@ public final class CxToCy {
             return Boolean.class;
         case DOUBLE:
         case LIST_OF_DOUBLE:
-            return Double.class;
         case FLOAT:
         case LIST_OF_FLOAT:
-            return Float.class;
+            return Double.class;
         case INTEGER:
         case LIST_OF_INTEGER:
+        case SHORT:
+        case LIST_OF_SHORT:
             return Integer.class;
         case LONG:
         case LIST_OF_LONG:
             return Long.class;
-        case SHORT:
-        case LIST_OF_SHORT:
-            return Integer.class;
         default:
             throw new IllegalArgumentException("don't know how to deal with type '" + type + "'");
         }
     }
 
-    private void processHiddenAttributes(final Collection<AspectElement> hidden_attributes,
+    private static void processHiddenAttributes(final Collection<AspectElement> hidden_attributes,
                                          final Map<Long, List<HiddenAttributesElement>> hidden_attributes_map) {
         if (hidden_attributes != null) {
             for (final AspectElement e : hidden_attributes) {
@@ -1020,7 +1018,7 @@ public final class CxToCy {
         }
     }
 
-	private Map<Long, Collection<NetworkAttributesElement>> processNetworkAttributes(
+	private static Map<Long, Collection<NetworkAttributesElement>> processNetworkAttributes(
 			final Collection<NetworkAttributesElement> network_attributes,
 			final boolean isCollection,
 			final List<Long> subnetworks_ids) {
@@ -1158,14 +1156,14 @@ public final class CxToCy {
                 throw new IllegalArgumentException("could not convert '" + value + "' to integer");
             }
         }
-        else if (type == Short.class) {
+     /*   else if (type == Short.class) {
             try {
                 return Integer.valueOf(value);
             }
             catch (final NumberFormatException e) {
                 throw new IllegalArgumentException("could not convert '" + value + "' to short");
             }
-        }
+        } 
         else if (type == Float.class) {
             try {
                 return Float.valueOf(value);
@@ -1173,7 +1171,7 @@ public final class CxToCy {
             catch (final NumberFormatException e) {
                 throw new IllegalArgumentException("could not convert '" + value + "' to float");
             }
-        }
+        } */
         else if (type == Double.class) {
             try {
                 return Double.valueOf(value);
