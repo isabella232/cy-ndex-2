@@ -34,8 +34,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 
 import org.cxio.aspects.datamodels.CartesianLayoutElement;
@@ -72,6 +70,7 @@ import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
+
 public class NetworkImportTask extends AbstractTask {
 
 	final NdexRestClientModelAccessLayer mal;
@@ -88,17 +87,19 @@ public class NetworkImportTask extends AbstractTask {
 		this.accessKey = accessKey;
 	}
 	
-	public NetworkImportTask(String serverUrl, UUID uuid, String accessKey) throws IOException, NdexException{
+	public NetworkImportTask(String serverUrl, UUID uuid, String accessKey, String idToken) throws IOException, NdexException{
 		super();
 		NdexRestClient client = new NdexRestClient(null,null,serverUrl, CyActivator.getAppName()+"/"+CyActivator.getAppVersion());
+		if ( idToken !=null)
+			client.signIn(idToken);
 		mal = new NdexRestClientModelAccessLayer(client);
 		networkSummary = mal.getNetworkSummaryById(uuid, accessKey);
 		this.accessKey = accessKey;
 	}
 	
-/*	public void setAccessKey(String accessKey){
-		this.accessKey = accessKey;
-	} */
+/*	public void setIdToken(String IDToken) throws JsonProcessingException, IOException, NdexException{
+		mal.getNdexRestClient().signIn(IDToken);
+	}  */
 	
 	private void createCyNetworkFromCX(InputStream cxStream) throws IOException {
 
