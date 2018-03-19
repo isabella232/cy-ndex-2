@@ -2,8 +2,8 @@ package org.cytoscape.cyndex2.internal.rest.endpoints.impl;
 
 import javax.ws.rs.core.Response.Status;
 
-import org.cytoscape.ci.CIResponseFactory;
 import org.cytoscape.ci.CIWrapping;
+import org.cytoscape.cyndex2.internal.CIServiceManager;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexBaseResource;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorType;
@@ -22,19 +22,19 @@ public class NdexBaseResourceImpl implements NdexBaseResource {
 	}
 
 	private final ErrorBuilder errorBuilder;
-	private final CIResponseFactory ciResponseFactory;
+	private final CIServiceManager ciServiceManager;
 
-	public NdexBaseResourceImpl(final String bundleVersion, final ErrorBuilder errorBuilder, final CIResponseFactory responseFactory) {
+	public NdexBaseResourceImpl(final String bundleVersion, final ErrorBuilder errorBuilder, final CIServiceManager ciServiceManager) {
 		SUMMARY.appVersion = bundleVersion;
 		this.errorBuilder = errorBuilder;
-		this.ciResponseFactory = responseFactory;
+		this.ciServiceManager = ciServiceManager;
 	}
 
 	@Override
 	@CIWrapping
 	public CIAppInfoResponse getAppInfo() {
 		try {
-			return ciResponseFactory.getCIResponse(SUMMARY, CIAppInfoResponse.class);
+			return ciServiceManager.getCIResponseFactory().getCIResponse(SUMMARY, CIAppInfoResponse.class);
 		} catch (InstantiationException | IllegalAccessException e) {
 			final String message = "Could not create wrapped CI JSON.";
 			logger.error(message);
