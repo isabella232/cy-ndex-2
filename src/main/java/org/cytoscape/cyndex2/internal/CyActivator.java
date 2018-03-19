@@ -223,17 +223,8 @@ public class CyActivator extends AbstractCyActivator {
 				CyNetworkViewWriterFactory.class);
 
 		
-		ServiceTracker ciResponseFactoryTracker = new ServiceTracker(bc,
-				bc.createFilter("(objectClass=org.cytoscape.ci.CIResponseFactory)"), null);
-		// this.getService(context, CIResponseFactory.class);
-		ServiceTracker ciExceptionFactoryTracker = new ServiceTracker(bc,
-				bc.createFilter("(objectClass=org.cytoscape.ci.CIExceptionFactory)"), null);
-		// this.getService(context, CIExceptionFactory.class);
-		ServiceTracker ciErrorFactoryTracker = new ServiceTracker(bc,
-				bc.createFilter("(objectClass=org.cytoscape.ci.CIErrorFactory)"), null);
-		// this.getService(context, CIErrorFactory.class);
 
-		CIServiceManager ciServiceManager = new CIServiceManager(ciErrorFactoryTracker, ciErrorFactoryTracker, ciErrorFactoryTracker);
+		CIServiceManager ciServiceManager = new CIServiceManager(bc);
 		
 		// For loading networks...
 		final CyNetworkManager netmgr = getService(bc, CyNetworkManager.class);
