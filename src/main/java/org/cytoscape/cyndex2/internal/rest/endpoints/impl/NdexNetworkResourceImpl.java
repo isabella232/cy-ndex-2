@@ -1,6 +1,7 @@
 package org.cytoscape.cyndex2.internal.rest.endpoints.impl;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,6 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.application.CyApplicationManager;
@@ -68,6 +72,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	private final CIErrorFactory ciErrorFactory;
 
 	private final ErrorBuilder errorBuilder;
+	
 
 	public NdexNetworkResourceImpl(final NdexClient client, final ErrorBuilder errorBuilder,
 			CyApplicationManager appManager, CyNetworkManager networkManager, /*CxTaskFactoryManager tfManager,
@@ -519,5 +524,41 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		}
 		return ndexNetworkId;
 	}
+
+	@Override
+	@CIWrapping
+	public CINdexBaseResponse createNetworkFromCx(@Context HttpServletRequest request /*, byte[] input*/
+			
+		/*	NdexImportParams params */
+			) {
+		System.out.println("foo");
+
+	/*	NetworkImportTask importer;
+		try {
+			ServletInputStream in = request.getInputStream();
+
+			importer = new NetworkImportTask(in);			
+			importer.run(tm);
+		}  catch (Exception e) {
+			final String message = "Unable to create CyNetwork from NDEx." + e.getMessage();
+			logger.error(message);
+			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
+
+		} 
+		
+		
+
+		final NdexBaseResponse response = new NdexBaseResponse(importer.getSUID(), ""); */
+		final NdexBaseResponse response = new NdexBaseResponse(22L, "21");
+		try {
+			return ciResponseFactory.getCIResponse(response, CINdexBaseResponse.class);
+		} catch (InstantiationException | IllegalAccessException e) {
+			final String message = "Could not create wrapped CI JSON. Error: " + e.getMessage();
+			logger.error(message);
+			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
+		} 
+	}
+
+	
 
 }

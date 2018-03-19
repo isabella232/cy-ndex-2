@@ -1,5 +1,8 @@
 package org.cytoscape.cyndex2.internal.rest.endpoints;
 
+import java.io.InputStream;
+
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -7,6 +10,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import org.cytoscape.ci.model.CIResponse;
@@ -27,10 +31,11 @@ import io.swagger.annotations.ApiResponses;
 @Path("/cyndex2/v1/networks")
 public interface NdexNetworkResource {
 	
+	
 	@ApiModel(
 			value="Summary Response",
 			parent=CIResponse.class)
-    public static class CISummaryResponse extends CIResponse<SummaryResponse>{
+    public static class CISummaryResponse extends CIResponse<SummaryResponse>{/**/
     }
 
 	@ApiOperation(
@@ -56,12 +61,11 @@ public interface NdexNetworkResource {
 	@ApiModel(
 			value="NDEx Base Response",
 			parent=CIResponse.class)
-    public static class CINdexBaseResponse extends CIResponse<NdexBaseResponse>{
-    }
+    public static class CINdexBaseResponse extends CIResponse<NdexBaseResponse>{/**/}
 	
 	@POST
 	@Produces("application/json")
-	@Consumes("application/json")
+	@Consumes(MediaType.APPLICATION_JSON)
 	@Path("/")
 	@ApiOperation(
 			value = "Import network from NDEx",
@@ -73,7 +77,25 @@ public interface NdexNetworkResource {
 					}
 			)
 	public CINdexBaseResponse createNetworkFromNdex(
-			 @ApiParam(value = "Properties required to import network from NDEx.", required = true) NdexImportParams params);
+			 @ApiParam(value = "Raw CX object to be imported to Cytoscape.", required = true) NdexImportParams params);
+	
+
+	@POST
+	@Produces("application/json")
+	@Consumes(MediaType.WILDCARD)
+	@Path("/cx")
+	@ApiOperation(
+			value = "Import network(s) from cyRestClient",
+			notes = "Import network(s) from cyRestClient.",
+			response = CINdexBaseResponse.class)
+	@ApiResponses(
+			value = {
+						@ApiResponse(code = 404, message = "Network does not exist", response = CINdexBaseResponse.class)
+					}
+			) 
+	public CINdexBaseResponse createNetworkFromCx(
+			 @Context HttpServletRequest request /*, byte[] input*//*NdexImportParams params*/);
+
 	
 	@POST
 	@Produces("application/json")

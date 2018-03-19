@@ -77,6 +77,7 @@ public class NetworkImportTask extends AbstractTask {
 	final NetworkSummary networkSummary;
 	private Long suid = null;
 	private String accessKey = null;
+	private InputStream cxStream;
 
 	public NetworkImportTask(String userId, String password, String serverUrl, UUID uuid, String accessKey)
 			throws IOException, NdexException {
@@ -85,6 +86,7 @@ public class NetworkImportTask extends AbstractTask {
 		mal = new NdexRestClientModelAccessLayer(client);
 		networkSummary = mal.getNetworkSummaryById(uuid, accessKey);
 		this.accessKey = accessKey;
+		cxStream = null;
 	}
 	
 	public NetworkImportTask(String serverUrl, UUID uuid, String accessKey, String idToken) throws IOException, NdexException{
@@ -95,13 +97,21 @@ public class NetworkImportTask extends AbstractTask {
 		mal = new NdexRestClientModelAccessLayer(client);
 		networkSummary = mal.getNetworkSummaryById(uuid, accessKey);
 		this.accessKey = accessKey;
+		cxStream = null;
 	}
-	
+
+	public NetworkImportTask(InputStream in){
+		super();
+		networkSummary = null;
+		mal = null;
+		cxStream = in;
+	}
+
 /*	public void setIdToken(String IDToken) throws JsonProcessingException, IOException, NdexException{
 		mal.getNdexRestClient().signIn(IDToken);
 	}  */
 	
-	private void createCyNetworkFromCX(InputStream cxStream) throws IOException {
+	private void createCyNetworkFromCX() throws IOException {
 
 		// Create the CyNetwork to copy to.
 		CyNetworkFactory networkFactory = CyObjectManager.INSTANCE.getNetworkFactory();
@@ -109,7 +119,7 @@ public class NetworkImportTask extends AbstractTask {
 		CxImporter cxImporter = new CxImporter();
 
 		NiceCXNetwork niceCX = cxImporter.getCXNetworkFromStream(cxStream);
-
+		cxStream.close();
 		boolean doLayout;
 		boolean hasCoords = niceCX.getNodeAssociatedAspect(CartesianLayoutElement.ASPECT_NAME) != null;
 
@@ -153,7 +163,8 @@ public class NetworkImportTask extends AbstractTask {
 
 			cxInfoHolder.setProvenance(niceCX.getProvenance());
 			cxInfoHolder.setMetadata(niceCX.getMetadata());
-			cxInfoHolder.setNetworkId(networkSummary.getExternalId());
+			if(networkSummary !=null)
+				cxInfoHolder.setNetworkId(networkSummary.getExternalId());
 			Collection<AspectElement> subNets = niceCX.getOpaqueAspectTable().get(SubNetworkElement.ASPECT_NAME);
 
 			cxInfoHolder.setSubNetCount(subNets == null ? 0 : subNets.size());
@@ -166,10 +177,12 @@ public class NetworkImportTask extends AbstractTask {
 		CyRootNetwork rootNetwork = ((CySubNetwork) networks.get(0)).getRootNetwork();
 		suid = rootNetwork.getSUID();
 
-		NetworkManager.INSTANCE.addNetworkUUID(networks.size() == 1 ? networks.get(0).getSUID() : rootNetwork.getSUID(),
+		if ( networkSummary !=null)
+			NetworkManager.INSTANCE.addNetworkUUID(networks.size() == 1 ? networks.get(0).getSUID() : rootNetwork.getSUID(),
 				networkSummary.getExternalId());
 
-		String collectionName = networkSummary.getName();
+		String collectionName = (networkSummary !=null) ? 
+				  networkSummary.getName() : niceCX.getNetworkName();
 		rootNetwork.getRow(rootNetwork).set(CyNetwork.NAME, collectionName);
 
 		for (CyNetwork cyNetwork : networks) {
@@ -209,14 +222,15 @@ public class NetworkImportTask extends AbstractTask {
 					// credential
 					boolean success = true; // selectedServer.check(mal);
 					if (success) {
-						UUID id = networkSummary.getExternalId();
 						try {
-							InputStream cxStream = null;
-							if (accessKey == null)
-								 cxStream = mal.getNetworkAsCXStream(id);
-							else
-								cxStream = mal.getNetworkAsCXStream(id, accessKey);
-							createCyNetworkFromCX(cxStream); 
+							if (cxStream == null) {
+								UUID id = networkSummary.getExternalId();
+								if (accessKey == null)
+									cxStream = mal.getNetworkAsCXStream(id);
+								else
+									cxStream = mal.getNetworkAsCXStream(id, accessKey);
+							}
+							createCyNetworkFromCX(); 
 						} catch (IOException ex) {
 							throw new NetworkImportException(ErrorMessage.failedToParseJson);
 						} catch (RuntimeException ex2) {
