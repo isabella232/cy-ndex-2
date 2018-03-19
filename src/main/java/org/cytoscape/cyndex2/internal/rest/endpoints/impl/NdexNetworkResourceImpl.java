@@ -12,11 +12,9 @@ import java.util.UUID;
 import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.application.CyApplicationManager;
-import org.cytoscape.ci.CIErrorFactory;
-import org.cytoscape.ci.CIExceptionFactory;
-import org.cytoscape.ci.CIResponseFactory;
 import org.cytoscape.ci.CIWrapping;
 import org.cytoscape.ci.model.CIError;
+import org.cytoscape.cyndex2.internal.CIServiceManager;
 import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.rest.HeadlessTaskMonitor;
 import org.cytoscape.cyndex2.internal.rest.NdexClient;
@@ -61,23 +59,15 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 	private final CyNetworkManager networkManager;
 	private final CyApplicationManager appManager;
-
-
-	private final CIResponseFactory ciResponseFactory;
-	private final CIExceptionFactory ciExceptionFactory;
-	private final CIErrorFactory ciErrorFactory;
+	private final CIServiceManager ciServiceManager;
 
 	private final ErrorBuilder errorBuilder;
 
 	public NdexNetworkResourceImpl(final NdexClient client, final ErrorBuilder errorBuilder,
-			CyApplicationManager appManager, CyNetworkManager networkManager, /*CxTaskFactoryManager tfManager,
-			TaskFactory loadNetworkTF,*/ CIResponseFactory ciResponseFactory, CIExceptionFactory ciExceptionFactory, CIErrorFactory ciErrorFactory) {
+			CyApplicationManager appManager, CyNetworkManager networkManager, CIServiceManager ciServiceTracker) {
 
 		this.client = client;
-		this.ciResponseFactory = ciResponseFactory;
-		this.ciErrorFactory = ciErrorFactory;
-		this.ciExceptionFactory = ciExceptionFactory;
-		
+		this.ciServiceManager = ciServiceTracker;
 		this.errorBuilder = errorBuilder;
 
 		this.networkManager = networkManager;
@@ -116,7 +106,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 		final NdexBaseResponse response = new NdexBaseResponse(importer.getSUID(), params.uuid);
 		try {
-			return ciResponseFactory.getCIResponse(response, CINdexBaseResponse.class);
+			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
 		} catch (InstantiationException | IllegalAccessException e) {
 			final String message = "Could not create wrapped CI JSON. Error: " + e.getMessage();
 			logger.error(message);
@@ -149,9 +139,9 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			// Current network is not available
 			final String message = "Network/Collection with SUID " + String.valueOf(suid) + " does not exist.";
 			logger.error(message);
-			final CIError ciError = ciErrorFactory.getCIError(Status.BAD_REQUEST.getStatusCode(),
+			final CIError ciError = ciServiceManager.getCIErrorFactory().getCIError(Status.BAD_REQUEST.getStatusCode(),
 					"urn:cytoscape:ci:ndex:v1:errors:1", message, URI.create("file:///log"));
-			throw ciExceptionFactory.getCIException(Status.BAD_REQUEST.getStatusCode(), new CIError[] { ciError });
+			throw ciServiceManager.getCIExceptionFactory().getCIException(Status.BAD_REQUEST.getStatusCode(), new CIError[] { ciError });
 		}
 		
 		// Save non-null metadata to network/collection table
@@ -171,7 +161,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			}
 
 			final NdexBaseResponse response = new NdexBaseResponse(suid, newUUID);
-			return ciResponseFactory.getCIResponse(response, CINdexBaseResponse.class);
+			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
 		} catch (NetworkExportException e1) {
 			final String message = "Error exporting network to CX:" + e1.getMessage();
 			logger.error(message);
@@ -200,9 +190,9 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			// Current network is not available
 			final String message = "Current network does not exist.  You need to choose a network first.";
 			logger.error(message);
-			final CIError ciError = ciErrorFactory.getCIError(Status.BAD_REQUEST.getStatusCode(),
+			final CIError ciError = ciServiceManager.getCIErrorFactory().getCIError(Status.BAD_REQUEST.getStatusCode(),
 					"urn:cytoscape:ci:ndex:v1:errors:1", message, URI.create("file:///log"));
-			throw ciExceptionFactory.getCIException(Status.BAD_REQUEST.getStatusCode(), new CIError[] { ciError });
+			throw ciServiceManager.getCIExceptionFactory().getCIException(Status.BAD_REQUEST.getStatusCode(), new CIError[] { ciError });
 		}
 
 		return saveNetworkToNdex(network.getSUID(), params);
@@ -222,9 +212,9 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 				} catch (InterruptedException e1) {
 					message = "Failed to wait. This should never happen.";
 					logger.error(message);
-					final CIError ciError = ciErrorFactory.getCIError(Status.BAD_REQUEST.getStatusCode(),
+					final CIError ciError = ciServiceManager.getCIErrorFactory().getCIError(Status.BAD_REQUEST.getStatusCode(),
 							"urn:cytoscape:ci:ndex:v1:errors:1", message);
-					throw ciExceptionFactory.getCIException(Status.BAD_REQUEST.getStatusCode(),
+					throw ciServiceManager.getCIExceptionFactory().getCIException(Status.BAD_REQUEST.getStatusCode(),
 							new CIError[] { ciError });
 
 				}
@@ -272,7 +262,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 		final SummaryResponse response = buildSummary(root, (CySubNetwork) network);
 		try {
-			return ciResponseFactory.getCIResponse(response, CISummaryResponse.class);
+			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CISummaryResponse.class);
 		} catch (InstantiationException | IllegalAccessException e) {
 			final String message = "Could not create wrapped CI JSON. Error: " + e.getMessage();
 			logger.error(message);
@@ -303,14 +293,14 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			// Current network is not available
 			final String message = "Cannot find collection/network with SUID " + String.valueOf(suid) + ".";
 			logger.error(message);
-			final CIError ciError = ciErrorFactory.getCIError(Status.BAD_REQUEST.getStatusCode(),
+			final CIError ciError = ciServiceManager.getCIErrorFactory().getCIError(Status.BAD_REQUEST.getStatusCode(),
 					"urn:cytoscape:ci:ndex:v1:errors:1", message, URI.create("file:///log"));
-			throw ciExceptionFactory.getCIException(Status.BAD_REQUEST.getStatusCode(), new CIError[] { ciError });
+			throw ciServiceManager.getCIExceptionFactory().getCIException(Status.BAD_REQUEST.getStatusCode(), new CIError[] { ciError });
 		}
 
 		final SummaryResponse response = buildSummary(rootNetwork, (CySubNetwork) network);
 		try {
-			return ciResponseFactory.getCIResponse(response, CISummaryResponse.class);
+			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CISummaryResponse.class);
 		} catch (InstantiationException | IllegalAccessException e) {
 			final String message = "Could not create wrapped CI JSON. Error: " + e.getMessage();
 			logger.error(message);
@@ -439,7 +429,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 		final NdexBaseResponse response = new NdexBaseResponse(suid, uuidStr);
 		try {
-			return ciResponseFactory.getCIResponse(response, CINdexBaseResponse.class);
+			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
 		} catch (InstantiationException | IllegalAccessException e) {
 			final String message = "Could not create wrapped CI JSON. Error: "+ e.getMessage();
 			logger.error(message);

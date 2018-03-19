@@ -29,9 +29,6 @@ import org.cytoscape.app.swing.CySwingAppAdapter;
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
-import org.cytoscape.ci.CIErrorFactory;
-import org.cytoscape.ci.CIExceptionFactory;
-import org.cytoscape.ci.CIResponseFactory;
 import org.cytoscape.cyndex2.internal.rest.NdexClient;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexBaseResource;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexNetworkResource;
@@ -61,7 +58,9 @@ import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.work.TaskFactory;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.Version;
+import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,6 +94,7 @@ public class CyActivator extends AbstractCyActivator {
     private static String cytoscapeVersion;
     private static String appName;
     private static boolean hasCyNDEx1;
+    private CIServiceManager ciServiceManager;
     
 	private StaticContentsServer httpServer;
 
@@ -174,7 +174,7 @@ public class CyActivator extends AbstractCyActivator {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public void start(BundleContext bc) {
+	public void start(BundleContext bc) throws InvalidSyntaxException {
 
 	   for ( Bundle b : bc.getBundles()) {
 //		   		System.out.println(b.getSymbolicName());
@@ -223,16 +223,8 @@ public class CyActivator extends AbstractCyActivator {
 		registerServiceListener(bc, tfManager, "addWriterFactory", "removeWriterFactory",
 				CyNetworkViewWriterFactory.class);
 
-		// CI Error handlers
-		// CIExceptionFactory ciExceptionFactory = this.getService(bc,
-		// CIExceptionFactory.class);
-		// CIErrorFactory ciErrorFactory = this.getService(bc,
-		// CIErrorFactory.class);
-
-		CIExceptionFactory ciExceptionFactory = this.getService(bc, CIExceptionFactory.class);
-		CIErrorFactory ciErrorFactory = this.getService(bc, CIErrorFactory.class);
-		CIResponseFactory ciResponseFactory = this.getService(bc, CIResponseFactory.class);
-
+		ciServiceManager = new CIServiceManager(bc);
+		
 		// For loading networks...
 		final CyNetworkManager netmgr = getService(bc, CyNetworkManager.class);
 		final CyNetworkViewManager networkViewManager = getService(bc, CyNetworkViewManager.class);
@@ -298,19 +290,18 @@ public class CyActivator extends AbstractCyActivator {
 		registerAllServices(bc, ndexTaskFactory, ndexTaskFactoryProps);
 
 		// Expose CyREST endpoints
-		final ErrorBuilder errorBuilder = new ErrorBuilder(ciErrorFactory, ciExceptionFactory, config);
+		final ErrorBuilder errorBuilder = new ErrorBuilder(ciServiceManager, config);
 		final NdexClient ndexClient = new NdexClient(errorBuilder);
 
 		// Base
-		registerService(bc, new NdexBaseResourceImpl(bc.getBundle().getVersion().toString(), errorBuilder, ciResponseFactory),
+		registerService(bc, new NdexBaseResourceImpl(bc.getBundle().getVersion().toString(), errorBuilder, ciServiceManager),
 				NdexBaseResource.class, new Properties());
 
 		// Status
-		registerService(bc, new NdexStatusResourceImpl(pm, errorBuilder, ciResponseFactory), NdexStatusResource.class, new Properties());
+		registerService(bc, new NdexStatusResourceImpl(pm, errorBuilder, ciServiceManager), NdexStatusResource.class, new Properties());
 
 		// Network IO
-		registerService(bc, new NdexNetworkResourceImpl(ndexClient, errorBuilder, appManager, netmgr, /*tfManager,
-				loadNetworkTF,*/ ciResponseFactory, ciExceptionFactory, ciErrorFactory), NdexNetworkResource.class, new Properties());
+		registerService(bc, new NdexNetworkResourceImpl(ndexClient, errorBuilder, appManager, netmgr, ciServiceManager), NdexNetworkResource.class, new Properties());
 
 		// add Handler to remove networks from NetworkManager when deleted
 		registerService(bc, new NdexNetworkAboutToBeDestroyedListener(), NetworkAboutToBeDestroyedListener.class,
@@ -436,6 +427,9 @@ public class CyActivator extends AbstractCyActivator {
 
 		if (browser != null) {
 			browser.getCacheStorage().clearCache();
+		}
+		if (ciServiceManager != null){
+			ciServiceManager.close();
 		}
 
 		super.shutDown();
