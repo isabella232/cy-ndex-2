@@ -94,6 +94,7 @@ public class CyActivator extends AbstractCyActivator {
     private static String cytoscapeVersion;
     private static String appName;
     private static boolean hasCyNDEx1;
+    private CIServiceManager ciServiceManager;
     
 	private StaticContentsServer httpServer;
 
@@ -222,9 +223,7 @@ public class CyActivator extends AbstractCyActivator {
 		registerServiceListener(bc, tfManager, "addWriterFactory", "removeWriterFactory",
 				CyNetworkViewWriterFactory.class);
 
-		
-
-		CIServiceManager ciServiceManager = new CIServiceManager(bc);
+		ciServiceManager = new CIServiceManager(bc);
 		
 		// For loading networks...
 		final CyNetworkManager netmgr = getService(bc, CyNetworkManager.class);
@@ -428,6 +427,9 @@ public class CyActivator extends AbstractCyActivator {
 
 		if (browser != null) {
 			browser.getCacheStorage().clearCache();
+		}
+		if (ciServiceManager != null){
+			ciServiceManager.close();
 		}
 
 		super.shutDown();

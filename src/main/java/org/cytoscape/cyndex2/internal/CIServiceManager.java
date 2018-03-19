@@ -12,36 +12,49 @@ public class CIServiceManager {
 	private CIResponseFactory ciResponseFactory;
 	private CIExceptionFactory ciExceptionFactory;
 	private CIErrorFactory ciErrorFactory;
-	public CIServiceManager(final BundleContext bc) throws InvalidSyntaxException{
+
+	public CIServiceManager(final BundleContext bc) throws InvalidSyntaxException {
 		ciResponseFactoryTracker = new ServiceTracker(bc,
 				bc.createFilter("(objectClass=org.cytoscape.ci.CIResponseFactory)"), null);
 		ciResponseFactoryTracker.open();
 		ciExceptionFactoryTracker = new ServiceTracker(bc,
 				bc.createFilter("(objectClass=org.cytoscape.ci.CIExceptionFactory)"), null);
 		ciExceptionFactoryTracker.open();
-		ciErrorFactoryTracker = new ServiceTracker(bc,
-				bc.createFilter("(objectClass=org.cytoscape.ci.CIErrorFactory)"), null);
+		ciErrorFactoryTracker = new ServiceTracker(bc, bc.createFilter("(objectClass=org.cytoscape.ci.CIErrorFactory)"),
+				null);
 		ciErrorFactoryTracker.open();
 	}
-	
-	public CIResponseFactory getCIResponseFactory(){
-		if (ciResponseFactory == null){
+
+	public CIResponseFactory getCIResponseFactory() {
+		if (ciResponseFactory == null) {
 			ciResponseFactory = (CIResponseFactory) ciResponseFactoryTracker.getService();
 		}
 		return ciResponseFactory;
 	}
-	
-	public CIErrorFactory getCIErrorFactory(){
-		if (ciErrorFactory == null){
+
+	public CIErrorFactory getCIErrorFactory() {
+		if (ciErrorFactory == null) {
 			ciErrorFactory = (CIErrorFactory) ciErrorFactoryTracker.getService();
 		}
 		return ciErrorFactory;
 	}
-	
-	public CIExceptionFactory getCIExceptionFactory(){
-		if (ciExceptionFactory == null){
+
+	public CIExceptionFactory getCIExceptionFactory() {
+		if (ciExceptionFactory == null) {
 			ciExceptionFactory = (CIExceptionFactory) ciExceptionFactoryTracker.getService();
 		}
 		return ciExceptionFactory;
+	}
+
+	public void close() {
+		if (ciResponseFactoryTracker != null) {
+			ciResponseFactoryTracker.close();
+		}
+		if (ciExceptionFactoryTracker != null) {
+			ciExceptionFactoryTracker.close();
+		}
+		if (ciErrorFactoryTracker != null) {
+			ciErrorFactoryTracker.close();
+		}
 	}
 }
