@@ -10,19 +10,18 @@ import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.ci.CIErrorFactory;
 import org.cytoscape.ci.CIExceptionFactory;
 import org.cytoscape.ci.model.CIError;
+import org.cytoscape.cyndex2.internal.CIServiceManager;
 
 public class ErrorBuilder {
 
-	private final CIErrorFactory ciErrorFactory;
-	private final CIExceptionFactory ciExceptionFactory;
+	private final CIServiceManager ciServiceManager;
 
 	private final URI logFileUri;
 
-	public ErrorBuilder(final CIErrorFactory ciErrorFactory, final CIExceptionFactory ciExceptionFactory,
+	public ErrorBuilder(CIServiceManager ciServiceManager,
 			final CyApplicationConfiguration appConfig) {
-		this.ciErrorFactory = ciErrorFactory;
-		this.ciExceptionFactory = ciExceptionFactory;
 
+		this.ciServiceManager = ciServiceManager; 
 		final File configDir = appConfig.getConfigurationDirectoryLocation();
 
 		final File cy3Dir = new File(configDir, "3");
@@ -32,11 +31,11 @@ public class ErrorBuilder {
 	}
 
 	public CIError buildErrorResponse(final Status status, final String message, ErrorType type) {
-		return ciErrorFactory.getCIError(status.getStatusCode(), type.getUrn(), message, logFileUri);
+		return ciServiceManager.getCIErrorFactory().getCIError(status.getStatusCode(), type.getUrn(), message, logFileUri);
 	}
 
 	public WebApplicationException buildException(final Status status, final String message, ErrorType type) {
-		return ciExceptionFactory.getCIException(status.getStatusCode(),
+		return ciServiceManager.getCIExceptionFactory().getCIException(status.getStatusCode(),
 				new CIError[] { buildErrorResponse(status, message, type) });
 	}
 }

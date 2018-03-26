@@ -4,6 +4,7 @@ import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.ci.CIResponseFactory;
 import org.cytoscape.ci.CIWrapping;
+import org.cytoscape.cyndex2.internal.CIServiceManager;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexStatusResource;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorType;
@@ -21,13 +22,13 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 	
 	private final ExternalAppManager pm;
 	private final ErrorBuilder errorBuilder;
-	private final CIResponseFactory ciResponseFactory;
+	private final CIServiceManager ciServiceManager;
 	private AppStatusResponse<AppStatusParameters> status;
 
-	public NdexStatusResourceImpl(final ExternalAppManager pm, final ErrorBuilder errorBuilder, final CIResponseFactory ciResponseFactory) {
+	public NdexStatusResourceImpl(final ExternalAppManager pm, final ErrorBuilder errorBuilder, final CIServiceManager ciServiceManager) {
 		this.pm = pm;
 		this.errorBuilder = errorBuilder;
-		this.ciResponseFactory = ciResponseFactory;
+		this.ciServiceManager = ciServiceManager;
 	}
 
 	private AppStatusParameters setLoadProps() {
@@ -64,7 +65,7 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 		}
 		
 		try {
-			return ciResponseFactory.getCIResponse(status, CIAppStatusResponse.class);
+			return ciServiceManager.getCIResponseFactory().getCIResponse(status, CIAppStatusResponse.class);
 		} catch (InstantiationException | IllegalAccessException e) {
 			final String message = "Could not create wrapped CI JSON.";
 			logger.error(message);
