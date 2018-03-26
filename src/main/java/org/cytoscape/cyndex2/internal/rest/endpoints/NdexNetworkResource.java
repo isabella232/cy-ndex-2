@@ -20,6 +20,8 @@ import org.cytoscape.cyndex2.internal.rest.response.NdexBaseResponse;
 import org.cytoscape.cyndex2.internal.rest.response.SummaryResponse;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -82,19 +84,23 @@ public interface NdexNetworkResource {
 
 	@POST
 	@Produces("application/json")
-	@Consumes(MediaType.WILDCARD)
+	@Consumes(MediaType.APPLICATION_JSON)
 	@Path("/cx")
 	@ApiOperation(
 			value = "Import network(s) from cyRestClient",
 			notes = "Import network(s) from cyRestClient.",
 			response = CINdexBaseResponse.class)
-	@ApiResponses(
+	@ApiImplicitParams(
+			@ApiImplicitParam(value="CX network",  paramType="body", required=true)
+			)	
+/*	@ApiResponses(
 			value = {
 						@ApiResponse(code = 404, message = "Network does not exist", response = CINdexBaseResponse.class)
 					}
-			) 
+			) */
 	public CINdexBaseResponse createNetworkFromCx(
-			 @Context HttpServletRequest request /*, byte[] input*//*NdexImportParams params*/);
+			@ApiParam(hidden=true) final InputStream is
+			/* @Context HttpServletRequest request /*, byte[] input*//*NdexImportParams params*/);
 
 	
 	@POST

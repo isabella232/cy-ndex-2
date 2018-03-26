@@ -527,16 +527,14 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 	@Override
 	@CIWrapping
-	public CINdexBaseResponse createNetworkFromCx(@Context HttpServletRequest request /*, byte[] input*/
-			
+	public CINdexBaseResponse createNetworkFromCx(/*@Context HttpServletRequest request /*, byte[] input*/
+			 final InputStream in
 		/*	NdexImportParams params */
 			) {
-		System.out.println("foo");
+	//	System.out.println("foo");
 
-	/*	NetworkImportTask importer;
+		NetworkImportTask importer;
 		try {
-			ServletInputStream in = request.getInputStream();
-
 			importer = new NetworkImportTask(in);			
 			importer.run(tm);
 		}  catch (Exception e) {
@@ -546,10 +544,8 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 		} 
 		
-		
-
-		final NdexBaseResponse response = new NdexBaseResponse(importer.getSUID(), ""); */
-		final NdexBaseResponse response = new NdexBaseResponse(22L, "21");
+		final NdexBaseResponse response = new NdexBaseResponse(importer.getSUID(), ""); 
+		//final NdexBaseResponse response = new NdexBaseResponse(22L, "21");
 		try {
 			return ciResponseFactory.getCIResponse(response, CINdexBaseResponse.class);
 		} catch (InstantiationException | IllegalAccessException e) {
