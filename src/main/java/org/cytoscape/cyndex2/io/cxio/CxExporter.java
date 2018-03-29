@@ -1421,8 +1421,10 @@ public final class CxExporter {
 			 */
 		} else {
 	        CyNetworkView view = CyObjectManager.INSTANCE.getCurrentNetworkView();
-            writeCartesianLayout(view, w, write_siblings, cxInfoHolder);
-            writeVisualProperties(view, _visual_mapping_manager, _lexicon, w, write_siblings, cxInfoHolder);
+	        if ( view !=null) {
+	        	writeCartesianLayout(view, w, write_siblings, cxInfoHolder);
+	        	writeVisualProperties(view, _visual_mapping_manager, _lexicon, w, write_siblings, cxInfoHolder);
+	        }
 		}
     }
 

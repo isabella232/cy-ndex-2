@@ -779,10 +779,10 @@ public final class CxToCy {
 
     private static boolean isSingle(final ATTRIBUTE_DATA_TYPE dt) {
 
-        return ( dt == ATTRIBUTE_DATA_TYPE.BOOLEAN || dt == ATTRIBUTE_DATA_TYPE.BYTE || dt == ATTRIBUTE_DATA_TYPE.CHAR
-                || dt == ATTRIBUTE_DATA_TYPE.DOUBLE || dt == ATTRIBUTE_DATA_TYPE.FLOAT
+        return ( dt == ATTRIBUTE_DATA_TYPE.BOOLEAN  
+                || dt == ATTRIBUTE_DATA_TYPE.DOUBLE 
                 || dt == ATTRIBUTE_DATA_TYPE.INTEGER || dt == ATTRIBUTE_DATA_TYPE.LONG
-                || dt == ATTRIBUTE_DATA_TYPE.SHORT || dt == ATTRIBUTE_DATA_TYPE.STRING );
+                 || dt == ATTRIBUTE_DATA_TYPE.STRING );
     }
 
     private final void addNodes(final CySubNetwork network,
@@ -983,13 +983,9 @@ public final class CxToCy {
             return Boolean.class;
         case DOUBLE:
         case LIST_OF_DOUBLE:
-        case FLOAT:
-        case LIST_OF_FLOAT:
             return Double.class;
         case INTEGER:
         case LIST_OF_INTEGER:
-        case SHORT:
-        case LIST_OF_SHORT:
             return Integer.class;
         case LONG:
         case LIST_OF_LONG:
