@@ -48,7 +48,6 @@ import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.singletons.CXInfoHolder;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
-import org.cytoscape.cyndex2.internal.strings.ErrorMessage;
 import org.cytoscape.cyndex2.io.cxio.CxImporter;
 import org.cytoscape.cyndex2.io.cxio.reader.CxToCy;
 import org.cytoscape.cyndex2.io.cxio.reader.ViewMaker;
@@ -220,8 +219,8 @@ public class NetworkImportTask extends AbstractTask {
 
 					// For entire network, we will query again, hence will check
 					// credential
-					boolean success = true; // selectedServer.check(mal);
-					if (success) {
+					//boolean success = true; // selectedServer.check(mal);
+					//if (success) {
 						try {
 							if (cxStream == null) {
 								UUID id = networkSummary.getExternalId();
@@ -232,17 +231,17 @@ public class NetworkImportTask extends AbstractTask {
 							}
 							createCyNetworkFromCX(); 
 						} catch (IOException ex) {
-							throw new NetworkImportException(ErrorMessage.failedToParseJson);
+							throw new NetworkImportException("Failed to parse JSON from NDEx source.");
 						} catch (RuntimeException ex2) {
 							ex2.printStackTrace();
 							throw new NetworkImportException(ex2.getMessage());
 							
 						} catch (NdexException e) {
-							throw new NetworkImportException("Unable to read network from NDEx");
+							throw new NetworkImportException("Unable to read network from NDEx: " + e.getMessage());
 						}
-					} else {
-						throw new NetworkImportException(ErrorMessage.failedServerCommunication);
-					}
+					//} else {
+					//	throw new NetworkImportException("Failed to communicate with server. Please connect to a valid server before continuing.");
+					//}
 				}
 				return 1;
 			}

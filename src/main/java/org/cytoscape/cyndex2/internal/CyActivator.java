@@ -25,13 +25,11 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
+import org.apache.commons.io.FileUtils;
 import org.cytoscape.app.swing.CySwingAppAdapter;
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
-import org.cytoscape.ci.CIErrorFactory;
-import org.cytoscape.ci.CIExceptionFactory;
-import org.cytoscape.ci.CIResponseFactory;
 import org.cytoscape.cyndex2.internal.rest.NdexClient;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexBaseResource;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexNetworkResource;
@@ -43,6 +41,7 @@ import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.reader.LoadNetworkStreamTaskFactoryImpl;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.task.OpenBrowseTaskFactory;
+import org.cytoscape.cyndex2.internal.task.OpenImportTaskFactory;
 import org.cytoscape.cyndex2.internal.task.OpenSaveTaskFactory;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.cyndex2.server.StaticContentsServer;
@@ -63,7 +62,6 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.Version;
-import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,7 +78,6 @@ import com.teamdev.jxbrowser.chromium.events.DisposeListener;
 import com.teamdev.jxbrowser.chromium.events.LoadAdapter;
 import com.teamdev.jxbrowser.chromium.events.LoadEvent;
 import com.teamdev.jxbrowser.chromium.swing.BrowserView;
-import org.apache.commons.io.FileUtils;
 
 public class CyActivator extends AbstractCyActivator {
 
@@ -132,6 +129,14 @@ public class CyActivator extends AbstractCyActivator {
 			throw new BrowserCreationError("JxBrowser is not supported on your system.");
 		}
 		
+		if (browserView == null) {
+			Browser b = getJXBrowser();
+			browserView = new BrowserView(b);
+		}
+		return browserView;
+	}
+
+	public static Browser getJXBrowser () throws BrowserCreationError {
 		if (browser == null) {
 
 			// Uncomment for development port
@@ -168,13 +173,13 @@ public class CyActivator extends AbstractCyActivator {
 			});
 
 			browser.setPopupHandler(new CustomPopupHandler());
-			browserView = new BrowserView(browser);
-
 		}
 
-		return browserView;
+		return browser;
+		
 	}
-
+	
+	
 	@Override
 	@SuppressWarnings("unchecked")
 	public void start(BundleContext bc) throws InvalidSyntaxException {
@@ -264,6 +269,15 @@ public class CyActivator extends AbstractCyActivator {
 		System.setProperty(BrowserPreferences.CHROMIUM_DIR_PROPERTY, jxbrowserConfigLocation.getAbsolutePath());
 		System.setProperty(BrowserPreferences.USER_AGENT_PROPERTY, jxbrowserConfigLocation.getAbsolutePath());
 
+		// TF for NDEx Import Network
+		final OpenImportTaskFactory ndexImportNetworkTaskFactory = new OpenImportTaskFactory( swingApp);
+		final Properties ndexImportNetworkTaskFactoryProps = new Properties();
+
+		ndexImportNetworkTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Import.Network");
+		ndexImportNetworkTaskFactoryProps.setProperty(MENU_GRAVITY, "0.0");
+		ndexImportNetworkTaskFactoryProps.setProperty(TITLE, "NDEx...");
+		registerService(bc, ndexImportNetworkTaskFactory, TaskFactory.class, ndexImportNetworkTaskFactoryProps);
+
 		// TF for NDEx Save Network
 		final OpenSaveTaskFactory ndexSaveNetworkTaskFactory = new OpenSaveTaskFactory(ExternalAppManager.SAVE_NETWORK, appManager, pm, swingApp,
 				cyProps);
@@ -309,9 +323,7 @@ public class CyActivator extends AbstractCyActivator {
 
 		// add Handler to remove networks from NetworkManager when deleted
 		registerService(bc, new NdexNetworkAboutToBeDestroyedListener(), NetworkAboutToBeDestroyedListener.class,
-				new Properties());
-
-		
+				new Properties());	
 
 	}
 

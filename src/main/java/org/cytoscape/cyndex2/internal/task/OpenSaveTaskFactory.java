@@ -47,7 +47,7 @@ public class OpenSaveTaskFactory extends AbstractTaskFactory {
 		pm.setSaveType(saveType);
 		
 		dialog.setSize(1000, 700);
-		dialog.setLocationRelativeTo(null);
+		dialog.setLocationRelativeTo(dialog.getParent());
 
 		TaskIterator ti = new TaskIterator();
 		LoadBrowserTask loader = new LoadBrowserTask(pm, dialog, ti);

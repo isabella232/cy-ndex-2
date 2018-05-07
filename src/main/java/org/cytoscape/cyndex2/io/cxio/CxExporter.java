@@ -106,10 +106,10 @@ import org.ndexbio.model.object.SimplePropertyValuePair;
  */
 public final class CxExporter {
 
-    private final static boolean     DEFAULT_USE_DEFAULT_PRETTY_PRINTING      = true;
+//    private final static boolean     DEFAULT_USE_DEFAULT_PRETTY_PRINTING      = true;
 
     private VisualLexicon            _lexicon;
-    private boolean                  _use_default_pretty_printing;
+//    private boolean                  _use_default_pretty_printing;
     private VisualMappingManager     _visual_mapping_manager;
     private CyNetworkViewManager     _networkview_manager;
     private CyGroupManager           _group_manager;
@@ -197,9 +197,9 @@ public final class CxExporter {
         _next_suid = next_suid;
     } */
 
-    public void setUseDefaultPrettyPrinting(final boolean use_default_pretty_printing) {
+ /*   public void setUseDefaultPrettyPrinting(final boolean use_default_pretty_printing) {
         _use_default_pretty_printing = use_default_pretty_printing;
-    }
+    } */
 
     public void setVisualMappingManager(final VisualMappingManager visual_mapping_manager) {
         _visual_mapping_manager = visual_mapping_manager;
@@ -271,7 +271,7 @@ public final class CxExporter {
 
         CXInfoHolder cxInfoHolder = write_siblings? null : NetworkManager.INSTANCE.getCXInfoHolder(network.getSUID());
            
-        final CxWriter w = CxWriter.createInstance(out, _use_default_pretty_printing);
+        final CxWriter w = CxWriter.createInstance(out, false);//_use_default_pretty_printing);
 
         for (final AspectFragmentWriter writer : getCySupportedAspectFragmentWriters()) {
             w.addAspectFragmentWriter(writer);
@@ -1429,7 +1429,7 @@ public final class CxExporter {
     }
 
     private CxExporter() {
-        _use_default_pretty_printing = DEFAULT_USE_DEFAULT_PRETTY_PRINTING;
+       // _use_default_pretty_printing = DEFAULT_USE_DEFAULT_PRETTY_PRINTING;
         _visual_mapping_manager = null;
 //        _next_suid = 0;
     }
