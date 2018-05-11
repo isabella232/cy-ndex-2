@@ -134,7 +134,7 @@ public class NetworkImportTask extends AbstractTask {
 			doLayout = response == JOptionPane.YES_OPTION;
 		} */
 
-		List<CyNetwork> networks = cxToCy.createNetwork(niceCX, null, networkFactory, null, true);
+		List<CyNetwork> networks = cxToCy.createNetwork(niceCX, null, networkFactory, null);
 
 		if (!niceCX.getOpaqueAspectTable().containsKey(SubNetworkElement.ASPECT_NAME)) {
 			// populate the CXInfoHolder object.

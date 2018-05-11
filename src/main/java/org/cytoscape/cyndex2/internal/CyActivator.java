@@ -45,6 +45,7 @@ import org.cytoscape.cyndex2.internal.task.OpenImportTaskFactory;
 import org.cytoscape.cyndex2.internal.task.OpenSaveTaskFactory;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.cyndex2.server.StaticContentsServer;
+import org.cytoscape.group.CyGroupFactory;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.io.write.CyNetworkViewWriterFactory;
 import org.cytoscape.model.CyNetworkManager;
@@ -239,7 +240,9 @@ public class CyActivator extends AbstractCyActivator {
 		final CyNetworkNaming cyNetworkNaming = getService(bc, CyNetworkNaming.class);
 		final VisualMappingManager vmm = getService(bc, VisualMappingManager.class);
 		final CyNetworkViewFactory nullNetworkViewFactory = getService(bc, CyNetworkViewFactory.class);
+		final CyGroupFactory groupFactory = getService(bc, CyGroupFactory.class);
 		final CyServiceRegistrar serviceRegistrar = getService(bc, CyServiceRegistrar.class);
+		
 		TaskFactory loadNetworkTF = new LoadNetworkStreamTaskFactoryImpl(netmgr, networkViewManager, cyProps,
 				cyNetworkNaming, vmm, nullNetworkViewFactory, serviceRegistrar);
 

@@ -30,6 +30,7 @@ import java.io.File;
 
 import org.cytoscape.app.swing.CySwingAppAdapter;
 import org.cytoscape.application.CyApplicationManager;
+import org.cytoscape.group.CyGroupFactory;
 import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkFactory;
@@ -103,6 +104,7 @@ public enum CyObjectManager
     public CyLayoutAlgorithmManager getLayoutAlgorithmManager() { return adapter.getCyLayoutAlgorithmManager(); }
     public VisualMappingManager getVisualMappingManager() { return adapter.getVisualMappingManager(); }
     public CyGroupManager getCyGroupManager() { return adapter.getCyGroupManager(); }
+    public CyGroupFactory getCyGroupFactory() { return adapter.getCyGroupFactory(); }
     public VisualStyleFactory getVisualStyleFactory() { return adapter.getVisualStyleFactory(); }
     public VisualMappingFunctionFactory getVisualMappingFunctionContinuousFactory() { return adapter.getVisualMappingFunctionContinuousFactory(); }
     public VisualMappingFunctionFactory getVisualMappingFunctionDiscreteFactory() { return adapter.getVisualMappingFunctionDiscreteFactory(); }
