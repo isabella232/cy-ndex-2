@@ -169,8 +169,7 @@ public class CyActivator extends AbstractCyActivator {
 		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
 
 		// TF for NDEx Save Network
-		final OpenSaveTaskFactory ndexSaveNetworkTaskFactory = new OpenSaveTaskFactory(ExternalAppManager.SAVE_NETWORK, appManager, swingApp,
-				cyProps);
+		final OpenSaveTaskFactory ndexSaveNetworkTaskFactory = new OpenSaveTaskFactory(ExternalAppManager.SAVE_NETWORK, swingApp, appManager);
 		final Properties ndexSaveNetworkTaskFactoryProps = new Properties();
 
 		ndexSaveNetworkTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export");
@@ -179,8 +178,7 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, ndexSaveNetworkTaskFactory, TaskFactory.class, ndexSaveNetworkTaskFactoryProps);
 
 		// TF for NDEx Save Network
-		final OpenSaveTaskFactory ndexSaveCollectionTaskFactory = new OpenSaveTaskFactory(ExternalAppManager.SAVE_COLLECTION, appManager, swingApp,
-				cyProps);
+		final OpenSaveTaskFactory ndexSaveCollectionTaskFactory = new OpenSaveTaskFactory(ExternalAppManager.SAVE_COLLECTION, swingApp, appManager);
 		final Properties ndexSaveCollectionTaskFactoryProps = new Properties();
 
 		ndexSaveCollectionTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export");
@@ -193,8 +191,7 @@ public class CyActivator extends AbstractCyActivator {
 		registerAllServices(bc, toolbar);
 		
 		// TF for NDEx Load
-		final OpenBrowseTaskFactory ndexTaskFactory = new OpenBrowseTaskFactory(appManager, icon, swingApp,
-				cyProps);
+		final OpenBrowseTaskFactory ndexTaskFactory = new OpenBrowseTaskFactory(icon, swingApp);
 		final Properties ndexTaskFactoryProps = new Properties();
 //		ndexTaskFactoryProps.setProperty(IN_MENU_BAR, "false");
 		ndexTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Import.Network");
