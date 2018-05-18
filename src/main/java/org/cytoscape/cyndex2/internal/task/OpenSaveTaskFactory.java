@@ -14,7 +14,6 @@ import org.cytoscape.work.TaskIterator;
 public class OpenSaveTaskFactory extends AbstractTaskFactory {
 
 	private final String appName;
-	private final ExternalAppManager pm;
 	private final CyApplicationManager appManager;
 	private final String saveType;
 	private String port;
@@ -23,41 +22,38 @@ public class OpenSaveTaskFactory extends AbstractTaskFactory {
 	private final JDialog dialog;
 	
 
-	public OpenSaveTaskFactory(final String saveType, final CyApplicationManager appManager,
-			final ExternalAppManager pm, final CySwingApplication swingApp, final CyProperty<Properties> cyProps) {
+	public OpenSaveTaskFactory(final String saveType, final CyApplicationManager appManager, final CySwingApplication swingApp, final CyProperty<Properties> cyProps) {
 		super();
 		this.saveType = saveType;
 		this.appName = ExternalAppManager.APP_NAME_SAVE;
 		this.appManager = appManager;
-		this.pm = pm;
 		port = cyProps.getProperties().getProperty("rest.port");
 
 		if (port == null)
 			port = "1234";
 
 		JFrame frame = swingApp.getJFrame();
-		dialog = pm.getDialog(frame);
+		dialog = ExternalAppManager.getDialog(frame);
 	}
 	
 	@Override
 	public TaskIterator createTaskIterator() {
 		// Store query info
-		pm.setAppName(appName);
-		pm.setPort(port);
-		pm.setSaveType(saveType);
+		ExternalAppManager.appName = appName;
+		ExternalAppManager.saveType = saveType;
 		
 		dialog.setSize(1000, 700);
 		dialog.setLocationRelativeTo(dialog.getParent());
 
 		TaskIterator ti = new TaskIterator();
-		LoadBrowserTask loader = new LoadBrowserTask(pm, dialog, ti);
+		LoadBrowserTask loader = new LoadBrowserTask(dialog, ti);
 		ti.append(loader);
 		return ti;
 	}
 
 	@Override
 	public boolean isReady() {
-		if (ExternalAppManager.loadFailed)
+		if (ExternalAppManager.loadFailed())
 			return false;
 
 		return appManager.getCurrentNetwork() != null;

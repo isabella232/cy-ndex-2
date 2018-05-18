@@ -35,23 +35,15 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 	private static final String NAME = "NDEx Database";
 
 	private final String appName;
-	private final ExternalAppManager pm;
 	private static Entry entry;
-	private String port;
 	private final JDialog dialog;
 
-	public OpenBrowseTaskFactory(final CyApplicationManager appManager, final Icon icon, final ExternalAppManager pm,
-			final CySwingApplication swingApp, final CyProperty<Properties> cyProps) {
+	public OpenBrowseTaskFactory(final CyApplicationManager appManager, final Icon icon, final CySwingApplication swingApp, final CyProperty<Properties> cyProps) {
 		super(ID, NAME, icon);
 		this.appName = ExternalAppManager.APP_NAME_LOAD;
-		this.pm = pm;
-		port = cyProps.getProperties().getProperty("rest.port");
-
-		if (port == null)
-			port = "1234";
 
 		JFrame frame = swingApp.getJFrame();
-		dialog = pm.getDialog(frame);
+		dialog = ExternalAppManager.getDialog(frame);
 	}
 
 	public static Entry getEntry() {
@@ -191,15 +183,14 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 			return ti;
 
 		// Store query info
-		pm.setQuery(getQuery());
-		pm.setAppName(appName);
-		pm.setPort(port);
+		ExternalAppManager.query = getQuery();
+		ExternalAppManager.appName = appName;
 		ExternalAppManager.busy = true;
 
 		dialog.setSize(1000, 700);
 		dialog.setLocationRelativeTo(null);
 
-		LoadBrowserTask loader = new LoadBrowserTask(pm, dialog, ti);
+		LoadBrowserTask loader = new LoadBrowserTask(dialog, ti);
 		ti.append(loader);
 
 		return ti;
@@ -207,7 +198,7 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 
 	@Override
 	public boolean isReady() {
-		return !ExternalAppManager.busy && !ExternalAppManager.loadFailed;
+		return !ExternalAppManager.busy && !ExternalAppManager.loadFailed();
 	}
 	
 	@Override

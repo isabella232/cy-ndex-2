@@ -1,4 +1,4 @@
-package org.cytoscape.cyndex2.internal;
+package org.cytoscape.cyndex2.internal.util;
 
 import org.cytoscape.ci.CIErrorFactory;
 import org.cytoscape.ci.CIExceptionFactory;

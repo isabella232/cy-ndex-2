@@ -27,10 +27,10 @@ public class LoadBrowserTask extends AbstractTask {
 	private TaskIterator ti;
 	protected boolean complete = false;
 
-	public LoadBrowserTask(final ExternalAppManager pm, final JDialog dialog, final TaskIterator ti) {
+	public LoadBrowserTask(final JDialog dialog, final TaskIterator ti) {
 		this.ti = ti;
 		this.dialog = dialog;
-		this.port = pm.getPort();
+		this.port = CyActivator.getCyRESTPort();
 		
 		//give warnings if cyNDEX1 is found.
 		if ( CyActivator.hasCyNDEx1()) {

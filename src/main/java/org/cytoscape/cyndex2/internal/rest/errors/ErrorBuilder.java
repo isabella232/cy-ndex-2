@@ -10,7 +10,7 @@ import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.ci.CIErrorFactory;
 import org.cytoscape.ci.CIExceptionFactory;
 import org.cytoscape.ci.model.CIError;
-import org.cytoscape.cyndex2.internal.CIServiceManager;
+import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 
 public class ErrorBuilder {
 

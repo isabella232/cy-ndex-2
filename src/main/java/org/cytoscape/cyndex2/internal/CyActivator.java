@@ -37,6 +37,7 @@ import org.cytoscape.cyndex2.internal.task.OpenBrowseTaskFactory;
 import org.cytoscape.cyndex2.internal.task.OpenSaveTaskFactory;
 import org.cytoscape.cyndex2.internal.ui.SaveNetworkToNDExToolbarComponent;
 import org.cytoscape.cyndex2.internal.util.BrowserManager;
+import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.cyndex2.server.StaticContentsServer;
 import org.cytoscape.group.CyGroupFactory;
@@ -65,8 +66,8 @@ public class CyActivator extends AbstractCyActivator {
 	// Logger for this activator
 	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
 	public static final String INSTALL_MAKER_FILE_NAME = "ndex-installed";
-	private ExternalAppManager pm;
 	private static final String STATIC_CONTENT_DIR = "cyndex-2";
+	
 	private static CyProperty<Properties> cyProps;
     private static String appVersion;
     private static String cytoscapeVersion;
@@ -81,8 +82,13 @@ public class CyActivator extends AbstractCyActivator {
 		hasCyNDEx1 = false;
 	}
 	
-	
-	
+	public static String getCyRESTPort(){
+		String port = cyProps.getProperties().getProperty("rest.port");
+		if (port == null){
+			return "1234";
+		}
+		return port;
+	}
 	
 	@Override
 	@SuppressWarnings("unchecked")
@@ -127,8 +133,6 @@ public class CyActivator extends AbstractCyActivator {
 		manager.setCySwingAppAdapter(appAdapter);
 		manager.setNetworkTableManager(networkTableManager);
 
-		pm = new ExternalAppManager();
-
 		// For loading network
 		final CxTaskFactoryManager tfManager = new CxTaskFactoryManager();
 		registerServiceListener(bc, tfManager, "addReaderFactory", "removeReaderFactory", InputStreamTaskFactory.class);
@@ -165,7 +169,7 @@ public class CyActivator extends AbstractCyActivator {
 		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
 
 		// TF for NDEx Save Network
-		final OpenSaveTaskFactory ndexSaveNetworkTaskFactory = new OpenSaveTaskFactory(ExternalAppManager.SAVE_NETWORK, appManager, pm, swingApp,
+		final OpenSaveTaskFactory ndexSaveNetworkTaskFactory = new OpenSaveTaskFactory(ExternalAppManager.SAVE_NETWORK, appManager, swingApp,
 				cyProps);
 		final Properties ndexSaveNetworkTaskFactoryProps = new Properties();
 
@@ -175,7 +179,7 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, ndexSaveNetworkTaskFactory, TaskFactory.class, ndexSaveNetworkTaskFactoryProps);
 
 		// TF for NDEx Save Network
-		final OpenSaveTaskFactory ndexSaveCollectionTaskFactory = new OpenSaveTaskFactory(ExternalAppManager.SAVE_COLLECTION, appManager, pm, swingApp,
+		final OpenSaveTaskFactory ndexSaveCollectionTaskFactory = new OpenSaveTaskFactory(ExternalAppManager.SAVE_COLLECTION, appManager, swingApp,
 				cyProps);
 		final Properties ndexSaveCollectionTaskFactoryProps = new Properties();
 
@@ -189,7 +193,7 @@ public class CyActivator extends AbstractCyActivator {
 		registerAllServices(bc, toolbar);
 		
 		// TF for NDEx Load
-		final OpenBrowseTaskFactory ndexTaskFactory = new OpenBrowseTaskFactory(appManager, icon, pm, swingApp,
+		final OpenBrowseTaskFactory ndexTaskFactory = new OpenBrowseTaskFactory(appManager, icon, swingApp,
 				cyProps);
 		final Properties ndexTaskFactoryProps = new Properties();
 //		ndexTaskFactoryProps.setProperty(IN_MENU_BAR, "false");
@@ -208,7 +212,7 @@ public class CyActivator extends AbstractCyActivator {
 				NdexBaseResource.class, new Properties());
 
 		// Status
-		registerService(bc, new NdexStatusResourceImpl(pm, errorBuilder, ciServiceManager), NdexStatusResource.class, new Properties());
+		registerService(bc, new NdexStatusResourceImpl(errorBuilder, ciServiceManager), NdexStatusResource.class, new Properties());
 		
 		// Network IO
 		registerService(bc, new NdexNetworkResourceImpl(ndexClient, errorBuilder, appManager, netmgr, ciServiceManager),

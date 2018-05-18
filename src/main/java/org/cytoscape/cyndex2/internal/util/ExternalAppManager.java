@@ -16,16 +16,15 @@ public class ExternalAppManager {
 	public static final String SAVE_COLLECTION = "collection";
 	
 
-	private String port;
-	private String query;
-	private String appName;
-	private String saveType;
-	private JDialog dialog;
+	public static String query;
+	public static String appName;
+	public static String saveType;
+	private static JDialog dialog;
 	
 	public static boolean busy = false;
-	public static boolean loadFailed = false;
+	private static boolean loadFailed = false;
 	
-	public JDialog getDialog(JFrame parent){
+	public static JDialog getDialog(JFrame parent){
 		if (dialog == null){
 			dialog = new JDialog(parent, "CyNDEx2 Browser", ModalityType.APPLICATION_MODAL);
 			// ensure modality type
@@ -38,35 +37,8 @@ public class ExternalAppManager {
 		OpenBrowseTaskFactory.getEntry().setDisabled(reason);
 		loadFailed = true;
 	}
-
-	public void setQuery(String query) {
-		this.query = query;
-	}
-
-	public String getQuery() {
-		return query;
-	}
-	public void setPort(String port) {
-		this.port = port;
-	}
-
-	public String getPort() {
-		return port;
-	}
-
-	public String getAppName() {
-		return appName;
-	}
-
-	public void setAppName(String appName) {
-		this.appName = appName;
-	}
-
-	public void setSaveType(String saveType) {
-		this.saveType = saveType;
-	}
 	
-	public String getSaveType(){
-		return saveType;
+	public static boolean loadFailed(){
+		return loadFailed;
 	}
 }
