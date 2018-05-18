@@ -12,6 +12,9 @@ import javax.swing.WindowConstants;
 
 import org.apache.commons.io.FileUtils;
 import org.cytoscape.cyndex2.errors.BrowserCreationError;
+import org.cytoscape.cyndex2.internal.task.LoadBrowserTask;
+import org.cytoscape.work.SynchronousTaskManager;
+import org.cytoscape.work.TaskIterator;
 
 import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.BrowserContext;

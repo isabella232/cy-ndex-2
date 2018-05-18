@@ -33,9 +33,8 @@ public class OpenBrowseTaskFactory extends OpenDialogTaskFactory implements Netw
 
 	private static Entry entry;
 
-	public OpenBrowseTaskFactory(final Icon icon,
-			final CySwingApplication swingApp) {
-		super(ExternalAppManager.APP_NAME_LOAD, swingApp);
+	public OpenBrowseTaskFactory(final Icon icon) {
+		super(ExternalAppManager.APP_NAME_LOAD);
 		this.icon = icon;
 	}
 
