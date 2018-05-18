@@ -70,6 +70,7 @@ public class OpenExternalAppTask extends AbstractTask {
 				} catch (Exception e) {
 					dialog.setVisible(false);
 					System.out.println("Error loading CyNDEx2 browser: " + e.getMessage());
+					
 					JOptionPane.showMessageDialog(null,
 							"An error occurred communicating with JxBrowser. Restart and try again.", "JxBrowser Error",
 							JOptionPane.ERROR_MESSAGE);

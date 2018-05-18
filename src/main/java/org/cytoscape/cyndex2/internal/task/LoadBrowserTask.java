@@ -1,13 +1,18 @@
 package org.cytoscape.cyndex2.internal.task;
 
 import java.awt.BorderLayout;
+import java.awt.Desktop;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import org.cytoscape.cyndex2.errors.BrowserCreationError;
 import org.cytoscape.cyndex2.internal.CyActivator;
-import org.cytoscape.cyndex2.internal.CyActivator.BrowserCreationError;
+import org.cytoscape.cyndex2.internal.util.BrowserManager;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskIterator;
@@ -51,7 +56,7 @@ public class LoadBrowserTask extends AbstractTask {
 				
 				taskMonitor.setTitle("Loading CyNDEx-2 Browser");
 				try {
-					browserView = CyActivator.getBrowserView();
+					browserView = BrowserManager.getBrowserView();
 
 					if (browserView == null || browserView.getBrowser() == null)
 						throw new BrowserCreationError("Browser failed to initialize.");
