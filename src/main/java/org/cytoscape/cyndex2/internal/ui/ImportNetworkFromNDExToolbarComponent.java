@@ -11,8 +11,10 @@ import javax.swing.JButton;
 import org.cytoscape.application.events.SetCurrentNetworkEvent;
 import org.cytoscape.application.events.SetCurrentNetworkListener;
 import org.cytoscape.application.swing.AbstractToolBarComponent;
+import org.cytoscape.cyndex2.internal.util.BrowserManager;
+import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 
-public class ImportNetworkFromNDExToolbarComponent extends AbstractToolBarComponent implements SetCurrentNetworkListener {
+public class ImportNetworkFromNDExToolbarComponent extends AbstractToolBarComponent {
 
     private JButton button;
 
@@ -28,13 +30,14 @@ public class ImportNetworkFromNDExToolbarComponent extends AbstractToolBarCompon
 		button.setFocusPainted(false);
 		button.setContentAreaFilled(true);
 		button.setToolTipText("Import Network from NDEx");
-		button.setEnabled(false);
 		
 		button.addActionListener(new ActionListener(){
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("Import from NDEx");
+				ExternalAppManager.query = "";
+				ExternalAppManager.appName = ExternalAppManager.APP_NAME_LOAD;
+				BrowserManager.openBrowser();
 			}
 		});
 	}		
@@ -44,8 +47,4 @@ public class ImportNetworkFromNDExToolbarComponent extends AbstractToolBarCompon
 		return button;
 	}
 
-    @Override
-    public void handleEvent(SetCurrentNetworkEvent e) {
-        button.setEnabled(e.getNetwork() != null);
-    }
 }
