@@ -37,7 +37,6 @@ public class ImportNetworkFromNDExToolbarComponent extends AbstractToolBarCompon
 			public void actionPerformed(ActionEvent e) {
 				ExternalAppManager.query = "";
 				ExternalAppManager.appName = ExternalAppManager.APP_NAME_LOAD;
-				BrowserManager.openBrowser();
 			}
 		});
 	}		
