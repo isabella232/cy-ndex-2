@@ -238,7 +238,7 @@ public final class ViewMaker {
                     final Object gp = vp.parseSerializableString(g);
                     if ((lp != null) && (ep != null) && (gp != null)) {
                         final BoundaryRangeValues point = new BoundaryRangeValues(lp, ep, gp);
-                        cmf.addPoint(ViewMaker.toTypeValue(ov, type), point);
+                        cmf.addPoint(ViewMaker.toDoubleValue(ov, type), point);
                     }
                     else {
                         System.out.println("could not parse from string in continuous mapping for col '" + col + "'");
@@ -620,4 +620,21 @@ public final class ViewMaker {
         }
     }
 
+    // used for continuous maping point
+    private final static Object toDoubleValue(final String s, final String type) {
+        if (type.equals("string") || type.equals("char")) {
+            return s;
+        }
+        else if (type.equals("double") || type.equals("float")||type.equals("long") || 
+        		type.equals("integer") || type.equals("short") || type.equals("byte")) {
+            return Double.valueOf(s);
+        }
+        else if (type.equals("boolean")) {
+            return Boolean.valueOf(s);
+        }
+        else {
+            throw new IllegalArgumentException("don't know how to deal with type '" + type + "'");
+        }
+    }
+    
 }
