@@ -621,20 +621,15 @@ public final class ViewMaker {
     }
 
     // used for continuous maping point
-    private final static Object toDoubleValue(final String s, final String type) {
-        if (type.equals("string") || type.equals("char")) {
-            return s;
-        }
-        else if (type.equals("double") || type.equals("float")||type.equals("long") || 
+    private final static Double toDoubleValue(final String s, final String type) {
+
+        if (type.equals("double") || type.equals("float")||type.equals("long") || 
         		type.equals("integer") || type.equals("short") || type.equals("byte")) {
             return Double.valueOf(s);
         }
-        else if (type.equals("boolean")) {
-            return Boolean.valueOf(s);
-        }
-        else {
-            throw new IllegalArgumentException("don't know how to deal with type '" + type + "'");
-        }
+        
+        throw new IllegalArgumentException("Type '" + type + "' is not supported in continuous mapping.");
+       
     }
     
 }
