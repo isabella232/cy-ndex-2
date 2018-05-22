@@ -1004,6 +1004,7 @@ public final class CxExporter {
                 for (final CyNode e : group.getNodeList()) {
                     group_element.addNode(e.getSUID());
                 }
+                boolean isCollapsed = group.isCollapsed(subnet);
                 elements.add(group_element);
             }
 

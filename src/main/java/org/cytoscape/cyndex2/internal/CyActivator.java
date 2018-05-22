@@ -5,22 +5,13 @@ import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
 import static org.cytoscape.work.ServiceProperties.TITLE;
 
 import java.awt.Dialog.ModalityType;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.Socket;
 import java.util.Dictionary;
-import java.util.Enumeration;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 
-import org.apache.commons.io.FileUtils;
 import org.cytoscape.app.swing.CySwingAppAdapter;
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
@@ -42,7 +33,6 @@ import org.cytoscape.cyndex2.internal.ui.SaveNetworkToNDExToolbarComponent;
 import org.cytoscape.cyndex2.internal.util.BrowserManager;
 import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
-import org.cytoscape.cyndex2.server.StaticContentsServer;
 import org.cytoscape.group.CyGroupFactory;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.io.write.CyNetworkViewWriterFactory;
@@ -60,7 +50,6 @@ import org.cytoscape.work.TaskFactory;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +58,7 @@ public class CyActivator extends AbstractCyActivator {
 	// Logger for this activator
 	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
 	public static final String INSTALL_MAKER_FILE_NAME = "ndex-installed";
-	private static final String STATIC_CONTENT_DIR = "cyndex-2";
+//	private static final String STATIC_CONTENT_DIR = "cyndex-2";
 
 	private static CyProperty<Properties> cyProps;
 	private static String appVersion;
@@ -81,7 +70,7 @@ public class CyActivator extends AbstractCyActivator {
 	private CIServiceManager ciServiceManager;
 	private static CySwingApplication swingApp;
 
-	private StaticContentsServer httpServer;
+//	private StaticContentsServer httpServer;
 
 	public CyActivator() {
 		super();
@@ -175,9 +164,9 @@ public class CyActivator extends AbstractCyActivator {
 		BrowserManager.setConfigurationDirectory(new File(config.getConfigurationDirectoryLocation(), "jxbrowser"));
 
 		// Create web app dir
-		installWebApp(staticContentPath, bc);
+	/*	installWebApp(staticContentPath, bc);   removing it now because the webpage is served from cyndex.ndexbio.org/version now.
 		File staticPath = new File(staticContentPath, STATIC_CONTENT_DIR);
-		startHttpServer(bc, staticPath.getAbsolutePath());
+		startHttpServer(bc, staticPath.getAbsolutePath());    */
 
 		// get QueryPanel icon
 		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
@@ -243,7 +232,7 @@ public class CyActivator extends AbstractCyActivator {
 
 	}
 
-	private final void installWebApp(final String configDir, final BundleContext bc) {
+/*	private final void installWebApp(final String configDir, final BundleContext bc) {
 
 		// This bundle's version
 		final Version version = bc.getBundle().getVersion();
@@ -263,7 +252,7 @@ public class CyActivator extends AbstractCyActivator {
 				e.printStackTrace();
 			}
 		}
-	}
+	} 
 
 	private final static boolean isInstalled(final String configDir, final String bundleVersion) {
 		// This is the indicator of installation.
@@ -282,7 +271,7 @@ public class CyActivator extends AbstractCyActivator {
 		}
 
 		return false;
-	}
+	} 
 
 	private final void extractWebapp(final Bundle bundle, final String path, final String targetDir) {
 		Enumeration<String> ress = bundle.getEntryPaths(path);
@@ -303,7 +292,7 @@ public class CyActivator extends AbstractCyActivator {
 				}
 			}
 		}
-	}
+	} 
 
 	private final static void copyEntry(final InputStream zis, final String filePath) throws IOException {
 		final byte[] buffer = new byte[4096];
@@ -313,7 +302,7 @@ public class CyActivator extends AbstractCyActivator {
 				bos.write(buffer, 0, read);
 			}
 		}
-	}
+	} 
 
 	private final static boolean checkPort(final int port) {
 		try (Socket sock = new Socket("localhost", port)) {
@@ -341,17 +330,17 @@ public class CyActivator extends AbstractCyActivator {
 				throw new RuntimeException("Could not start Static Content server in separate thread.", e);
 			}
 		});
-	}
+	} */
 
 	@Override
 	public void shutDown() {
 		logger.info("Shutting down CyNDEx-2...");
 
-		try {
+/*		try {
 			httpServer.stopServer();
 		} catch (Exception e) {
 			logger.debug("Failed to stop server. Did it ever start?\n" + e.getMessage());
-		}
+		} */
 
 		BrowserManager.clearCache();
 		if (ciServiceManager != null) {

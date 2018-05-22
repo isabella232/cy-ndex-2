@@ -31,6 +31,7 @@ import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.io.cxio.CxUtil;
 import org.cytoscape.cyndex2.io.cxio.Settings;
 import org.cytoscape.cyndex2.io.cxio.VisualPropertyType;
+import org.cytoscape.group.CyGroup;
 import org.cytoscape.group.CyGroupFactory;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyEdge;
@@ -534,13 +535,13 @@ public final class CxToCy {
                     CyNode grpNode =  _cxid_to_cynode_map.get(ge.getGroupId());
                     final CyRow row = sub_network.getRow(grpNode, CyNetwork.DEFAULT_ATTRS);
                     row.set(CxUtil.SHARED_NAME_COL, ge.getName());
-                    group_factory.createGroup(sub_network,
+                    CyGroup grp = group_factory.createGroup(sub_network,
                     						  grpNode,
                                               nodes_for_group,
                                               edges_for_group,
                                               true);
-            //        cnt++;
-                    
+                    grp.expand(sub_network);
+                                        
                 }
             }
         }

@@ -9,6 +9,7 @@ import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Deprecated
 public class StaticContentsServer {
 	
 	private static final Logger logger = LoggerFactory.getLogger(StaticContentsServer.class);

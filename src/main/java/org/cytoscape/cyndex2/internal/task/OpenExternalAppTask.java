@@ -60,7 +60,7 @@ public class OpenExternalAppTask extends AbstractTask {
 							}
 						}
 					});
-					browser.loadURL("http://localhost:2222");
+					browser.loadURL("http://cyndex.ndexbio.org/0.1.2/index.html?cyrestport="+port);
 					
 					dialog.setAlwaysOnTop(false);
 					dialog.setVisible(true);
