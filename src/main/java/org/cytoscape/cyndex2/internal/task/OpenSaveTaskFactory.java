@@ -1,10 +1,14 @@
 package org.cytoscape.cyndex2.internal.task;
 
+import java.util.Collection;
+
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
+import org.cytoscape.task.NetworkViewCollectionTaskFactory;
+import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.TaskIterator;
 
-public class OpenSaveTaskFactory extends OpenDialogTaskFactory {
+public class OpenSaveTaskFactory extends OpenDialogTaskFactory implements NetworkViewCollectionTaskFactory {
 	private final String saveType;	
 	private final CyApplicationManager appManager;
 	
@@ -26,5 +30,15 @@ public class OpenSaveTaskFactory extends OpenDialogTaskFactory {
 			return false;
 
 		return appManager.getCurrentNetwork() != null;
+	}
+
+	@Override
+	public TaskIterator createTaskIterator(Collection<CyNetworkView> arg0) {
+		return createTaskIterator();
+	}
+
+	@Override
+	public boolean isReady(Collection<CyNetworkView> arg0) {
+		return isReady();
 	}
 }

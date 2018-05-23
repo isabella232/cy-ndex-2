@@ -11,6 +11,8 @@ import javax.swing.JButton;
 import org.cytoscape.application.events.SetCurrentNetworkEvent;
 import org.cytoscape.application.events.SetCurrentNetworkListener;
 import org.cytoscape.application.swing.AbstractToolBarComponent;
+import org.cytoscape.cyndex2.internal.CyActivator;
+import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 
 public class SaveNetworkToNDExToolbarComponent extends AbstractToolBarComponent implements SetCurrentNetworkListener {
 
@@ -21,7 +23,7 @@ public class SaveNetworkToNDExToolbarComponent extends AbstractToolBarComponent 
 		button = new JButton();
 		setToolBarGravity(1.8f);
 
-		ImageIcon icon = new ImageIcon(this.getClass().getClassLoader().getResource("images/cytoscape-NDEx-UP-orange_72x72.png"));
+		ImageIcon icon = new ImageIcon(this.getClass().getClassLoader().getResource("images/ndex-cy-export-72x72.png"));
 		icon = new ImageIcon(icon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH));
 		button.setIcon(icon);
 		button.setBorderPainted(false);
@@ -34,7 +36,9 @@ public class SaveNetworkToNDExToolbarComponent extends AbstractToolBarComponent 
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("Upload to NDEx");
+				ExternalAppManager.saveType = ExternalAppManager.SAVE_NETWORK;
+				ExternalAppManager.query = "";
+				CyActivator.openBrowserDialog(ExternalAppManager.APP_NAME_SAVE);
 			}
 		});
 	}		

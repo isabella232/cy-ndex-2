@@ -25,7 +25,7 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 		ExternalAppManager.appName = appName;
 		ExternalAppManager.busy = true;
 
-		LoadBrowserTask loader = new LoadBrowserTask(ti);
+		LoadBrowserTask loader = new LoadBrowserTask();
 		ti.append(loader);
 
 		return ti;

@@ -10,19 +10,16 @@ import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.util.BrowserManager;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.work.AbstractTask;
-import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
 
 import com.teamdev.jxbrowser.chromium.swing.BrowserView;
 
 public class LoadBrowserTask extends AbstractTask {
 	private BrowserView browserView;
-	private TaskIterator ti;
 	private JDialog dialog;
 	protected boolean complete = false;
 
-	public LoadBrowserTask(final TaskIterator ti) {
-		this.ti = ti;
+	public LoadBrowserTask() {
 		
 		dialog = CyActivator.getDialog();
 		
@@ -39,7 +36,6 @@ public class LoadBrowserTask extends AbstractTask {
 			CyActivator.setHasCyNDEX1(false);
 		}
 		
-
 	}
 
 	@Override
@@ -65,12 +61,12 @@ public class LoadBrowserTask extends AbstractTask {
 					if (browserView.getParent() == null)
 						dialog.add(browserView, BorderLayout.CENTER);
 
-					ti.insertTasksAfter(task, new OpenExternalAppTask(dialog, browserView, CyActivator.getCyRESTPort()));
+					getTaskIterator().insertTasksAfter(task, new OpenExternalAppTask(dialog, browserView, CyActivator.getCyRESTPort()));
 				} catch (BrowserCreationError e) {
 					taskMonitor.showMessage(TaskMonitor.Level.ERROR,
 							"Failed to create browser instance for CyNDEx-2. Restart Cytoscape and try again.\nError: "
 									+ e.getMessage());
-					ti.append(new AbstractTask() {
+					getTaskIterator().append(new AbstractTask() {
 
 						@Override
 						public void run(TaskMonitor taskMonitorParameter) throws Exception {

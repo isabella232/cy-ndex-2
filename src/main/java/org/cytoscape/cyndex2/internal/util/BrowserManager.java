@@ -5,17 +5,12 @@ import java.awt.Dialog;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
-
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import org.apache.commons.io.FileUtils;
 import org.cytoscape.cyndex2.errors.BrowserCreationError;
-import org.cytoscape.cyndex2.internal.task.LoadBrowserTask;
-import org.cytoscape.work.SynchronousTaskManager;
-import org.cytoscape.work.TaskIterator;
-
 import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.BrowserContext;
 import com.teamdev.jxbrowser.chromium.BrowserContextParams;
@@ -72,11 +67,11 @@ public class BrowserManager {
 				BrowserContextParams params = new BrowserContextParams(jxbrowserConfigLocation.getAbsolutePath());
 				BrowserContext context = new BrowserContext(params);
 				browser = new Browser(BrowserType.LIGHTWEIGHT, context);
-				
+
 				if (browser == null) {
 					throw new BrowserCreationError("Browser failed to initialize.");
 				}
-				
+
 				// Enable local storage and popups
 				BrowserPreferences preferences = browser.getPreferences();
 				preferences.setLocalStorageEnabled(true);
@@ -90,7 +85,7 @@ public class BrowserManager {
 				});
 
 				browser.setPopupHandler(new CustomPopupHandler());
-				
+
 			} catch (Exception e) {
 				throw new BrowserCreationError(e.getMessage());
 			}
@@ -163,5 +158,4 @@ public class BrowserManager {
 
 		}
 	}
-
 }

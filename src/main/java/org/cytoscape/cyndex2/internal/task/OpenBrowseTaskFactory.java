@@ -19,7 +19,6 @@ import javax.swing.JTextField;
 import javax.swing.JToolTip;
 import javax.swing.ToolTipManager;
 
-import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.search.NetworkSearchTaskFactory;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.work.TaskIterator;

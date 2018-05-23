@@ -1,8 +1,6 @@
 package org.cytoscape.cyndex2.internal;
 
-import static org.cytoscape.work.ServiceProperties.MENU_GRAVITY;
-import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
-import static org.cytoscape.work.ServiceProperties.TITLE;
+import static org.cytoscape.work.ServiceProperties.*;
 
 import java.awt.Dialog.ModalityType;
 import java.io.File;
@@ -24,16 +22,15 @@ import org.cytoscape.cyndex2.internal.rest.endpoints.impl.NdexBaseResourceImpl;
 import org.cytoscape.cyndex2.internal.rest.endpoints.impl.NdexNetworkResourceImpl;
 import org.cytoscape.cyndex2.internal.rest.endpoints.impl.NdexStatusResourceImpl;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
-import org.cytoscape.cyndex2.internal.rest.reader.LoadNetworkStreamTaskFactoryImpl;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.task.OpenBrowseTaskFactory;
+import org.cytoscape.cyndex2.internal.task.OpenDialogTaskFactory;
 import org.cytoscape.cyndex2.internal.task.OpenSaveTaskFactory;
 import org.cytoscape.cyndex2.internal.ui.ImportNetworkFromNDExToolbarComponent;
 import org.cytoscape.cyndex2.internal.ui.SaveNetworkToNDExToolbarComponent;
 import org.cytoscape.cyndex2.internal.util.BrowserManager;
 import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
-import org.cytoscape.group.CyGroupFactory;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.io.write.CyNetworkViewWriterFactory;
 import org.cytoscape.model.CyNetworkManager;
@@ -41,12 +38,10 @@ import org.cytoscape.model.CyNetworkTableManager;
 import org.cytoscape.model.events.NetworkAboutToBeDestroyedListener;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
-import org.cytoscape.service.util.CyServiceRegistrar;
-import org.cytoscape.session.CyNetworkNaming;
-import org.cytoscape.view.model.CyNetworkViewFactory;
-import org.cytoscape.view.model.CyNetworkViewManager;
-import org.cytoscape.view.vizmap.VisualMappingManager;
+import org.cytoscape.task.NetworkViewCollectionTaskFactory;
+import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskFactory;
+import org.cytoscape.work.TaskIterator;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
@@ -58,7 +53,7 @@ public class CyActivator extends AbstractCyActivator {
 	// Logger for this activator
 	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
 	public static final String INSTALL_MAKER_FILE_NAME = "ndex-installed";
-//	private static final String STATIC_CONTENT_DIR = "cyndex-2";
+	// private static final String STATIC_CONTENT_DIR = "cyndex-2";
 
 	private static CyProperty<Properties> cyProps;
 	private static String appVersion;
@@ -69,8 +64,9 @@ public class CyActivator extends AbstractCyActivator {
 	private static JDialog dialog;
 	private CIServiceManager ciServiceManager;
 	private static CySwingApplication swingApp;
-
-//	private StaticContentsServer httpServer;
+	public static SynchronousTaskManager<?> taskManager;
+	
+	// private StaticContentsServer httpServer;
 
 	public CyActivator() {
 		super();
@@ -93,6 +89,12 @@ public class CyActivator extends AbstractCyActivator {
 		}
 		return port;
 	}
+	
+	public static void openBrowserDialog(String appName) {
+		OpenDialogTaskFactory odtf = new OpenDialogTaskFactory(appName);
+		TaskIterator ti = odtf.createTaskIterator();
+		taskManager.execute(ti);
+	}
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -105,8 +107,8 @@ public class CyActivator extends AbstractCyActivator {
 				// break;
 			} else if (b.getSymbolicName().equals("org.cytoscape.ndex.cyNDEx")) {
 				/*
-				 * Version v = b.getVersion(); System.out.println(v); int st =
-				 * b.getState(); System.out.println(st);
+				 * Version v = b.getVersion(); System.out.println(v); int st = b.getState();
+				 * System.out.println(st);
 				 */
 				hasCyNDEx1 = true;
 			}
@@ -123,6 +125,7 @@ public class CyActivator extends AbstractCyActivator {
 		final CyApplicationManager appManager = getService(bc, CyApplicationManager.class);
 
 		cyProps = getService(bc, CyProperty.class, "(cyPropertyName=cytoscape3.props)");
+		taskManager = getService(bc, SynchronousTaskManager.class);
 
 		swingApp = getService(bc, CySwingApplication.class);
 		final CySwingAppAdapter appAdapter = getService(bc, CySwingAppAdapter.class);
@@ -146,27 +149,17 @@ public class CyActivator extends AbstractCyActivator {
 
 		// For loading networks...
 		final CyNetworkManager netmgr = getService(bc, CyNetworkManager.class);
-		final CyNetworkViewManager networkViewManager = getService(bc, CyNetworkViewManager.class);
-		final CyNetworkNaming cyNetworkNaming = getService(bc, CyNetworkNaming.class);
-		final VisualMappingManager vmm = getService(bc, VisualMappingManager.class);
-		final CyNetworkViewFactory nullNetworkViewFactory = getService(bc, CyNetworkViewFactory.class);
-		final CyGroupFactory groupFactory = getService(bc, CyGroupFactory.class);
-		final CyServiceRegistrar serviceRegistrar = getService(bc, CyServiceRegistrar.class);
-
-		TaskFactory loadNetworkTF = new LoadNetworkStreamTaskFactoryImpl(netmgr, networkViewManager, cyProps,
-				cyNetworkNaming, vmm, nullNetworkViewFactory, serviceRegistrar);
-
-		// Start static content delivery server
-		final File configRoot = config.getConfigurationDirectoryLocation();
-		final String staticContentPath = configRoot.getAbsolutePath();
 
 		// JXBrowser configuration
 		BrowserManager.setConfigurationDirectory(new File(config.getConfigurationDirectoryLocation(), "jxbrowser"));
 
 		// Create web app dir
-	/*	installWebApp(staticContentPath, bc);   removing it now because the webpage is served from cyndex.ndexbio.org/version now.
-		File staticPath = new File(staticContentPath, STATIC_CONTENT_DIR);
-		startHttpServer(bc, staticPath.getAbsolutePath());    */
+		/*
+		 * installWebApp(staticContentPath, bc); removing it now because the webpage is
+		 * served from cyndex.ndexbio.org/version now. File staticPath = new
+		 * File(staticContentPath, STATIC_CONTENT_DIR); startHttpServer(bc,
+		 * staticPath.getAbsolutePath());
+		 */
 
 		// get QueryPanel icon
 		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
@@ -181,7 +174,7 @@ public class CyActivator extends AbstractCyActivator {
 		ndexSaveNetworkTaskFactoryProps.setProperty(TITLE, "Network to NDEx...");
 		registerService(bc, ndexSaveNetworkTaskFactory, TaskFactory.class, ndexSaveNetworkTaskFactoryProps);
 
-		// TF for NDEx Save Network
+		// TF for NDEx Save Collection
 		final OpenSaveTaskFactory ndexSaveCollectionTaskFactory = new OpenSaveTaskFactory(
 				ExternalAppManager.SAVE_COLLECTION, appManager);
 		final Properties ndexSaveCollectionTaskFactoryProps = new Properties();
@@ -230,117 +223,29 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, new NdexNetworkAboutToBeDestroyedListener(), NetworkAboutToBeDestroyedListener.class,
 				new Properties());
 
+
+		OpenSaveTaskFactory saveNetworkToNDExContextMenuTaskFactory = new OpenSaveTaskFactory(ExternalAppManager.SAVE_NETWORK, appManager);
+        Properties saveNetworkToNDExContextMenuProps = new Properties();
+        saveNetworkToNDExContextMenuProps
+                .setProperty(ID, "saveToNDEx");
+        saveNetworkToNDExContextMenuProps.setProperty(TITLE, "Save Network to NDEx...");
+
+        saveNetworkToNDExContextMenuProps.setProperty(IN_NETWORK_PANEL_CONTEXT_MENU,
+                "true");
+        saveNetworkToNDExContextMenuProps.setProperty(INSERT_SEPARATOR_BEFORE, "true");
+        saveNetworkToNDExContextMenuProps.setProperty(ENABLE_FOR, "network");
+
+        registerService(bc, saveNetworkToNDExContextMenuTaskFactory,
+                NetworkViewCollectionTaskFactory.class,
+                saveNetworkToNDExContextMenuProps);
+//        registerService(bc, saveNetworkToNDExContextMenuTaskFactory,
+//        		TestTaskFactory.class, saveNetworkToNDExContextMenuProps);
 	}
 
-/*	private final void installWebApp(final String configDir, final BundleContext bc) {
-
-		// This bundle's version
-		final Version version = bc.getBundle().getVersion();
-
-		if (!isInstalled(configDir, version.toString())) {
-			final File webappDir = new File(configDir, STATIC_CONTENT_DIR);
-
-			try {
-				FileUtils.deleteDirectory(webappDir);
-				BrowserManager.clearCache();
-				webappDir.mkdir();
-				extractWebapp(bc.getBundle(), STATIC_CONTENT_DIR, configDir);
-				File markerFile = new File(webappDir, INSTALL_MAKER_FILE_NAME + "-" + version.toString() + ".txt");
-				markerFile.createNewFile();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	} 
-
-	private final static boolean isInstalled(final String configDir, final String bundleVersion) {
-		// This is the indicator of installation.
-
-		final File cyndexDir = new File(configDir, STATIC_CONTENT_DIR);
-		if (!cyndexDir.exists()) {
-			return false;
-		}
-		final String markerFileName = INSTALL_MAKER_FILE_NAME + "-" + bundleVersion + ".txt";
-		final File markerFile = new File(cyndexDir, markerFileName);
-
-		if (markerFile.exists()) {
-			// Exact match required. Otherwise, simply override the existing
-			// contents.
-			return true;
-		}
-
-		return false;
-	} 
-
-	private final void extractWebapp(final Bundle bundle, final String path, final String targetDir) {
-		Enumeration<String> ress = bundle.getEntryPaths(path);
-
-		while (ress != null && ress.hasMoreElements()) {
-			String fileName = ress.nextElement();
-
-			File f = new File(targetDir, fileName);
-			if (fileName.endsWith("/")) {
-				f.mkdir();
-				extractWebapp(bundle, fileName, targetDir);
-			} else {
-				// Extract
-				try {
-					copyEntry(bundle.getEntry(fileName).openStream(), f.getAbsolutePath());
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	} 
-
-	private final static void copyEntry(final InputStream zis, final String filePath) throws IOException {
-		final byte[] buffer = new byte[4096];
-		try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath))) {
-			int read = 0;
-			while ((read = zis.read(buffer)) != -1) {
-				bos.write(buffer, 0, read);
-			}
-		}
-	} 
-
-	private final static boolean checkPort(final int port) {
-		try (Socket sock = new Socket("localhost", port)) {
-			return false;
-		} catch (IOException ex) {
-			return true;
-		}
-	}
-
-	private final void startHttpServer(BundleContext bc, String path) {
-
-		logger.info("CyNDEx-2 web application root directory: " + path);
-		if (!checkPort(2222)) {
-			ExternalAppManager.setLoadFailed("Port 2222 is not available");
-			return;
-		}
-
-		httpServer = new StaticContentsServer(path);
-		ExecutorService executor = Executors.newSingleThreadExecutor();
-		executor.submit(() -> {
-			try {
-				httpServer.startServer();
-			} catch (Exception e) {
-				ExternalAppManager.setLoadFailed("Failed to start local server.\n" + e.getMessage());
-				throw new RuntimeException("Could not start Static Content server in separate thread.", e);
-			}
-		});
-	} */
 
 	@Override
 	public void shutDown() {
 		logger.info("Shutting down CyNDEx-2...");
-
-/*		try {
-			httpServer.stopServer();
-		} catch (Exception e) {
-			logger.debug("Failed to stop server. Did it ever start?\n" + e.getMessage());
-		} */
 
 		BrowserManager.clearCache();
 		if (ciServiceManager != null) {
