@@ -277,16 +277,19 @@
 			<groupId>com.teamdev.jxbrowser</groupId>
 			<artifactId>jxbrowser-mac</artifactId>
 			<version>${jxbrowser.version}</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.teamdev.jxbrowser</groupId>
 			<artifactId>jxbrowser-win</artifactId>
 			<version>${jxbrowser.version}</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.teamdev.jxbrowser</groupId>
 			<artifactId>jxbrowser-linux64</artifactId>
 			<version>${jxbrowser.version}</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<!-- Testing -->
