@@ -10,15 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.application.CyApplicationManager;
-import org.cytoscape.ci.CIErrorFactory;
-import org.cytoscape.ci.CIExceptionFactory;
-import org.cytoscape.ci.CIResponseFactory;
 import org.cytoscape.ci.CIWrapping;
 import org.cytoscape.ci.model.CIError;
 import org.cytoscape.cyndex2.internal.CyActivator;
@@ -28,6 +22,7 @@ import org.cytoscape.cyndex2.internal.rest.SimpleNetworkSummary;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexNetworkResource;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorType;
+import org.cytoscape.cyndex2.internal.rest.parameter.NdexBasicSaveParameter;
 import org.cytoscape.cyndex2.internal.rest.parameter.NdexImportParams;
 import org.cytoscape.cyndex2.internal.rest.parameter.NdexSaveParameters;
 import org.cytoscape.cyndex2.internal.rest.response.NdexBaseResponse;
@@ -37,8 +32,8 @@ import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
 import org.cytoscape.cyndex2.internal.task.NetworkExportTask;
 import org.cytoscape.cyndex2.internal.task.NetworkExportTask.NetworkExportException;
-import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 import org.cytoscape.cyndex2.internal.task.NetworkImportTask;
+import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
@@ -363,7 +358,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 	@Override
 	@CIWrapping
-	public CINdexBaseResponse updateNetworkInNdex(Long suid, NdexSaveParameters params) {
+	public CINdexBaseResponse updateNetworkInNdex(Long suid, NdexBasicSaveParameter params) {
 
 		if (suid == null) {
 			logger.error("SUID is missing");
@@ -439,7 +434,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 		final String uuidStr = uuid.toString();
 		// Visibility
-		setVisibility(params, uuidStr);
+	//	setVisibility(params, uuidStr); don't set visibility when updates
 
 		final NdexBaseResponse response = new NdexBaseResponse(suid, uuidStr);
 		try {
@@ -452,7 +447,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	}
 
 	private final boolean updateExistingNetwork(/*final CyNetworkViewWriterFactory writerFactory,*/ final CyNetwork network,
-			final NdexSaveParameters params /*, final UUID uuid*/) {
+			final NdexBasicSaveParameter params /*, final UUID uuid*/) {
 
 		
 		try {
@@ -471,7 +466,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 	@Override
 	@CIWrapping
-	public CINdexBaseResponse updateCurrentNetworkInNdex(NdexSaveParameters params) {
+	public CINdexBaseResponse updateCurrentNetworkInNdex(NdexBasicSaveParameter params) {
 		final CyNetwork network = appManager.getCurrentNetwork();
 		if (network == null) {
 			final String message = "Current network does not exist (No network is selected)";
@@ -481,7 +476,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		return updateNetworkInNdex(network.getSUID(), params);
 	}
 
-	private static UUID updateIsPossibleHelper(final Long suid, final NdexSaveParameters params) throws Exception {
+	private static UUID updateIsPossibleHelper(final Long suid, final NdexBasicSaveParameter params) throws Exception {
 
 		UUID ndexNetworkId = null;
 		CXInfoHolder cxInfo = NetworkManager.INSTANCE.getCXInfoHolder(suid);

@@ -32,7 +32,7 @@ import java.io.PipedOutputStream;
 import java.util.UUID;
 
 import org.cytoscape.cyndex2.internal.CyActivator;
-import org.cytoscape.cyndex2.internal.rest.parameter.NdexSaveParameters;
+import org.cytoscape.cyndex2.internal.rest.parameter.NdexBasicSaveParameter;
 import org.cytoscape.cyndex2.internal.singletons.CXInfoHolder;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
@@ -57,13 +57,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 public class NetworkExportTask extends AbstractTask {
 
 	private final CyNetwork network;
-	private final NdexSaveParameters params;
+	private final NdexBasicSaveParameter params;
 	private boolean isUpdate;
 	private final NdexRestClientModelAccessLayer mal;
 	private UUID networkUUID = null;
 	private boolean writeCollection = false;
 
-	public NetworkExportTask(CyNetwork network, NdexSaveParameters params, boolean isUpdate) throws JsonProcessingException, IOException, NdexException {
+	public NetworkExportTask(CyNetwork network, NdexBasicSaveParameter params, boolean isUpdate) throws JsonProcessingException, IOException, NdexException {
 		super();
 		this.params = params;
 		this.isUpdate = isUpdate;

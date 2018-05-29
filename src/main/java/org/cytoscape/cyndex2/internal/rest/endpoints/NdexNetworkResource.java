@@ -12,6 +12,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import org.cytoscape.ci.model.CIResponse;
+import org.cytoscape.cyndex2.internal.rest.parameter.NdexBasicSaveParameter;
 import org.cytoscape.cyndex2.internal.rest.parameter.NdexImportParams;
 import org.cytoscape.cyndex2.internal.rest.parameter.NdexSaveParameters;
 import org.cytoscape.cyndex2.internal.rest.response.NdexBaseResponse;
@@ -132,7 +133,7 @@ public interface NdexNetworkResource {
 			@ApiResponse(code = 404, message = "Network does not exist", response = CINdexBaseResponse.class), })
 	public CINdexBaseResponse updateNetworkInNdex(
 			@ApiParam(value="Cytoscape Collection/Subnetwork SUID") @PathParam("suid") Long suid,
-			@ApiParam(value = "Properties required to update a network record in NDEx.", required = true) final NdexSaveParameters params);
+			@ApiParam(value = "Properties required to update a network record in NDEx.", required = true) final NdexBasicSaveParameter params);
 	
 	@PUT
 	@Produces("application/json")
@@ -146,5 +147,5 @@ public interface NdexNetworkResource {
 			value = {
 					@ApiResponse(code = 404, message = "Network does not exist", response = CINdexBaseResponse.class), })
 	public CINdexBaseResponse updateCurrentNetworkInNdex(
-			@ApiParam(value = "Properties required to update a network record in NDEx.", required = true) final NdexSaveParameters params);
+			@ApiParam(value = "Properties required to update a network record in NDEx.", required = true) final NdexBasicSaveParameter params);
 }
