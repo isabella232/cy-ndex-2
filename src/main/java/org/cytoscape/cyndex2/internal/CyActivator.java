@@ -70,6 +70,7 @@ public class CyActivator extends AbstractCyActivator {
 
 	public CyActivator() {
 		super();
+		
 		hasCyNDEx1 = false;
 	}
 

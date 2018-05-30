@@ -5,12 +5,16 @@ import java.awt.Dialog;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Logger;
+
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import org.apache.commons.io.FileUtils;
 import org.cytoscape.cyndex2.errors.BrowserCreationError;
+import org.cytoscape.cyndex2.internal.CyActivator;
+
 import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.BrowserContext;
 import com.teamdev.jxbrowser.chromium.BrowserContextParams;
@@ -29,6 +33,7 @@ public class BrowserManager {
 	private static Browser browser;
 	private static BrowserView browserView;
 	private static File jxbrowserConfigLocation;
+	private static Logger logger = Logger.getLogger("BrowserManager");
 
 	private static boolean supportedOSAndArchitecture() {
 		String os = System.getProperty("os.name");
@@ -44,7 +49,7 @@ public class BrowserManager {
 		if (!supportedOSAndArchitecture()) {
 			throw new BrowserCreationError("JxBrowser is not supported on your system.");
 		}
-
+		
 		if (browserView == null) {
 			Browser b = getJXBrowser();
 			browserView = new BrowserView(b);
@@ -58,13 +63,15 @@ public class BrowserManager {
 			// Uncomment for development port
 			BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222", "--ipc-connection-timeout=2");
 			// BrowserPreferences.setChromiumSwitches("--ipc-connection-timeout=2");
-
+			
 			// Create the binary in the CytoscapeConfig
+			logger.info("Installing JXBrowser jar at " + jxbrowserConfigLocation.getAbsolutePath());
+			NativeInstaller.installJXBrowser(jxbrowserConfigLocation);
 			System.setProperty("jxbrowser.chromium.dir", jxbrowserConfigLocation.getAbsolutePath());
-
+			
 			try {
 
-				BrowserContextParams params = new BrowserContextParams(jxbrowserConfigLocation.getAbsolutePath());
+				BrowserContextParams params = new BrowserContextParams (jxbrowserConfigLocation.getAbsolutePath());
 				BrowserContext context = new BrowserContext(params);
 				browser = new Browser(BrowserType.LIGHTWEIGHT, context);
 
