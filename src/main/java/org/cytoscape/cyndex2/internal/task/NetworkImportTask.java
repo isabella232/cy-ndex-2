@@ -55,6 +55,7 @@ import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNode;
+import org.cytoscape.model.CyTable;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
 import org.cytoscape.model.subnetwork.CySubNetwork;
 import org.cytoscape.view.model.CyNetworkViewFactory;
@@ -135,8 +136,9 @@ public class NetworkImportTask extends AbstractTask {
 		} */
 
 		List<CyNetwork> networks = cxToCy.createNetwork(niceCX, null, networkFactory, null);
-
-		if (!niceCX.getOpaqueAspectTable().containsKey(SubNetworkElement.ASPECT_NAME)) {
+		boolean isCollection = niceCX.getOpaqueAspectTable().containsKey(SubNetworkElement.ASPECT_NAME);
+		
+		if (!isCollection) {
 			// populate the CXInfoHolder object.
 			CXInfoHolder cxInfoHolder = new CXInfoHolder();
 
@@ -176,14 +178,22 @@ public class NetworkImportTask extends AbstractTask {
 		CyRootNetwork rootNetwork = ((CySubNetwork) networks.get(0)).getRootNetwork();
 		suid = rootNetwork.getSUID();
 
-		if ( networkSummary !=null)
-			NetworkManager.INSTANCE.addNetworkUUID(networks.size() == 1 ? networks.get(0).getSUID() : rootNetwork.getSUID(),
+		if ( networkSummary !=null) {
+			NetworkManager.INSTANCE.addNetworkUUID(isCollection ? rootNetwork.getSUID() : networks.get(0).getSUID(),
 				networkSummary.getExternalId());
-
+		}
+		
 		String collectionName = (networkSummary !=null) ? 
 				  networkSummary.getName() : niceCX.getNetworkName();
 		rootNetwork.getRow(rootNetwork).set(CyNetwork.NAME, collectionName);
-
+		
+		long key = isCollection ? rootNetwork.getSUID() : networks.get(0).getSUID();
+		CyTable table = (isCollection ? rootNetwork : networks.get(0)).getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
+		if (table.getColumn(NetworkManager.UUID_COLUMN) == null) {
+			table.createColumn(NetworkManager.UUID_COLUMN, String.class, false);
+		}
+		table.getRow(key).set(NetworkManager.UUID_COLUMN, networkSummary.getExternalId().toString());
+		
 		for (CyNetwork cyNetwork : networks) {
 			CyObjectManager.INSTANCE.getNetworkManager().addNetwork(cyNetwork);
 

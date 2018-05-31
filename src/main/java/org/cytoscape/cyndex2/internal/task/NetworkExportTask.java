@@ -39,6 +39,7 @@ import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
 import org.cytoscape.cyndex2.io.cxio.writer.CxNetworkWriter;
 import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyTable;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
 import org.cytoscape.model.subnetwork.CySubNetwork;
 import org.cytoscape.view.model.CyNetworkViewManager;
@@ -63,7 +64,8 @@ public class NetworkExportTask extends AbstractTask {
 	private UUID networkUUID = null;
 	private boolean writeCollection = false;
 
-	public NetworkExportTask(CyNetwork network, NdexBasicSaveParameter params, boolean isUpdate) throws JsonProcessingException, IOException, NdexException {
+	public NetworkExportTask(CyNetwork network, NdexBasicSaveParameter params, boolean isUpdate)
+			throws JsonProcessingException, IOException, NdexException {
 		super();
 		this.params = params;
 		this.isUpdate = isUpdate;
@@ -76,8 +78,8 @@ public class NetworkExportTask extends AbstractTask {
 			this.network = network;
 		}
 
-		NdexRestClient client = new NdexRestClient(params.username, params.password, params.serverUrl, 
-				CyActivator.getAppName()+"/"+CyActivator.getAppVersion());
+		NdexRestClient client = new NdexRestClient(params.username, params.password, params.serverUrl,
+				CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
 		mal = new NdexRestClientModelAccessLayer(client);
 	}
 
@@ -88,7 +90,7 @@ public class NetworkExportTask extends AbstractTask {
 		final VisualLexicon lexicon = CyObjectManager.INSTANCE.getDefaultVisualLexicon();
 
 		CxNetworkWriter writer = new CxNetworkWriter(out, cyNetwork, vmm, nvm, gm, lexicon, isUpdate);
-		
+
 		writer.setWriteSiblings(writeCollection);
 
 		TaskIterator ti = new TaskIterator(writer);
@@ -102,19 +104,19 @@ public class NetworkExportTask extends AbstractTask {
 
 		CyRootNetwork rootNetwork = ((CySubNetwork) network).getRootNetwork();
 
-		
 		String collectionName = rootNetwork.getRow(rootNetwork).get(CyNetwork.NAME, String.class);
 		String networkName = network.getRow(network).get(CyNetwork.NAME, String.class);
 
 		String uploadName = (params.metadata != null && params.metadata.containsKey(CyNetwork.NAME))
-				? params.metadata.get(CyNetwork.NAME) : (writeCollection ? collectionName : networkName);
+				? params.metadata.get(CyNetwork.NAME)
+				: (writeCollection ? collectionName : networkName);
 
 		Long suid;
 		// Set root or network name
 		if (writeCollection) {
 			rootNetwork.getRow(rootNetwork).set(CyNetwork.NAME, uploadName);
 			suid = rootNetwork.getSUID();
-		}else{
+		} else {
 			network.getRow(network).set(CyNetwork.NAME, uploadName);
 			suid = network.getSUID();
 		}
@@ -133,40 +135,36 @@ public class NetworkExportTask extends AbstractTask {
 				prepareForUpdate(suid);
 				mal.updateCXNetwork(networkUUID, in);
 			}
-			
-			// set customized provenance 
-	/*		CXInfoHolder cxInfoHolder = NetworkManager.INSTANCE.getCXInfoHolder(suid);
-	        ProvenanceEntity oldProvenanceEntity = ((cxInfoHolder !=null && cxInfoHolder.getProvenance() !=null)? 
-	        		cxInfoHolder.getProvenance().getEntity() : null); 
-	        
-	        ProvenanceEntity cytoscapeProvenanceEntity = new ProvenanceEntity();
-	        
-	        ProvenanceEvent creationEvent = new ProvenanceEvent((String) (isUpdate ? "Cytoscape Update" : "Cytoscape Upload"),
-	        		     new Timestamp(Calendar.getInstance().getTimeInMillis() ));
-	        if( oldProvenanceEntity != null )
-	            creationEvent.addInput(oldProvenanceEntity);
-	        cytoscapeProvenanceEntity.setCreationEvent(creationEvent);
-	        List<SimplePropertyValuePair> provenanceProps = new ArrayList<>(5);
-	        provenanceProps.add(new SimplePropertyValuePair ("dc:title", uploadName));
-	        provenanceProps.add(new SimplePropertyValuePair ("AppName", "cyNDEx-2"));
-        
-	        cytoscapeProvenanceEntity.setUri(mal.getNdexRestClient().getBaseroute()+ "/network/" + networkUUID + "/summary");
-	        cytoscapeProvenanceEntity.setProperties(provenanceProps);
-	        Thread.sleep(500);
-	        NetworkSummary s = mal.getNetworkSummaryById(networkUUID);
-	        int counter = 0;
-	        while ( ! s.getIsValid() ) {
-	        		if ( counter > 20) {
-	        			//TODO: need to warn user that the provenance was not set because the server is too busy.
-	        			break;
-	        		}
-	        		counter ++;
-	        		Thread.sleep(1500);
-	        		s = mal.getNetworkSummaryById(networkUUID);
-	        		
-	        }
-	        mal.setNetworkProvenance(networkUUID, cytoscapeProvenanceEntity);  */
-	        
+
+			// set customized provenance
+			/*
+			 * CXInfoHolder cxInfoHolder = NetworkManager.INSTANCE.getCXInfoHolder(suid);
+			 * ProvenanceEntity oldProvenanceEntity = ((cxInfoHolder !=null &&
+			 * cxInfoHolder.getProvenance() !=null)?
+			 * cxInfoHolder.getProvenance().getEntity() : null);
+			 * 
+			 * ProvenanceEntity cytoscapeProvenanceEntity = new ProvenanceEntity();
+			 * 
+			 * ProvenanceEvent creationEvent = new ProvenanceEvent((String) (isUpdate ?
+			 * "Cytoscape Update" : "Cytoscape Upload"), new
+			 * Timestamp(Calendar.getInstance().getTimeInMillis() )); if(
+			 * oldProvenanceEntity != null ) creationEvent.addInput(oldProvenanceEntity);
+			 * cytoscapeProvenanceEntity.setCreationEvent(creationEvent);
+			 * List<SimplePropertyValuePair> provenanceProps = new ArrayList<>(5);
+			 * provenanceProps.add(new SimplePropertyValuePair ("dc:title", uploadName));
+			 * provenanceProps.add(new SimplePropertyValuePair ("AppName", "cyNDEx-2"));
+			 * 
+			 * cytoscapeProvenanceEntity.setUri(mal.getNdexRestClient().getBaseroute()+
+			 * "/network/" + networkUUID + "/summary");
+			 * cytoscapeProvenanceEntity.setProperties(provenanceProps); Thread.sleep(500);
+			 * NetworkSummary s = mal.getNetworkSummaryById(networkUUID); int counter = 0;
+			 * while ( ! s.getIsValid() ) { if ( counter > 20) { //TODO: need to warn user
+			 * that the provenance was not set because the server is too busy. break; }
+			 * counter ++; Thread.sleep(1500); s = mal.getNetworkSummaryById(networkUUID);
+			 * 
+			 * } mal.setNetworkProvenance(networkUUID, cytoscapeProvenanceEntity);
+			 */
+
 		} catch (NetworkUpdateException e) {
 			throw new NetworkExportException("Only networks imported from CyNDEx2 can be updated.");
 		} catch (IOException e) {
@@ -192,6 +190,15 @@ public class NetworkExportTask extends AbstractTask {
 			// Revert names back to original?
 			rootNetwork.getRow(rootNetwork).set(CyNetwork.NAME, collectionName);
 			network.getRow(network).set(CyNetwork.NAME, networkName);
+
+			// add UUID to hidden network table
+			long key = writeCollection ? rootNetwork.getSUID() : network.getSUID();
+			CyTable table = (writeCollection ? rootNetwork : network).getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
+			
+			if (table.getColumn(NetworkManager.UUID_COLUMN) == null) {
+				table.createColumn(NetworkManager.UUID_COLUMN, String.class, false);
+			}
+			table.getRow(key).set(NetworkManager.UUID_COLUMN, networkUUID.toString());
 
 			NetworkManager.INSTANCE.addNetworkUUID(suid, networkUUID);
 			CXInfoHolder cxInfo = NetworkManager.INSTANCE.getCXInfoHolder(suid);

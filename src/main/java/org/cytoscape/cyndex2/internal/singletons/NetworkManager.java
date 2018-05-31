@@ -37,6 +37,7 @@ public enum NetworkManager
     
     private final Map<Long, CXInfoHolder> cxNetworkInfoTable;
     private final Map<Long,UUID> networkIdTable; // store the network ids for collections from NDEx
+    public static final String UUID_COLUMN = "NDEx UUID";
     
     NetworkManager() { 
     	cxNetworkInfoTable = new TreeMap<>();
