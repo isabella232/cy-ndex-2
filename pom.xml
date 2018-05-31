@@ -273,7 +273,7 @@
 			<artifactId>jxbrowser</artifactId>
 			<version>${jxbrowser.version}</version>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>com.teamdev.jxbrowser</groupId>
 			<artifactId>jxbrowser-mac</artifactId>
 			<version>${jxbrowser.version}</version>
@@ -290,7 +290,7 @@
 			<artifactId>jxbrowser-linux64</artifactId>
 			<version>${jxbrowser.version}</version>
 			<scope>provided</scope>
-		</dependency>
+		</dependency> -->
 
 		<!-- Testing -->
 		<dependency>

@@ -20,10 +20,10 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 
 		if (ExternalAppManager.busy)
 			return ti;
-
+		
 		// Store query info
 		ExternalAppManager.appName = appName;
-		ExternalAppManager.busy = true;
+//		ExternalAppManager.busy = true;
 
 		LoadBrowserTask loader = new LoadBrowserTask();
 		ti.append(loader);

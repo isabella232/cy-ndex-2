@@ -20,7 +20,7 @@ public class ExternalAppManager {
 	
 	public static void setLoadFailed(String reason){
 		OpenBrowseTaskFactory.getEntry().setDisabled(reason);
-		loadFailed = true;
+//		loadFailed = true;
 	}
 	
 	public static boolean loadFailed(){

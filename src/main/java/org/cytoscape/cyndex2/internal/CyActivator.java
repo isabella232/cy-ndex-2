@@ -148,20 +148,12 @@ public class CyActivator extends AbstractCyActivator {
 
 		ciServiceManager = new CIServiceManager(bc);
 
-		// For loading networks...
+		// Create subdirectories in config dir for jxbrowser
 		final CyNetworkManager netmgr = getService(bc, CyNetworkManager.class);
-
-		// JXBrowser configuration
-		BrowserManager.setConfigurationDirectory(new File(config.getConfigurationDirectoryLocation(), "jxbrowser"));
-
-		// Create web app dir
-		/*
-		 * installWebApp(staticContentPath, bc); removing it now because the webpage is
-		 * served from cyndex.ndexbio.org/version now. File staticPath = new
-		 * File(staticContentPath, STATIC_CONTENT_DIR); startHttpServer(bc,
-		 * staticPath.getAbsolutePath());
-		 */
-
+		File jxBrowserDir = new File(config.getConfigurationDirectoryLocation(), "jxbrowser");
+		jxBrowserDir.mkdir();
+		BrowserManager.setDataDirectory(new File(jxBrowserDir, "data"));
+		
 		// get QueryPanel icon
 		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
 

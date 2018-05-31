@@ -4,17 +4,26 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Enumeration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.jar.JarEntry;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.teamdev.jxbrowser.chromium.Browser;
+import com.teamdev.jxbrowser.chromium.BrowserContext;
+import com.teamdev.jxbrowser.chromium.BrowserContextParams;
+import com.teamdev.jxbrowser.chromium.BrowserType;
 
 public class NativeInstaller {
 	private final Logger logger = LoggerFactory.getLogger(NativeInstaller.class);
@@ -32,9 +41,11 @@ public class NativeInstaller {
 	private final String platform;
 	private final File installLocation;
 
+	private static File jarPath;
+
 	private final String cdnURL = "http://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/";
 
-	public NativeInstaller(File installLocation) {
+	private NativeInstaller(File installLocation) {
 		platform = detectPlatform();
 		this.installLocation = installLocation;
 	}
@@ -73,32 +84,28 @@ public class NativeInstaller {
 		});
 	}
 
-	private boolean isInstalled(File f) {
-		if (f.exists()){
-			return true;
-		}
-		return false;
-	}
+	private final File install() {
 
-	private final void install() {
+		// Create the directory if it doesn't exist
 		if (!installLocation.exists()) {
 			installLocation.mkdir();
 		}
+
 		File jarFile = new File(installLocation, getJarName());
-		if (!isInstalled(jarFile)) {
+		if (!jarFile.exists()) {
 			try {
 				extractNativeApp(jarFile);
-				
+
 			} catch (IOException e) {
 				logger.error("Failed to extract JAR to " + jarFile.getAbsolutePath());
-				return;
+				System.out.println("Failed to extract JAR to " + jarFile.getAbsolutePath());
+				return null;
 			}
 
 		}
-		logger.info("Extracted JXBrowser jar to " + jarFile.getAbsolutePath());
-//		addJarToClasspath(jarFile);
+		return jarFile;
 	}
-	
+
 	private final int checkSize(String fileURL) throws IOException {
 
 		URL url = new URL(fileURL);
@@ -134,14 +141,15 @@ public class NativeInstaller {
 
 	private final void extractNativeApp(File jarFile) throws IOException {
 		String url = getURL();
-
 		switch (platform) {
 		case PLATFORM_MAC:
 			try {
 				int fileSize = checkSize(url);
 				final URL sourceUrl = new URL(url);
 				extract(sourceUrl, jarFile, fileSize);
-				unzipMac(jarFile, installLocation);
+				extractJarFile(jarFile, installLocation);
+
+				// unzipMac(jarFile);
 			} catch (Exception e) {
 				e.printStackTrace();
 				logger.error("Failed to extract", e);
@@ -168,7 +176,7 @@ public class NativeInstaller {
 		}
 
 	}
-	
+
 	private final void extract(final URL src, File target, final int size) throws IOException {
 		InputStream is = src.openStream();
 		FileOutputStream fos = null;
@@ -183,15 +191,10 @@ public class NativeInstaller {
 			while (r != -1) {
 				fos.write(buf, 0, r);
 				r = is.read(buf);
-				finished += BUFFER_SIZE;
-				idx++;
-				if (idx % 400 == 0) {
-					Double progress = (finished / size) * 100;
-					if (progress >= 100) {
-						progress = 100.0;
-					}
-					logger.info("Progress " + progress.intValue());
-					// this.bar.setValue(progress.intValue());
+				finished += r;
+				if ((int) (finished / size * 100) > idx) {
+					idx = (int) (finished / size * 100);
+					logger.info(target.getName() + " download " + idx + "% complete");
 				}
 			}
 		} catch (Exception e) {
@@ -204,19 +207,43 @@ public class NativeInstaller {
 		}
 	}
 
+	private final void extractJarFile(File jarFile, File destDir) throws IOException {
+		java.util.jar.JarFile jar = new java.util.jar.JarFile(jarFile);
+		Enumeration<JarEntry> enumEntries = jar.entries();
+		while (enumEntries.hasMoreElements()) {
+			java.util.jar.JarEntry file = (java.util.jar.JarEntry) enumEntries.nextElement();
+			java.io.File f = new java.io.File(destDir + java.io.File.separator + file.getName());
+			if (file.isDirectory()) { // if its a directory, create it
+				f.mkdir();
+				continue;
+			}
+			java.io.InputStream is = jar.getInputStream(file); // get the input stream
+			java.io.FileOutputStream fos = new java.io.FileOutputStream(f);
+
+			byte[] buffer = new byte[BUFFER_SIZE];
+			int bytesRead;
+			while ((bytesRead = is.read(buffer)) != -1) {
+				fos.write(buffer, 0, bytesRead);
+			}
+
+			fos.close();
+			is.close();
+		}
+		jar.close();
+	}
+
 	public final void extractPreviewTemplate(final URL source, final File destination) throws IOException {
 		if (!destination.exists() || !destination.isDirectory()) {
-//			unzipTemplate(source, destination);
+			// unzipTemplate(source, destination);
 		} else {
-//			unzipTemplate(source, destination);
+			// unzipTemplate(source, destination);
 		}
 	}
-	
-	// For Mac: Extract with native tar command to avoid broken app.
-	private void unzipMac(File archiveFile, File electronAppDirectory) throws IOException, InterruptedException {
 
-		ProcessBuilder pb = new ProcessBuilder("tar", "zxvf", archiveFile.toString(), "-C",
-				electronAppDirectory.toString());
+	// For Mac: Extract with native tar command to avoid broken app.
+	private void unzipMac(File archiveFile) throws IOException, InterruptedException {
+
+		ProcessBuilder pb = new ProcessBuilder("jar", "-xvf", archiveFile.getAbsolutePath());
 		Process p = pb.start();
 		InputStream stream = p.getErrorStream();
 		while (true) {
@@ -250,26 +277,6 @@ public class NativeInstaller {
 			logger.error("Failed to extract Electron file.", e);
 		}
 	}
-	
-	public boolean addJarToClasspath(File jarFile) 
-	{ 
-	   try 
-	   { 
-	       URL url = jarFile.toURI().toURL();
-	       URLClassLoader urlClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader(); 
-	       Class<?> urlClass = URLClassLoader.class;
-	       Method method = urlClass.getDeclaredMethod("addURL", new Class<?>[] { URL.class }); 
-	       method.setAccessible(true);
-	       method.invoke(urlClassLoader, new Object[] { url });
-	       
-	   } 
-	   catch (Throwable t) 
-	   {
-		   logger.error("Failed to install JXBrowser jar at " + jarFile.toString() + "\n" + t.getMessage());
-		   return false;
-	   } 
-	   return true;
-	}
 
 	private String getJarName() {
 		return String.format("jxbrowser-%s-%s.jar", platform, JXBROWSER_VERSION);
@@ -282,14 +289,33 @@ public class NativeInstaller {
 
 	public static void installJXBrowser(File config) {
 		NativeInstaller ni = new NativeInstaller(config);
-		ni.install(); //executeInstaller();		
+		jarPath = ni.install();
+		
+//		try {
+//			addJarToClasspath(jarPath);
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 	
-	public static void main(String[] args) {
-		NativeInstaller ni = new NativeInstaller(new File("/Users/bsettle/Desktop/jxbrowser"));
-		System.setProperty("jxbrowser.chromium.dir", ni.installLocation.getAbsolutePath());
-		ni.executeInstaller();
-		Browser b = new Browser();
-		System.out.println(b.getURL());
+	public static void addJarToClasspath(File jar) throws NoSuchMethodException, SecurityException,
+			IllegalAccessException, IllegalArgumentException, InvocationTargetException, MalformedURLException {
+		// Get the ClassLoader class
+		ClassLoader cl = ClassLoader.getSystemClassLoader();
+		Class<?> clazz = cl.getClass();
+
+		// Get the protected addURL method from the parent URLClassLoader class
+		Method method = clazz.getSuperclass().getDeclaredMethod("addURL", new Class[] { URL.class });
+
+		// Run projected addURL method to add JAR to classpath
+		method.setAccessible(true);
+		method.invoke(cl, new Object[] { jar.toURI().toURL() });
+
 	}
+	
+	public static File getJarPath() {
+		return jarPath;
+	}
+
 }
