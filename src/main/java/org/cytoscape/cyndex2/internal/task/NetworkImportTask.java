@@ -111,13 +111,14 @@ public class NetworkImportTask extends AbstractTask {
 		mal.getNdexRestClient().signIn(IDToken);
 	}  */
 	
-	private void createCyNetworkFromCX() throws IOException {
+	private void createCyNetworkFromCX(TaskMonitor taskMonitor) throws IOException {
 
+		taskMonitor.setStatusMessage("Parsing CX network from NDEx");
 		// Create the CyNetwork to copy to.
 		CyNetworkFactory networkFactory = CyObjectManager.INSTANCE.getNetworkFactory();
 		CxToCy cxToCy = new CxToCy();
 		CxImporter cxImporter = new CxImporter();
-
+		
 		NiceCXNetwork niceCX = cxImporter.getCXNetworkFromStream(cxStream);
 		cxStream.close();
 		boolean doLayout;
@@ -135,9 +136,13 @@ public class NetworkImportTask extends AbstractTask {
 			doLayout = response == JOptionPane.YES_OPTION;
 		} */
 
+		taskMonitor.setProgress(.7);
+		taskMonitor.setStatusMessage("Building Cytoscape networks");
 		List<CyNetwork> networks = cxToCy.createNetwork(niceCX, null, networkFactory, null);
 		boolean isCollection = niceCX.getOpaqueAspectTable().containsKey(SubNetworkElement.ASPECT_NAME);
 		
+		taskMonitor.setProgress(.8);
+		taskMonitor.setStatusMessage("Storing hidden NDEx attributes");
 		if (!isCollection) {
 			// populate the CXInfoHolder object.
 			CXInfoHolder cxInfoHolder = new CXInfoHolder();
@@ -194,6 +199,8 @@ public class NetworkImportTask extends AbstractTask {
 		}
 		table.getRow(key).set(NetworkManager.UUID_COLUMN, networkSummary.getExternalId().toString());
 		
+		taskMonitor.setProgress(.9);
+		taskMonitor.setStatusMessage("Creating views for networks");
 		for (CyNetwork cyNetwork : networks) {
 			CyObjectManager.INSTANCE.getNetworkManager().addNetwork(cyNetwork);
 
@@ -232,6 +239,7 @@ public class NetworkImportTask extends AbstractTask {
 					//boolean success = true; // selectedServer.check(mal);
 					//if (success) {
 						try {
+							taskMonitor.setStatusMessage("Fetching network from NDEx");
 							if (cxStream == null) {
 								UUID id = networkSummary.getExternalId();
 								if (accessKey == null)
@@ -239,7 +247,8 @@ public class NetworkImportTask extends AbstractTask {
 								else
 									cxStream = mal.getNetworkAsCXStream(id, accessKey);
 							}
-							createCyNetworkFromCX(); 
+							taskMonitor.setProgress(.4);
+							createCyNetworkFromCX(taskMonitor); 
 						} catch (IOException ex) {
 							throw new NetworkImportException("Failed to parse JSON from NDEx source.");
 						} catch (RuntimeException ex2) {
@@ -257,6 +266,8 @@ public class NetworkImportTask extends AbstractTask {
 			}
 
 		};
+		taskMonitor.setTitle("Importing Network from NDEx...");
+		taskMonitor.setProgress(0);
 		worker.execute();
 		// This is a hack, to wait until the SUID of the root is available to
 		// return

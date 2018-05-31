@@ -101,7 +101,7 @@ public class NetworkExportTask extends AbstractTask {
 	@Override
 	public void run(TaskMonitor taskMonitor) throws NetworkExportException {
 		networkUUID = null;
-
+		taskMonitor.setTitle("Exporting "  + (writeCollection ? "collection" : "network") + " to NDEx...");
 		CyRootNetwork rootNetwork = ((CySubNetwork) network).getRootNetwork();
 
 		String collectionName = rootNetwork.getRow(rootNetwork).get(CyNetwork.NAME, String.class);
@@ -126,8 +126,12 @@ public class NetworkExportTask extends AbstractTask {
 		try {
 			in = new PipedInputStream();
 			out = new PipedOutputStream(in);
-
+			
+			taskMonitor.setStatusMessage("Preparing to convert network to CX");
 			prepareToWriteNetworkToCXStream(network, out, false);
+			
+			taskMonitor.setProgress(.3);
+			taskMonitor.setStatusMessage("Converting network to CX");
 			if (!isUpdate) {
 				networkUUID = mal.createCXNetwork(in);
 				NetworkManager.INSTANCE.addNetworkUUID(suid, networkUUID);
@@ -187,6 +191,9 @@ public class NetworkExportTask extends AbstractTask {
 					e.printStackTrace();
 				}
 			}
+
+			taskMonitor.setProgress(.9);
+			taskMonitor.setStatusMessage("Saving changes to network in Cytoscape");
 			// Revert names back to original?
 			rootNetwork.getRow(rootNetwork).set(CyNetwork.NAME, collectionName);
 			network.getRow(network).set(CyNetwork.NAME, networkName);
@@ -206,7 +213,7 @@ public class NetworkExportTask extends AbstractTask {
 				cxInfo.setNetworkId(networkUUID);
 			CyObjectManager.INSTANCE.getApplicationFrame().revalidate();
 		}
-
+		
 		if (networkUUID == null) {
 			throw new NetworkExportException("There was a problem exporting the network!");
 		}

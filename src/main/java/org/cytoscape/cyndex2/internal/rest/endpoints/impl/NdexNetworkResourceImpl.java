@@ -16,7 +16,6 @@ import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.ci.CIWrapping;
 import org.cytoscape.ci.model.CIError;
 import org.cytoscape.cyndex2.internal.CyActivator;
-import org.cytoscape.cyndex2.internal.rest.HeadlessTaskMonitor;
 import org.cytoscape.cyndex2.internal.rest.NdexClient;
 import org.cytoscape.cyndex2.internal.rest.SimpleNetworkSummary;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexNetworkResource;
@@ -41,7 +40,11 @@ import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
 import org.cytoscape.model.subnetwork.CySubNetwork;
+import org.cytoscape.work.FinishStatus;
+import org.cytoscape.work.ObservableTask;
+import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
+import org.cytoscape.work.TaskObserver;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.Permissions;
 import org.ndexbio.model.object.network.NetworkSummary;
@@ -55,7 +58,6 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	private static final Logger logger = LoggerFactory.getLogger(NdexNetworkResourceImpl.class);
 
 	private final NdexClient client;
-	private final TaskMonitor tm;
 
 //	private CxTaskFactoryManager tfManager;
 
@@ -79,7 +81,6 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		this.networkManager = networkManager;
 		this.appManager = appManager;
 
-		this.tm = new HeadlessTaskMonitor();
 //		this.tfManager = tfManager;
 	}
 
@@ -100,7 +101,8 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 						   params.idToken);
 				
 			}	
-			importer.run(tm);
+			TaskIterator ti = new TaskIterator(importer);
+			CyActivator.taskManager.execute(ti);
 		} catch (IOException | NdexException e2) {
 			final String message = "Failed to connect to server and retrieve network. " + e2.getMessage();
 			logger.error(message);
@@ -162,7 +164,22 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		
 		try {
 			NetworkExportTask exporter = new NetworkExportTask(network, params, false);
-			exporter.run(tm);
+			TaskIterator ti = new TaskIterator(exporter);
+			MyTaskObserver to = new MyTaskObserver();
+			CyActivator.taskManager.execute(ti, to);
+			
+			while (!to.finished) {
+				if (exporter.getNetworkUUID() != null) {
+					break;
+				}
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
 			String newUUID = exporter.getNetworkUUID().toString();
 
 			if (params.isPublic == Boolean.TRUE) {
@@ -171,10 +188,10 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 			final NdexBaseResponse response = new NdexBaseResponse(suid, newUUID);
 			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
-		} catch (NetworkExportException e1) {
-			final String message = "Error exporting network to CX:" + e1.getMessage();
-			logger.error(message);
-			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
+//		} catch (NetworkExportException e1) {
+//			final String message = "Error exporting network to CX:" + e1.getMessage();
+//			logger.error(message);
+//			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 		} catch (InstantiationException | IllegalAccessException e2) {
 			final String message = "Could not create wrapped CI JSON response. Error: " +e2.getMessage();
 			logger.error(message);
@@ -188,6 +205,22 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 		}
 
+	}
+	
+	public class MyTaskObserver implements TaskObserver {
+		public boolean finished = false;
+		@Override
+		public void taskFinished(ObservableTask task) {
+			finished = true;
+			
+		}
+
+		@Override
+		public void allFinished(FinishStatus finishStatus) {
+			// TODO Auto-generated method stub
+			
+		}
+		
 	}
 
 	@Override
@@ -452,10 +485,11 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		
 		try {
 			NetworkExportTask updater = new NetworkExportTask(network, params, true);
-			updater.run(tm);
-		} catch (NetworkExportException e) {
-			logger.error(e.getMessage());
-			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, e.getMessage(), ErrorType.INTERNAL);
+			TaskIterator ti = new TaskIterator(updater);
+			CyActivator.taskManager.execute(ti);
+//		} catch (NetworkExportException e) {
+//			logger.error(e.getMessage());
+//			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, e.getMessage(), ErrorType.INTERNAL);
 		} catch (IOException | NdexException e) {
 			logger.error(e.getMessage());
 			final String message = "Unable to connect to the NDEx Java Client.";
@@ -527,7 +561,8 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		NetworkImportTask importer;
 		try {
 			importer = new NetworkImportTask(in);			
-			importer.run(tm);
+			TaskIterator ti = new TaskIterator(importer);
+			CyActivator.taskManager.execute(ti);
 		}  catch (Exception e) {
 			final String message = "Unable to create CyNetwork from NDEx." + e.getMessage();
 			logger.error(message);
