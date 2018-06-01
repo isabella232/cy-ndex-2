@@ -42,6 +42,7 @@ import org.cytoscape.task.NetworkViewCollectionTaskFactory;
 import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskIterator;
+import org.cytoscape.work.TaskManager;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
@@ -65,7 +66,7 @@ public class CyActivator extends AbstractCyActivator {
 	private static JDialog dialog;
 	private CIServiceManager ciServiceManager;
 	private static CySwingApplication swingApp;
-	public static SynchronousTaskManager<?> taskManager;
+	public static TaskManager<?, ?> taskManager;
 	
 	// private StaticContentsServer httpServer;
 
@@ -126,7 +127,7 @@ public class CyActivator extends AbstractCyActivator {
 		final CyApplicationManager appManager = getService(bc, CyApplicationManager.class);
 
 		cyProps = getService(bc, CyProperty.class, "(cyPropertyName=cytoscape3.props)");
-		taskManager = getService(bc, SynchronousTaskManager.class);
+		taskManager = getService(bc, TaskManager.class);
 
 		swingApp = getService(bc, CySwingApplication.class);
 		final CySwingAppAdapter appAdapter = getService(bc, CySwingAppAdapter.class);
