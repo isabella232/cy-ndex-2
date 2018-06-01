@@ -477,11 +477,11 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	private final boolean updateExistingNetwork(/*final CyNetworkViewWriterFactory writerFactory,*/ final CyNetwork network,
 			final NdexBasicSaveParameter params /*, final UUID uuid*/) {
 
-		
+		MyTaskObserver to = new MyTaskObserver();
 		try {
 			NetworkExportTask updater = new NetworkExportTask(network, params, true);
 			TaskIterator ti = new TaskIterator(updater);
-			CyActivator.taskManager.execute(ti);
+			CyActivator.taskManager.execute(ti, to);
 //		} catch (NetworkExportException e) {
 //			logger.error(e.getMessage());
 //			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, e.getMessage(), ErrorType.INTERNAL);
@@ -553,11 +553,12 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			) {
 	//	System.out.println("foo");
 
+		MyTaskObserver to = new MyTaskObserver();
 		NetworkImportTask importer;
 		try {
 			importer = new NetworkImportTask(in);			
 			TaskIterator ti = new TaskIterator(importer);
-			CyActivator.taskManager.execute(ti);
+			CyActivator.taskManager.execute(ti, to);
 		}  catch (Exception e) {
 			final String message = "Unable to create CyNetwork from NDEx." + e.getMessage();
 			logger.error(message);
@@ -565,7 +566,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 		} 
 		
-		final NdexBaseResponse response = new NdexBaseResponse(importer.getSUID(), ""); 
+		final NdexBaseResponse response = new NdexBaseResponse(to.importSUID, ""); 
 		//final NdexBaseResponse response = new NdexBaseResponse(22L, "21");
 		try {
 			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
