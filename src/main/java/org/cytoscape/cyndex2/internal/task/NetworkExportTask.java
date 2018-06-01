@@ -45,6 +45,7 @@ import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.model.VisualLexicon;
 import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.work.AbstractTask;
+import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.swing.DialogTaskManager;
@@ -54,7 +55,7 @@ import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-public class NetworkExportTask extends AbstractTask {
+public class NetworkExportTask extends AbstractTask implements ObservableTask{
 
 	private final CyNetwork network;
 	private final NdexBasicSaveParameter params;
@@ -255,6 +256,15 @@ public class NetworkExportTask extends AbstractTask {
 		public NetworkUpdateException(String message) {
 			super(message);
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <R> R getResults(Class<? extends R> type) {
+		if (type == String.class) {
+			return (R) networkUUID.toString();
+		}
+		return null;
 	}
 
 }

@@ -63,6 +63,7 @@ import org.cytoscape.view.presentation.RenderingEngineManager;
 import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.view.vizmap.VisualStyleFactory;
 import org.cytoscape.work.AbstractTask;
+import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.TaskMonitor;
 import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.exceptions.NdexException;
@@ -71,7 +72,7 @@ import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 
-public class NetworkImportTask extends AbstractTask {
+public class NetworkImportTask extends AbstractTask implements ObservableTask{
 
 	final NdexRestClientModelAccessLayer mal;
 	final NetworkSummary networkSummary;
@@ -291,6 +292,15 @@ public class NetworkImportTask extends AbstractTask {
 		public NetworkImportException(String message) {
 			super(message);
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <R> R getResults(Class<? extends R> type) {
+		if (type == Long.class) {
+			return (R) suid;
+		}
+		return null;
 	}
 
 }

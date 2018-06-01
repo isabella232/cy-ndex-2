@@ -93,6 +93,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INVALID_PARAMETERS);
 		}
 		NetworkImportTask importer;
+		MyTaskObserver to = new MyTaskObserver();
 		try {
 			if (params.username != null && params.password != null)
 				importer = new NetworkImportTask(params.username, params.password, params.serverUrl, UUID.fromString(params.uuid), params.accessKey);
@@ -102,7 +103,8 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 				
 			}	
 			TaskIterator ti = new TaskIterator(importer);
-			CyActivator.taskManager.execute(ti);
+			CyActivator.taskManager.execute(ti, to);
+			
 		} catch (IOException | NdexException e2) {
 			final String message = "Failed to connect to server and retrieve network. " + e2.getMessage();
 			logger.error(message);
@@ -114,8 +116,8 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 
 		}
-
-		final NdexBaseResponse response = new NdexBaseResponse(importer.getSUID(), params.uuid);
+		Long suid = to.importSUID;
+		final NdexBaseResponse response = new NdexBaseResponse(suid, params.uuid);
 		try {
 			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
 		} catch (InstantiationException | IllegalAccessException e) {
@@ -168,19 +170,8 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			MyTaskObserver to = new MyTaskObserver();
 			CyActivator.taskManager.execute(ti, to);
 			
-			while (!to.finished) {
-				if (exporter.getNetworkUUID() != null) {
-					break;
-				}
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
 			
-			String newUUID = exporter.getNetworkUUID().toString();
+			String newUUID = to.exportUUID;
 
 			if (params.isPublic == Boolean.TRUE) {
 				setVisibility(params, newUUID);
@@ -208,11 +199,15 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	}
 	
 	public class MyTaskObserver implements TaskObserver {
-		public boolean finished = false;
+		public String exportUUID;
+		public Long importSUID;
 		@Override
 		public void taskFinished(ObservableTask task) {
-			finished = true;
-			
+			if (task instanceof NetworkExportTask) {
+				exportUUID = task.getResults(String.class);
+			}else if (task instanceof NetworkImportTask) {
+				importSUID = task.getResults(Long.class);
+			}
 		}
 
 		@Override
