@@ -53,6 +53,7 @@ public class CyActivator extends AbstractCyActivator {
 	// Logger for this activator
 	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
 	public static final String INSTALL_MAKER_FILE_NAME = "ndex-installed";
+	public static final String WEB_APP_VERSION = "0.1.2";
 	// private static final String STATIC_CONTENT_DIR = "cyndex-2";
 
 	private static CyProperty<Properties> cyProps;

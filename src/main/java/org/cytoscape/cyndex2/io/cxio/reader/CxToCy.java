@@ -387,7 +387,6 @@ public final class CxToCy {
                      //    perform_basic_integrity_checks,
                          isCollection);
             
-
             addColumns(sub_network,
                        subnetwork_to_col_labels_map,
                        subnetwork_id);
@@ -416,14 +415,14 @@ public final class CxToCy {
                                                      CyNetwork.LOCAL_ATTRS));
             }
 
-            final Map<Long, List<CyGroupsElement>> view_to_groups_map = new HashMap<>();
+            final Map<Long, List<CyGroupsElement>> subnet_to_groups_map = new HashMap<>();
 
             processGroups(niceCX.getOpaqueAspectTable().get(CyGroupsElement.ASPECT_NAME),
-                          view_to_groups_map);
+                          subnet_to_groups_map,subnetwork_id);
 
-            if (group_factory != null  && !view_to_groups_map.isEmpty()) {
+            if (group_factory != null  && !subnet_to_groups_map.isEmpty()) {
                 addGroups(group_factory,
-                          view_to_groups_map,
+                          subnet_to_groups_map,
                           sub_network,
                           subnetwork_id);
             }
@@ -1257,17 +1256,21 @@ public final class CxToCy {
     } */
 
     private final static void processGroups(final Collection<AspectElement> groups_elements,
-                                            final Map<Long, List<CyGroupsElement>> view_to_groups_map
+                                            final Map<Long, List<CyGroupsElement>> subnet_to_groups_map,Long subNetworkId
                                             ) {
         if (groups_elements != null) {
             for (final AspectElement e : groups_elements) {
                 final CyGroupsElement ge = (CyGroupsElement) e;
-                final Long view = ge.getView();
-                if (!view_to_groups_map.containsKey(view)) {
-                    view_to_groups_map.put(view,
-                                           new ArrayList<CyGroupsElement>());
+                Long subnetId = ge.getSubNet();
+                if (subnetId == null) {
+                	subnetId = subNetworkId;
+                	ge.setSubNet(subNetworkId);
                 }
-                view_to_groups_map.get(view).add(ge);
+                
+                if (!subnet_to_groups_map.containsKey(subnetId)) {
+                	subnet_to_groups_map.put(subnetId, new ArrayList<CyGroupsElement>());
+                }
+                subnet_to_groups_map.get(subnetId).add(ge);        
             }
         }
     }

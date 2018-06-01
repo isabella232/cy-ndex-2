@@ -42,20 +42,20 @@ public class CxNetworkWriter implements CyWriter {
 	private final VisualMappingManager _visual_mapping_manager;
 	private final VisualLexicon _lexicon;
 	private final CyNetworkViewManager _networkview_manager;
-	private final CyGroupManager _group_manager;
+//	private final CyGroupManager _group_manager;
 	private boolean _write_siblings;
 	private boolean isUpdate;
 
 	public CxNetworkWriter(final OutputStream os, final CyNetwork network,
 			final VisualMappingManager visual_mapping_manager, final CyNetworkViewManager networkview_manager,
-			final CyGroupManager group_manager, final VisualLexicon lexicon, boolean isUpdate) {
+		/*	final CyGroupManager group_manager,*/ final VisualLexicon lexicon, boolean isUpdate) {
 
 		_visual_mapping_manager = visual_mapping_manager;
 		_networkview_manager = networkview_manager;
 		_lexicon = lexicon;
 		_os = os;
 		_network = network;
-		_group_manager = group_manager;
+	//	_group_manager = group_manager;
 		_write_siblings = WRITE_SIBLINGS_DEFAULT;
 		this.isUpdate = isUpdate;
 
@@ -101,7 +101,7 @@ public class CxNetworkWriter implements CyWriter {
 		exporter.setLexicon(_lexicon);
 		exporter.setVisualMappingManager(_visual_mapping_manager);
 		exporter.setNetworkViewManager(_networkview_manager);
-		exporter.setGroupManager(_group_manager);
+	//	exporter.setGroupManager(_group_manager);
 		// exporter.setWritePreMetadata(true);
 		// exporter.setWritePostMetadata(true);
 		// exporter.setNextSuid(SUIDFactory.getNextSUID());

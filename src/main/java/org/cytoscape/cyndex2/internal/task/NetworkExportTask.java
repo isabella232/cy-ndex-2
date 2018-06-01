@@ -37,7 +37,6 @@ import org.cytoscape.cyndex2.internal.singletons.CXInfoHolder;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
 import org.cytoscape.cyndex2.io.cxio.writer.CxNetworkWriter;
-import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
@@ -83,13 +82,13 @@ public class NetworkExportTask extends AbstractTask {
 		mal = new NdexRestClientModelAccessLayer(client);
 	}
 
-	private void prepareToWriteNetworkToCXStream(CyNetwork cyNetwork, PipedOutputStream out, boolean isUpdate) {
+	private void prepareToWriteNetworkToCXStream(CyNetwork cyNetwork, PipedOutputStream out, boolean isUpdateNdex) {
 		VisualMappingManager vmm = CyObjectManager.INSTANCE.getVisualMappingManager();
 		final CyNetworkViewManager nvm = CyObjectManager.INSTANCE.getNetworkViewManager();
-		final CyGroupManager gm = CyObjectManager.INSTANCE.getCyGroupManager();
+		//final CyGroupManager gm = CyObjectManager.INSTANCE.getCyGroupManager();
 		final VisualLexicon lexicon = CyObjectManager.INSTANCE.getDefaultVisualLexicon();
 
-		CxNetworkWriter writer = new CxNetworkWriter(out, cyNetwork, vmm, nvm, gm, lexicon, isUpdate);
+		CxNetworkWriter writer = new CxNetworkWriter(out, cyNetwork, vmm, nvm, /*gm,*/ lexicon, isUpdateNdex);
 
 		writer.setWriteSiblings(writeCollection);
 
@@ -166,11 +165,11 @@ public class NetworkExportTask extends AbstractTask {
 			 */
 
 		} catch (NetworkUpdateException e) {
-			throw new NetworkExportException("Only networks imported from CyNDEx2 can be updated.");
+			throw new NetworkExportException("Only networks imported from CyNDEx2 can be updated. Error: " + e.getMessage());
 		} catch (IOException e) {
-			throw new NetworkExportException("Failed to create CX stream for network.");
+			throw new NetworkExportException("Failed to create CX stream for network. Error: " + e.getMessage());
 		} catch (Exception e) {
-			throw new NetworkExportException("An error occurred loading the network to NDEx.");
+			throw new NetworkExportException("An error occurred loading the network to NDEx. Error: " + e.getMessage());
 		} finally {
 
 			if (in != null) {
@@ -192,7 +191,7 @@ public class NetworkExportTask extends AbstractTask {
 			network.getRow(network).set(CyNetwork.NAME, networkName);
 
 			// add UUID to hidden network table
-			long key = writeCollection ? rootNetwork.getSUID() : network.getSUID();
+			Long key = writeCollection ? rootNetwork.getSUID() : network.getSUID();
 			CyTable table = (writeCollection ? rootNetwork : network).getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
 			
 			if (table.getColumn(NetworkManager.UUID_COLUMN) == null) {

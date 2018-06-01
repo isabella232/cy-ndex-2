@@ -4,6 +4,7 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
@@ -60,7 +61,7 @@ public class OpenExternalAppTask extends AbstractTask {
 							}
 						}
 					});
-					browser.loadURL("http://cyndex.ndexbio.org/0.1.2/index.html?cyrestport="+port);
+					browser.loadURL("http://cyndex.ndexbio.org/"+ CyActivator.WEB_APP_VERSION + "/index.html?cyrestport="+port);
 					
 					dialog.setAlwaysOnTop(false);
 					dialog.setVisible(true);
