@@ -281,7 +281,9 @@ public final class CxExporter {
         w.addAspectFragmentWriter(new GeneralAspectFragmentWriter(Provenance.ASPECT_NAME));
         w.addAspectFragmentWriter(new GeneralAspectFragmentWriter(NamespacesElement.ASPECT_NAME));
 
-        addPreMetadata(network, write_siblings, w, 1L, cxInfoHolder);
+    	Set<Long> groupNodeIds = this.getGroupNodeIds(network, write_siblings);
+        
+        addPreMetadata(network, write_siblings, w, 1L, cxInfoHolder, !groupNodeIds.isEmpty());
   
         w.start();     
         
@@ -327,11 +329,12 @@ public final class CxExporter {
         w.writeAspectElements(provAspect); 
         
         try {
-        	Set<Long> groupNodeIds = this.getGroupNodeIds(network, write_siblings);
 			writeNodes(network, write_siblings, w, cxInfoHolder, groupNodeIds);
 
 			writeGroups(network, w,write_siblings);
+			writeNodeAttributes(network, write_siblings, w, CyNetwork.DEFAULT_ATTRS, cxInfoHolder, groupNodeIds);
 
+			
 			writeEdges(network, write_siblings, w, cxInfoHolder);
 
 			if (write_siblings) {
@@ -342,7 +345,6 @@ public final class CxExporter {
 
 			writeHiddenAttributes(network, write_siblings, w, CyNetwork.HIDDEN_ATTRS);
 
-			writeNodeAttributes(network, write_siblings, w, CyNetwork.DEFAULT_ATTRS, cxInfoHolder);
 
 			writeEdgeAttributes(network, write_siblings, w, CyNetwork.DEFAULT_ATTRS, cxInfoHolder);
 
@@ -817,7 +819,7 @@ public final class CxExporter {
                                       final CyNetwork network,
                                       final boolean write_siblings,
                                       final CxWriter w,
-                                      final Long consistency_group, CXInfoHolder cxInfoHolder) {
+                                      final Long consistency_group, CXInfoHolder cxInfoHolder, boolean hasGroup) {
 
 		final CySubNetwork my_subnet = (CySubNetwork) network;
 		final long t0 = System.currentTimeMillis();
@@ -848,11 +850,12 @@ public final class CxExporter {
 
 			addDataToMetaDataCollection(pre_meta_data, CyViewsElement.ASPECT_NAME, consistency_group, null, null);
 
-			addDataToMetaDataCollection(pre_meta_data, CyGroupsElement.ASPECT_NAME, consistency_group, null, null);
-
 			addDataToMetaDataCollection(pre_meta_data, NetworkRelationsElement.ASPECT_NAME, consistency_group, null,
 					null);
 		}
+
+		if ( hasGroup)
+			addDataToMetaDataCollection(pre_meta_data, CyGroupsElement.ASPECT_NAME, consistency_group, null, null);
 
 		addDataToMetaDataCollection(pre_meta_data, NetworkAttributesElement.ASPECT_NAME, consistency_group, null, null);
 
@@ -1236,7 +1239,7 @@ public final class CxExporter {
     private final static void writeNodeAttributes(final CyNetwork network,
                                            final boolean write_siblings,
                                            final CxWriter w,
-                                           final String namespace, CXInfoHolder cxInfoHolder) throws IOException {
+                                           final String namespace, CXInfoHolder cxInfoHolder, Set<Long> groupNodeIds) throws IOException {
 
         final List<AspectElement> elements = new ArrayList<>();
 
@@ -1245,7 +1248,7 @@ public final class CxExporter {
         final List<CySubNetwork> subnets = makeSubNetworkList(write_siblings, my_subnet, my_root, true);
 
         for (final CySubNetwork subnet : subnets) {
-            writeNodeAttributesHelper(namespace, subnet, subnet.getNodeList(), elements, write_siblings, cxInfoHolder);
+            writeNodeAttributesHelper(namespace, subnet, subnet.getNodeList(), elements, write_siblings, cxInfoHolder, groupNodeIds);
         }
 
         final long t0 = System.currentTimeMillis();
@@ -1374,9 +1377,11 @@ public final class CxExporter {
                                            final List<CyNode> nodes,
                                            final List<AspectElement> elements,
                                            boolean writeSiblings,
-                                           CXInfoHolder cxInfoHolder) {
+                                           CXInfoHolder cxInfoHolder,
+                                           Set<Long> grpNodeIds) {
         for (final CyNode cy_node : nodes) {
-
+        	if (grpNodeIds.contains(cy_node.getSUID()))
+        			continue;
             final CyRow row = my_network.getRow(cy_node, namespace);
             if (row != null) {
                 final Map<String, Object> values = row.getAllValues();

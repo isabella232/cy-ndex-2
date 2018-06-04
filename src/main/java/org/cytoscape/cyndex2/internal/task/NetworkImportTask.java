@@ -78,7 +78,7 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask{
 	final NetworkSummary networkSummary;
 	private Long suid = null;
 	private String accessKey = null;
-	private InputStream cxStream;
+	protected InputStream cxStream;
 
 	public NetworkImportTask(String userId, String password, String serverUrl, UUID uuid, String accessKey)
 			throws IOException, NdexException {
@@ -112,7 +112,7 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask{
 		mal.getNdexRestClient().signIn(IDToken);
 	}  */
 	
-	private void createCyNetworkFromCX(TaskMonitor taskMonitor) throws IOException {
+	protected void createCyNetworkFromCX(TaskMonitor taskMonitor) throws IOException {
 
 		taskMonitor.setStatusMessage("Parsing CX network from NDEx");
 		// Create the CyNetwork to copy to.
@@ -277,7 +277,8 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask{
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
-				throw new NetworkImportException("Failed to wait. This should never happen.");
+				//throw new NetworkImportException("Failed to wait. This should never happen.");
+				break;
 			}
 		}
 		return;
