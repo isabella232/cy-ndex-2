@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
@@ -217,30 +218,14 @@
 			<version>${jetty.version}</version>
 		</dependency>
 
-<!--		<dependency>
-			<groupId>org.eclipse.jetty.websocket</groupId>
-			<artifactId>javax-websocket-server-impl</artifactId>
-			<version>${jetty.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.eclipse.jetty.websocket</groupId>
-			<artifactId>websocket-server</artifactId>
-			<version>${jetty.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.eclipse.jetty.websocket</groupId>
-			<artifactId>javax-websocket-client-impl</artifactId>
-			<version>${jetty.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.eclipse.jetty.websocket</groupId>
-			<artifactId>websocket-client</artifactId>
-			<version>${jetty.version}</version>
-		</dependency>
--->
+		<!-- <dependency> <groupId>org.eclipse.jetty.websocket</groupId> <artifactId>javax-websocket-server-impl</artifactId> 
+			<version>${jetty.version}</version> </dependency> <dependency> <groupId>org.eclipse.jetty.websocket</groupId> 
+			<artifactId>websocket-server</artifactId> <version>${jetty.version}</version> 
+			</dependency> <dependency> <groupId>org.eclipse.jetty.websocket</groupId> 
+			<artifactId>javax-websocket-client-impl</artifactId> <version>${jetty.version}</version> 
+			</dependency> <dependency> <groupId>org.eclipse.jetty.websocket</groupId> 
+			<artifactId>websocket-client</artifactId> <version>${jetty.version}</version> 
+			</dependency> -->
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
 			<artifactId>javax.ws.rs-api</artifactId>
@@ -259,7 +244,7 @@
 			<artifactId>ndex-java-client</artifactId>
 			<version>2.2.3</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.cytoscape</groupId>
 			<artifactId>ci-api</artifactId>
@@ -273,24 +258,12 @@
 			<artifactId>jxbrowser</artifactId>
 			<version>${jxbrowser.version}</version>
 		</dependency>
-		<!-- <dependency>
-			<groupId>com.teamdev.jxbrowser</groupId>
-			<artifactId>jxbrowser-mac</artifactId>
-			<version>${jxbrowser.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.teamdev.jxbrowser</groupId>
-			<artifactId>jxbrowser-win</artifactId>
-			<version>${jxbrowser.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.teamdev.jxbrowser</groupId>
-			<artifactId>jxbrowser-linux64</artifactId>
-			<version>${jxbrowser.version}</version>
-			<scope>provided</scope>
-		</dependency> -->
+		<!-- <dependency> <groupId>com.teamdev.jxbrowser</groupId> <artifactId>jxbrowser-mac</artifactId> 
+			<version>${jxbrowser.version}</version> <scope>provided</scope> </dependency> 
+			<dependency> <groupId>com.teamdev.jxbrowser</groupId> <artifactId>jxbrowser-win</artifactId> 
+			<version>${jxbrowser.version}</version> <scope>provided</scope> </dependency> 
+			<dependency> <groupId>com.teamdev.jxbrowser</groupId> <artifactId>jxbrowser-linux64</artifactId> 
+			<version>${jxbrowser.version}</version> <scope>provided</scope> </dependency> -->
 
 		<!-- Testing -->
 		<dependency>
@@ -336,5 +309,17 @@
 			<version>${cytoscape.api.version}</version>
 			<scope>provided</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-compress</artifactId>
+			<version>1.17</version>
+		</dependency>
+		<dependency>
+			<groupId>org.tukaani</groupId>
+			<artifactId>xz</artifactId>
+			<version>1.8</version>
+		</dependency>
+
 	</dependencies>
 </project>

@@ -50,7 +50,7 @@ public class LoadBrowserTask extends AbstractTask {
 				
 				taskMonitor.setTitle("Loading CyNDEx-2 Browser");
 				try {
-					browserView = BrowserManager.getBrowserView();
+					browserView = BrowserManager.getBrowserView(taskMonitor);
 
 					if (browserView == null || browserView.getBrowser() == null)
 						throw new BrowserCreationError("Browser failed to initialize.");

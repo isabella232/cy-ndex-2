@@ -11,6 +11,8 @@ import javax.swing.WindowConstants;
 
 import org.apache.commons.io.FileUtils;
 import org.cytoscape.cyndex2.errors.BrowserCreationError;
+import org.cytoscape.work.TaskMonitor;
+
 import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.BrowserContext;
 import com.teamdev.jxbrowser.chromium.BrowserContextParams;
@@ -38,7 +40,7 @@ public class BrowserManager {
 		return arch.endsWith("64");
 	}
 
-	public static BrowserView getBrowserView() throws BrowserCreationError {
+	public static BrowserView getBrowserView(TaskMonitor tm) throws BrowserCreationError {
 		// returns non-null Browser object or an Exception
 
 		if (!supportedOSAndArchitecture()) {
@@ -46,25 +48,27 @@ public class BrowserManager {
 		}
 
 		if (browserView == null) {
-			Browser b = getJXBrowser();
+			Browser b = getJXBrowser(tm);
 			browserView = new BrowserView(b);
 		}
 		return browserView;
 	}
 
-	public static Browser getJXBrowser() throws BrowserCreationError {
+	public static Browser getJXBrowser(TaskMonitor tm) throws BrowserCreationError {
 		if (browser == null) {
 
 			// Uncomment for development port
 			// BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222");
 
 			try {
-				
-//				File f = new File(BrowserPreferences.getDefaultChromiumDir());
-//				NativeInstaller.installJXBrowser(f);
+				tm.setStatusMessage("Setting up JXBrowser binaries");
+				File f = new File(BrowserPreferences.getDefaultChromiumDir());
+				NativeInstaller.installJXBrowser(f);
 //				BrowserPreferences.setChromiumDir(f.getAbsolutePath());
-				System.setProperty("jxbrowser.chromium.dir", "/Users/bsettle/Desktop/jxbrowser/chromium-mac");
+				System.setProperty("jxbrowser.chromium.dir", f.getAbsolutePath());
 				
+				tm.setProgress(.1);
+				tm.setStatusMessage("Creating browser instance");
 				BrowserContextParams params = new BrowserContextParams(jxbrowserDataLocation.getAbsolutePath());
 				BrowserContext context = new BrowserContext(params);
 				browser = new Browser(BrowserType.LIGHTWEIGHT, context);
