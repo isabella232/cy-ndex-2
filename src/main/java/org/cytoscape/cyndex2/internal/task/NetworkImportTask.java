@@ -28,6 +28,7 @@ package org.cytoscape.cyndex2.internal.task;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.channels.ReadPendingException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -71,8 +72,7 @@ import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
-
-public class NetworkImportTask extends AbstractTask implements ObservableTask{
+public class NetworkImportTask extends AbstractTask implements ObservableTask {
 
 	final NdexRestClientModelAccessLayer mal;
 	final NetworkSummary networkSummary;
@@ -83,17 +83,20 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask{
 	public NetworkImportTask(String userId, String password, String serverUrl, UUID uuid, String accessKey)
 			throws IOException, NdexException {
 		super();
-		NdexRestClient client = new NdexRestClient(userId, password, serverUrl, CyActivator.getAppName()+"/"+CyActivator.getAppVersion());
+		NdexRestClient client = new NdexRestClient(userId, password, serverUrl,
+				CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
 		mal = new NdexRestClientModelAccessLayer(client);
 		networkSummary = mal.getNetworkSummaryById(uuid, accessKey);
 		this.accessKey = accessKey;
 		cxStream = null;
 	}
-	
-	public NetworkImportTask(String serverUrl, UUID uuid, String accessKey, String idToken) throws IOException, NdexException{
+
+	public NetworkImportTask(String serverUrl, UUID uuid, String accessKey, String idToken)
+			throws IOException, NdexException {
 		super();
-		NdexRestClient client = new NdexRestClient(null,null,serverUrl, CyActivator.getAppName()+"/"+CyActivator.getAppVersion());
-		if ( idToken !=null)
+		NdexRestClient client = new NdexRestClient(null, null, serverUrl,
+				CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
+		if (idToken != null)
 			client.signIn(idToken);
 		mal = new NdexRestClientModelAccessLayer(client);
 		networkSummary = mal.getNetworkSummaryById(uuid, accessKey);
@@ -101,17 +104,18 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask{
 		cxStream = null;
 	}
 
-	public NetworkImportTask(InputStream in){
+	public NetworkImportTask(InputStream in) {
 		super();
 		networkSummary = null;
 		mal = null;
 		cxStream = in;
 	}
 
-/*	public void setIdToken(String IDToken) throws JsonProcessingException, IOException, NdexException{
-		mal.getNdexRestClient().signIn(IDToken);
-	}  */
-	
+	/*
+	 * public void setIdToken(String IDToken) throws JsonProcessingException,
+	 * IOException, NdexException{ mal.getNdexRestClient().signIn(IDToken); }
+	 */
+
 	protected void createCyNetworkFromCX(TaskMonitor taskMonitor) throws IOException {
 
 		taskMonitor.setStatusMessage("Parsing CX network from NDEx");
@@ -119,7 +123,7 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask{
 		CyNetworkFactory networkFactory = CyObjectManager.INSTANCE.getNetworkFactory();
 		CxToCy cxToCy = new CxToCy();
 		CxImporter cxImporter = new CxImporter();
-		
+
 		NiceCXNetwork niceCX = cxImporter.getCXNetworkFromStream(cxStream);
 		cxStream.close();
 		boolean doLayout;
@@ -127,21 +131,21 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask{
 
 		if (hasCoords) {
 			doLayout = false;
-		} else //if (networkSummary.getEdgeCount() < 5000) {
+		} else // if (networkSummary.getEdgeCount() < 5000) {
 			doLayout = true;
-	/*	} else {
-			JFrame parent = CyObjectManager.INSTANCE.getApplicationFrame();
-			int response = JOptionPane.showConfirmDialog(parent,
-					"Do you want to create a view for your large network? This could take a while.",
-					"Importing Large Network", JOptionPane.YES_NO_OPTION);
-			doLayout = response == JOptionPane.YES_OPTION;
-		} */
+		/*
+		 * } else { JFrame parent = CyObjectManager.INSTANCE.getApplicationFrame(); int
+		 * response = JOptionPane.showConfirmDialog(parent,
+		 * "Do you want to create a view for your large network? This could take a while."
+		 * , "Importing Large Network", JOptionPane.YES_NO_OPTION); doLayout = response
+		 * == JOptionPane.YES_OPTION; }
+		 */
 
 		taskMonitor.setProgress(.7);
 		taskMonitor.setStatusMessage("Building Cytoscape networks");
 		List<CyNetwork> networks = cxToCy.createNetwork(niceCX, null, networkFactory, null);
 		boolean isCollection = niceCX.getOpaqueAspectTable().containsKey(SubNetworkElement.ASPECT_NAME);
-		
+
 		taskMonitor.setProgress(.8);
 		taskMonitor.setStatusMessage("Storing hidden NDEx attributes");
 		if (!isCollection) {
@@ -170,7 +174,7 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask{
 
 			cxInfoHolder.setProvenance(niceCX.getProvenance());
 			cxInfoHolder.setMetadata(niceCX.getMetadata());
-			if(networkSummary !=null)
+			if (networkSummary != null)
 				cxInfoHolder.setNetworkId(networkSummary.getExternalId());
 			Collection<AspectElement> subNets = niceCX.getOpaqueAspectTable().get(SubNetworkElement.ASPECT_NAME);
 
@@ -184,22 +188,23 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask{
 		CyRootNetwork rootNetwork = ((CySubNetwork) networks.get(0)).getRootNetwork();
 		suid = rootNetwork.getSUID();
 
-		if ( networkSummary !=null) {
+		if (networkSummary != null) {
 			NetworkManager.INSTANCE.addNetworkUUID(isCollection ? rootNetwork.getSUID() : networks.get(0).getSUID(),
-				networkSummary.getExternalId());
+					networkSummary.getExternalId());
+			
+			long key = isCollection ? rootNetwork.getSUID() : networks.get(0).getSUID();
+			CyTable table = (isCollection ? rootNetwork : networks.get(0)).getTable(CyNetwork.class,
+					CyNetwork.HIDDEN_ATTRS);
+			if (table.getColumn(NetworkManager.UUID_COLUMN) == null) {
+				table.createColumn(NetworkManager.UUID_COLUMN, String.class, false);
+			}
+			UUID uuid = networkSummary.getExternalId();
+			table.getRow(key).set(NetworkManager.UUID_COLUMN, uuid.toString());
 		}
-		
-		String collectionName = (networkSummary !=null) ? 
-				  networkSummary.getName() : niceCX.getNetworkName();
+
+		String collectionName = (networkSummary != null) ? networkSummary.getName() : niceCX.getNetworkName();
 		rootNetwork.getRow(rootNetwork).set(CyNetwork.NAME, collectionName);
-		
-		long key = isCollection ? rootNetwork.getSUID() : networks.get(0).getSUID();
-		CyTable table = (isCollection ? rootNetwork : networks.get(0)).getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
-		if (table.getColumn(NetworkManager.UUID_COLUMN) == null) {
-			table.createColumn(NetworkManager.UUID_COLUMN, String.class, false);
-		}
-		table.getRow(key).set(NetworkManager.UUID_COLUMN, networkSummary.getExternalId().toString());
-		
+
 		taskMonitor.setProgress(.9);
 		taskMonitor.setStatusMessage("Creating views for networks");
 		for (CyNetwork cyNetwork : networks) {
@@ -211,12 +216,11 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask{
 				VisualMappingManager vmm = CyObjectManager.INSTANCE.getVisualMappingManager();
 				VisualStyleFactory vsf = CyObjectManager.INSTANCE.getVisualStyleFactory();
 
-				//CyNetworkView cyNetworkView =
-						ViewMaker.makeView(cyNetwork, cxToCy, collectionName, nvf, rem, vmm, vsf,
-						doLayout);
+				// CyNetworkView cyNetworkView =
+				ViewMaker.makeView(cyNetwork, cxToCy, collectionName, nvf, rem, vmm, vsf, doLayout);
 
-			//	CyObjectManager.INSTANCE.getNetworkViewManager().addNetworkView(cyNetworkView);
-			//	cyNetworkView.fitContent();
+				// CyObjectManager.INSTANCE.getNetworkViewManager().addNetworkView(cyNetworkView);
+				// cyNetworkView.fitContent();
 			}
 		}
 	}
@@ -237,31 +241,31 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask{
 
 					// For entire network, we will query again, hence will check
 					// credential
-					//boolean success = true; // selectedServer.check(mal);
-					//if (success) {
-						try {
-							taskMonitor.setStatusMessage("Fetching network from NDEx");
-							if (cxStream == null) {
-								UUID id = networkSummary.getExternalId();
-								if (accessKey == null)
-									cxStream = mal.getNetworkAsCXStream(id);
-								else
-									cxStream = mal.getNetworkAsCXStream(id, accessKey);
-							}
-							taskMonitor.setProgress(.4);
-							createCyNetworkFromCX(taskMonitor); 
-						} catch (IOException ex) {
-							throw new NetworkImportException("Failed to parse JSON from NDEx source.");
-						} catch (RuntimeException ex2) {
-							ex2.printStackTrace();
-							throw new NetworkImportException(ex2.getMessage());
-							
-						} catch (NdexException e) {
-							throw new NetworkImportException("Unable to read network from NDEx: " + e.getMessage());
+					// boolean success = true; // selectedServer.check(mal);
+					// if (success) {
+					try {
+						taskMonitor.setStatusMessage("Fetching network from NDEx");
+						if (cxStream == null) {
+							UUID id = networkSummary.getExternalId();
+							if (accessKey == null)
+								cxStream = mal.getNetworkAsCXStream(id);
+							else
+								cxStream = mal.getNetworkAsCXStream(id, accessKey);
 						}
-					//} else {
-					//	throw new NetworkImportException("Failed to communicate with server. Please connect to a valid server before continuing.");
-					//}
+						taskMonitor.setProgress(.4);
+						createCyNetworkFromCX(taskMonitor);
+					} catch (IOException ex) {
+						throw new NetworkImportException("Failed to parse JSON from NDEx source.");
+					} catch (RuntimeException ex2) {
+						ex2.printStackTrace();
+						throw new NetworkImportException(ex2.getMessage());
+					} catch (NdexException e) {
+						throw new NetworkImportException("Unable to read network from NDEx: " + e.getMessage());
+					}
+					// } else {
+					// throw new NetworkImportException("Failed to communicate with server. Please
+					// connect to a valid server before continuing.");
+					// }
 				}
 				return 1;
 			}
@@ -277,7 +281,8 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask{
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
-				//throw new NetworkImportException("Failed to wait. This should never happen.");
+				// throw new NetworkImportException("Failed to wait. This should never
+				// happen.");
 				break;
 			}
 		}

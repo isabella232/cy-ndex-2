@@ -33,6 +33,7 @@ import org.cytoscape.cyndex2.internal.task.NetworkExportTask;
 import org.cytoscape.cyndex2.internal.task.NetworkExportTask.NetworkExportException;
 import org.cytoscape.cyndex2.internal.task.NetworkImportTask;
 import org.cytoscape.cyndex2.internal.util.CIServiceManager;
+import org.cytoscape.cyndex2.internal.util.HeadlessTaskMonitor;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
@@ -552,21 +553,22 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		/*	NdexImportParams params */
 			) {
 	//	System.out.println("foo");
-
-		MyTaskObserver to = new MyTaskObserver();
+		
+//		MyTaskObserver to = new MyTaskObserver();
 		NetworkImportTask importer;
 		try {
-			importer = new NetworkImportTask(in);			
-			TaskIterator ti = new TaskIterator(importer);
-			CyActivator.taskManager.execute(ti, to);
+			importer = new NetworkImportTask(in);
+//			TaskIterator ti = new TaskIterator(importer);
+//			CyActivator.taskManager.execute(ti, to);
+			importer.run(new HeadlessTaskMonitor());
 		}  catch (Exception e) {
 			final String message = "Unable to create CyNetwork from NDEx." + e.getMessage();
 			logger.error(message);
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 
-		} 
-		
-		final NdexBaseResponse response = new NdexBaseResponse(to.importSUID, ""); 
+		}
+		Long suid = importer.getSUID();
+		final NdexBaseResponse response = new NdexBaseResponse(suid, ""); 
 		//final NdexBaseResponse response = new NdexBaseResponse(22L, "21");
 		try {
 			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
