@@ -21,7 +21,7 @@ public class SaveNetworkToNDExToolbarComponent extends AbstractToolBarComponent 
 	public SaveNetworkToNDExToolbarComponent() {
 		super();
 		button = new JButton();
-		setToolBarGravity(1.8f);
+		setToolBarGravity(0.0f);
 
 		ImageIcon icon = new ImageIcon(this.getClass().getClassLoader().getResource("images/ndex-cy-export-72x72.png"));
 		icon = new ImageIcon(icon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH));
