@@ -60,10 +60,11 @@ public class BrowserManager {
 
 			try {
 				
-				File f = new File(BrowserPreferences.getDefaultChromiumDir());
-				NativeInstaller.installJXBrowser(f);
-				BrowserPreferences.setChromiumDir(f.getAbsolutePath());
-
+//				File f = new File(BrowserPreferences.getDefaultChromiumDir());
+//				NativeInstaller.installJXBrowser(f);
+//				BrowserPreferences.setChromiumDir(f.getAbsolutePath());
+				System.setProperty("jxbrowser.chromium.dir", "/Users/bsettle/Desktop/jxbrowser/chromium-mac");
+				
 				BrowserContextParams params = new BrowserContextParams(jxbrowserDataLocation.getAbsolutePath());
 				BrowserContext context = new BrowserContext(params);
 				browser = new Browser(BrowserType.LIGHTWEIGHT, context);

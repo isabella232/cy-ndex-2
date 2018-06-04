@@ -1262,7 +1262,7 @@ public final class CxToCy {
         if (groups_elements != null) {
             for (final AspectElement e : groups_elements) {
                 final CyGroupsElement ge = (CyGroupsElement) e;
-                final Long view = ge.getView();
+                final Long view = ge.getSubNet();
                 if (!view_to_groups_map.containsKey(view)) {
                     view_to_groups_map.put(view,
                                            new ArrayList<CyGroupsElement>());
