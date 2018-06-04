@@ -415,14 +415,16 @@ public final class CxToCy {
                                                      CyNetwork.LOCAL_ATTRS));
             }
 
-            final Map<Long, List<CyGroupsElement>> subnet_to_groups_map = new HashMap<>();
+     //       final Map<Long, List<CyGroupsElement>> subnet_to_groups_map = new HashMap<>();
 
-            processGroups(niceCX.getOpaqueAspectTable().get(CyGroupsElement.ASPECT_NAME),
-                          subnet_to_groups_map,subnetwork_id);
+     //       processGroups(niceCX.getOpaqueAspectTable().get(CyGroupsElement.ASPECT_NAME),
+     //                     subnet_to_groups_map,subnetwork_id);
 
-            if (group_factory != null  && !subnet_to_groups_map.isEmpty()) {
+            Collection<AspectElement> groups_elements = niceCX.getOpaqueAspectTable().get(CyGroupsElement.ASPECT_NAME);
+            
+            if (group_factory != null  && groups_elements != null) {
                 addGroups(group_factory,
-                          subnet_to_groups_map,
+                		groups_elements,
                           sub_network,
                           subnetwork_id);
             }
@@ -506,44 +508,43 @@ public final class CxToCy {
     }
 
     private void addGroups(final CyGroupFactory group_factory,
-                          final Map<Long, List<CyGroupsElement>> view_to_groups_map,
+                          final Collection<AspectElement> groupElements,
                           final CySubNetwork sub_network,
                           final Long subnetwork_id) {
-        if (Settings.INSTANCE.isDebug()) {
-            System.out.println(view_to_groups_map);
-            System.out.println("groups: subnetwork_id: " + subnetwork_id);
-            System.out.println(_subnet_to_views_map);
-        }
-        if (_subnet_to_views_map.containsKey(subnetwork_id)) {
+
+ /*       if (_subnet_to_views_map.containsKey(subnetwork_id)) {
             final List<Long> vs = _subnet_to_views_map.get(subnetwork_id);
             for (final Long v : vs) {
 
-                final List<CyGroupsElement> g = view_to_groups_map.get(v);
-                for (final CyGroupsElement ge : g) {
-                    final List<CyNode> nodes_for_group = new ArrayList<>();
-                    for (final Long nod : ge.getNodes()) {
-                        nodes_for_group.add(_cxid_to_cynode_map.get(nod));
-                    }
-                    final List<CyEdge> edges_for_group = new ArrayList<>();
-                    for (final Long ed : ge.getInternalEdges()) {
-                        edges_for_group.add(_cxid_to_cyedge_map.get(ed));
-                    }
-                    for (final Long ed : ge.getExternalEdges()) {
-                        edges_for_group.add(_cxid_to_cyedge_map.get(ed));
-                    }
-                    CyNode grpNode =  _cxid_to_cynode_map.get(ge.getGroupId());
-                    final CyRow row = sub_network.getRow(grpNode, CyNetwork.DEFAULT_ATTRS);
-                    row.set(CxUtil.SHARED_NAME_COL, ge.getName());
-                    CyGroup grp = group_factory.createGroup(sub_network,
+                final List<CyGroupsElement> g = subnet_to_groups_map.get(v); */
+                for (final AspectElement a : groupElements) {
+                	CyGroupsElement ge = (CyGroupsElement) a;
+                	if ( ge.getSubNet() == null || ge.getSubNet().equals(subnetwork_id)) {
+                		final List<CyNode> nodes_for_group = new ArrayList<>();
+                    
+                		for (final Long nod : ge.getNodes()) {
+                			nodes_for_group.add(_cxid_to_cynode_map.get(nod));
+                		}
+                		final List<CyEdge> edges_for_group = new ArrayList<>();
+                		for (final Long ed : ge.getInternalEdges()) {
+                			edges_for_group.add(_cxid_to_cyedge_map.get(ed));
+                		}
+                		for (final Long ed : ge.getExternalEdges()) {
+                			edges_for_group.add(_cxid_to_cyedge_map.get(ed));
+                		}
+                		CyNode grpNode =  _cxid_to_cynode_map.get(ge.getGroupId());
+                		final CyRow row = sub_network.getRow(grpNode, CyNetwork.DEFAULT_ATTRS);
+                		row.set(CxUtil.SHARED_NAME_COL, ge.getName());
+                		CyGroup grp = group_factory.createGroup(sub_network,
                     						  grpNode,
                                               nodes_for_group,
                                               edges_for_group,
                                               true);
-                    grp.expand(sub_network);
-                                        
+                		grp.expand(sub_network);
+                	}                    
                 }
-            }
-        }
+           // }
+       // }
     }
 
     public Set<CyEdge> getEdgesWithVisualProperties() {
@@ -1255,7 +1256,7 @@ public final class CxToCy {
         }
     } */
 
-    private final static void processGroups(final Collection<AspectElement> groups_elements,
+  /*  private final static void processGroups(final Collection<AspectElement> groups_elements,
                                             final Map<Long, List<CyGroupsElement>> subnet_to_groups_map,Long subNetworkId
                                             ) {
         if (groups_elements != null) {
@@ -1273,7 +1274,7 @@ public final class CxToCy {
                 subnet_to_groups_map.get(subnetId).add(ge);        
             }
         }
-    }
+    } */
 
     private final static void
             processColumnLabels(final Collection<AspectElement> col_labels_elements,
