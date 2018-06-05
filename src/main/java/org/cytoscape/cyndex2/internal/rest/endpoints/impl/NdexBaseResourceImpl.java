@@ -3,11 +3,11 @@ package org.cytoscape.cyndex2.internal.rest.endpoints.impl;
 import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.ci.CIWrapping;
-import org.cytoscape.cyndex2.internal.CIServiceManager;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexBaseResource;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorType;
 import org.cytoscape.cyndex2.internal.rest.response.AppInfoResponse;
+import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

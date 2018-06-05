@@ -493,7 +493,7 @@ public final class VisualPropertiesGatherer {
                 }
                 else {
                     throw new IllegalArgumentException("don't know how to deal with type '" + col_type
-                                                       + "' (from table column)");
+                                                       + "' (from table column "+ col_name + ")");
                 }
             }
             else {
@@ -501,7 +501,7 @@ public final class VisualPropertiesGatherer {
             }
         }
         else {
-            throw new IllegalArgumentException("don't know how to deal with type '" + attr_class + "'");
+            throw new IllegalArgumentException("don't know how to deal with type '" + attr_class + "' for column " + col_name);
         }
     }
 

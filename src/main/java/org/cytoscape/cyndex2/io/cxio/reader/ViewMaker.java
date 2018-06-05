@@ -238,7 +238,7 @@ public final class ViewMaker {
                     final Object gp = vp.parseSerializableString(g);
                     if ((lp != null) && (ep != null) && (gp != null)) {
                         final BoundaryRangeValues point = new BoundaryRangeValues(lp, ep, gp);
-                        cmf.addPoint(ViewMaker.toTypeValue(ov, type), point);
+                        cmf.addPoint(ViewMaker.toDoubleValue(ov, type), point);
                     }
                     else {
                         System.out.println("could not parse from string in continuous mapping for col '" + col + "'");
@@ -451,7 +451,7 @@ public final class ViewMaker {
 				final String mapping_type = mapping.getType();
 				final VisualProperty vp = lexicon.lookup(my_class, mapping_target);
 				try {
-					final StringParser sp = new StringParser(mapping.getDefintion());
+					final StringParser sp = new StringParser(mapping.getDefinition());
 					String col = sp.get(CxUtil.VM_COL);
 					if (cy_visual_properties_element.getProperties_of().equals("edges:default")
 							&& col.equals("interaction"))
@@ -579,10 +579,10 @@ public final class ViewMaker {
     }
 
     private final static Class<?> toClass(final String type) {
-        if (type.equals("string")) {
+        if (type.equals("string")|| type.equals("char")) {
             return String.class;
         }
-        else if (type.equals("integer")) {
+        else if (type.equals("integer")|| type.equals("short") || type.equals("byte")) {
             return Integer.class;
         }
         else if (type.equals("long")) {
@@ -600,14 +600,14 @@ public final class ViewMaker {
     }
 
     private final static Object toTypeValue(final String s, final String type) {
-        if (type.equals("string")) {
+        if (type.equals("string") || type.equals("char")) {
             return s;
         }
-        else if (type.equals("integer")) {
-            return Double.valueOf(s);
+        else if (type.equals("integer") || type.equals("short") || type.equals("byte")) {
+            return Integer.valueOf(s);
         }
         else if (type.equals("long")) {
-            return Double.valueOf(s);
+            return Long.valueOf(s);
         }
         else if (type.equals("double") || type.equals("float")) {
             return Double.valueOf(s);
@@ -620,4 +620,16 @@ public final class ViewMaker {
         }
     }
 
+    // used for continuous maping point
+    private final static Double toDoubleValue(final String s, final String type) {
+
+        if (type.equals("double") || type.equals("float")||type.equals("long") || 
+        		type.equals("integer") || type.equals("short") || type.equals("byte")) {
+            return Double.valueOf(s);
+        }
+        
+        throw new IllegalArgumentException("Type '" + type + "' is not supported in continuous mapping.");
+       
+    }
+    
 }

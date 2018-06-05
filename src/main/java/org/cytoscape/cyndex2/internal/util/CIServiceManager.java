@@ -1,4 +1,4 @@
-package org.cytoscape.cyndex2.internal;
+package org.cytoscape.cyndex2.internal.util;
 
 import org.cytoscape.ci.CIErrorFactory;
 import org.cytoscape.ci.CIExceptionFactory;
@@ -13,16 +13,16 @@ public class CIServiceManager {
 	private CIExceptionFactory ciExceptionFactory;
 	private CIErrorFactory ciErrorFactory;
 
-	public CIServiceManager(final BundleContext bc) throws InvalidSyntaxException {
-		ciResponseFactoryTracker = new ServiceTracker(bc,
-				bc.createFilter("(objectClass=org.cytoscape.ci.CIResponseFactory)"), null);
-		ciResponseFactoryTracker.open();
-		ciExceptionFactoryTracker = new ServiceTracker(bc,
-				bc.createFilter("(objectClass=org.cytoscape.ci.CIExceptionFactory)"), null);
-		ciExceptionFactoryTracker.open();
-		ciErrorFactoryTracker = new ServiceTracker(bc, bc.createFilter("(objectClass=org.cytoscape.ci.CIErrorFactory)"),
-				null);
-		ciErrorFactoryTracker.open();
+	public CIServiceManager(final BundleContext bc) throws InvalidSyntaxException{
+				ciResponseFactoryTracker = new ServiceTracker(bc,
+						bc.createFilter("(objectClass=org.cytoscape.ci.CIResponseFactory)"), null);
+				ciResponseFactoryTracker.open();
+				ciExceptionFactoryTracker = new ServiceTracker(bc,
+						bc.createFilter("(objectClass=org.cytoscape.ci.CIExceptionFactory)"), null);
+				ciExceptionFactoryTracker.open();
+				ciErrorFactoryTracker = new ServiceTracker(bc, bc.createFilter("(objectClass=org.cytoscape.ci.CIErrorFactory)"),
+						null);
+				ciErrorFactoryTracker.open();
 	}
 
 	public CIResponseFactory getCIResponseFactory() {
@@ -57,4 +57,5 @@ public class CIServiceManager {
 			ciErrorFactoryTracker.close();
 		}
 	}
+	
 }

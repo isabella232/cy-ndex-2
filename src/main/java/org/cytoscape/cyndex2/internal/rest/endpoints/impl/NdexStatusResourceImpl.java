@@ -2,9 +2,7 @@ package org.cytoscape.cyndex2.internal.rest.endpoints.impl;
 
 import javax.ws.rs.core.Response.Status;
 
-import org.cytoscape.ci.CIResponseFactory;
 import org.cytoscape.ci.CIWrapping;
-import org.cytoscape.cyndex2.internal.CIServiceManager;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexStatusResource;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorType;
@@ -12,8 +10,8 @@ import org.cytoscape.cyndex2.internal.rest.parameter.AppStatusParameters;
 import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
 import org.cytoscape.cyndex2.internal.rest.parameter.SaveParameters;
 import org.cytoscape.cyndex2.internal.rest.response.AppStatusResponse;
+import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
-import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,26 +19,25 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 
 	private static final Logger logger = LoggerFactory.getLogger(NdexStatusResourceImpl.class);
 	
-	private final ExternalAppManager pm;
 	private final ErrorBuilder errorBuilder;
 	private final CIServiceManager ciServiceManager;
 	private AppStatusResponse<AppStatusParameters> status;
 
-	public NdexStatusResourceImpl(final ExternalAppManager pm, final ErrorBuilder errorBuilder, final CIServiceManager ciServiceManager) {
-		this.pm = pm;
+
+	public NdexStatusResourceImpl(final ErrorBuilder errorBuilder, final CIServiceManager ciServiceManager) {
 		this.errorBuilder = errorBuilder;
 		this.ciServiceManager = ciServiceManager;
 	}
 
 	private AppStatusParameters setLoadProps() {
 		final LoadParameters loadParameters = new LoadParameters();
-		loadParameters.searchTerm = pm.getQuery();
+		loadParameters.searchTerm = ExternalAppManager.query;
 		return loadParameters;
 	}
 	
 	private AppStatusParameters setSaveProps(){
 		final SaveParameters saveParameters = new SaveParameters();
-		saveParameters.saveType = pm.getSaveType();
+		saveParameters.saveType = ExternalAppManager.saveType;
 		return saveParameters;
 	}
 
@@ -48,7 +45,7 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 	@CIWrapping
 	public CIAppStatusResponse getAppStatus() {
 
-		final String widget = pm.getAppName();
+		final String widget = ExternalAppManager.appName;
 		if (widget == null) {
 			final String message = "Application type is not set yet.";
 			logger.error(message);

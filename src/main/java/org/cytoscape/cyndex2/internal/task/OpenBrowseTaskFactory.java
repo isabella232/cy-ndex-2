@@ -10,48 +10,31 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Properties;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JEditorPane;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.JToolTip;
 import javax.swing.ToolTipManager;
 
-import org.cytoscape.application.CyApplicationManager;
-import org.cytoscape.application.swing.CySwingApplication;
-import org.cytoscape.application.swing.search.AbstractNetworkSearchTaskFactory;
+import org.cytoscape.application.swing.search.NetworkSearchTaskFactory;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
-import org.cytoscape.property.CyProperty;
 import org.cytoscape.work.TaskIterator;
+import org.cytoscape.work.TaskObserver;
 
-public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
+public class OpenBrowseTaskFactory extends OpenDialogTaskFactory implements NetworkSearchTaskFactory {
 
 	private static final String ID = "cyndex2";
-	private static final String NAME = "NDEx Database";
+	private static final String NAME = "NDEx - Network Search";
+	private final Icon icon;
 
-	private final String appName;
-	private final ExternalAppManager pm;
 	private static Entry entry;
-	private String port;
-	private final JDialog dialog;
 
-	public OpenBrowseTaskFactory(final CyApplicationManager appManager, final Icon icon, final ExternalAppManager pm,
-			final CySwingApplication swingApp, final CyProperty<Properties> cyProps) {
-		super(ID, NAME, icon);
-		this.appName = ExternalAppManager.APP_NAME_LOAD;
-		this.pm = pm;
-		port = cyProps.getProperties().getProperty("rest.port");
-
-		if (port == null)
-			port = "1234";
-
-		JFrame frame = swingApp.getJFrame();
-		dialog = pm.getDialog(frame);
+	public OpenBrowseTaskFactory(final Icon icon) {
+		super(ExternalAppManager.APP_NAME_LOAD);
+		this.icon = icon;
 	}
 
 	public static Entry getEntry() {
@@ -61,8 +44,10 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 	}
 
 	@Override
-	public String getName () {return "NDEx - Network Search";}
-	
+	public String getName() {
+		return NAME;
+	}
+
 	public static class Entry extends JTextField {
 		/**
 		 * 
@@ -178,41 +163,19 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 		return getEntry();
 	}
 
-	@Override
 	public String getQuery() {
 		return getEntry().getQuery();
 	}
 
 	@Override
 	public TaskIterator createTaskIterator() {
-		TaskIterator ti = new TaskIterator();
-
-		if (ExternalAppManager.busy)
-			return ti;
-
-		// Store query info
-		pm.setQuery(getQuery());
-		pm.setAppName(appName);
-		pm.setPort(port);
-		ExternalAppManager.busy = true;
-
-		dialog.setSize(1000, 700);
-		dialog.setLocationRelativeTo(null);
-
-		LoadBrowserTask loader = new LoadBrowserTask(pm, dialog, ti);
-		ti.append(loader);
-
-		return ti;
+		ExternalAppManager.query = getQuery();
+		return super.createTaskIterator();
 	}
 
-	@Override
-	public boolean isReady() {
-		return !ExternalAppManager.busy && !ExternalAppManager.loadFailed;
-	}
-	
 	@Override
 	public String getDescription() {
-     return "<html>The Network Data Exchange (NDEx) is a cloud-based database <br />"
+		return "<html>The Network Data Exchange (NDEx) is a cloud-based database <br />"
 				+ "and software infrastructure to store, share and publish <br />"
 				+ "biological network knowledge. NDEx provides a REST API and<br />"
 				+ "several client libraries are available for programmatic <br />"
@@ -223,7 +186,7 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 				+ "For more information on NDEx and its Advanced Search <br />"
 				+ "capabilities, please visit our website.</html>";
 	}
-	
+
 	@Override
 	public URL getWebsite() {
 		try {
@@ -231,6 +194,26 @@ public class OpenBrowseTaskFactory extends AbstractNetworkSearchTaskFactory {
 		} catch (@SuppressWarnings("unused") MalformedURLException e) {
 			return null;
 		}
+	}
+
+	@Override
+	public Icon getIcon() {
+		return icon;
+	}
+
+	@Override
+	public String getId() {
+		return ID;
+	}
+
+	@Override
+	public JComponent getOptionsComponent() {
+		return null;
+	}
+
+	@Override
+	public TaskObserver getTaskObserver() {
+		return null;
 	}
 
 }

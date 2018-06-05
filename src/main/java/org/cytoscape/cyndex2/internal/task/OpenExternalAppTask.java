@@ -4,6 +4,7 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
@@ -60,7 +61,7 @@ public class OpenExternalAppTask extends AbstractTask {
 							}
 						}
 					});
-					browser.loadURL("http://localhost:2222");
+					browser.loadURL("http://cyndex.ndexbio.org/"+ CyActivator.WEB_APP_VERSION + "/index.html?cyrestport="+port);
 					
 					dialog.setAlwaysOnTop(false);
 					dialog.setVisible(true);
@@ -70,6 +71,7 @@ public class OpenExternalAppTask extends AbstractTask {
 				} catch (Exception e) {
 					dialog.setVisible(false);
 					System.out.println("Error loading CyNDEx2 browser: " + e.getMessage());
+					
 					JOptionPane.showMessageDialog(null,
 							"An error occurred communicating with JxBrowser. Restart and try again.", "JxBrowser Error",
 							JOptionPane.ERROR_MESSAGE);

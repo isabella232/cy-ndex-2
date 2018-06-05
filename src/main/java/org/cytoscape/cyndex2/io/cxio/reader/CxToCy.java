@@ -27,9 +27,11 @@ import org.cxio.aspects.datamodels.NodesElement;
 import org.cxio.aspects.datamodels.SubNetworkElement;
 import org.cxio.core.interfaces.AspectElement;
 import org.cxio.util.CxioUtil;
+import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.io.cxio.CxUtil;
 import org.cytoscape.cyndex2.io.cxio.Settings;
 import org.cytoscape.cyndex2.io.cxio.VisualPropertyType;
+import org.cytoscape.group.CyGroup;
 import org.cytoscape.group.CyGroupFactory;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyEdge;
@@ -143,7 +145,7 @@ public final class CxToCy {
         return subnets;
     }
 
-    public final List<CyNetwork> createNetwork(final NiceCXNetwork niceCX,
+  /*  public final List<CyNetwork> createNetwork(final NiceCXNetwork niceCX,
                                                final CyRootNetwork root_network,
                                                final CyNetworkFactory network_factory,
                                                final String collection_name,
@@ -152,10 +154,9 @@ public final class CxToCy {
         return createNetwork(niceCX,
                              root_network,
                              network_factory,
-                             null,
                              collection_name);
 
-    }
+    } */
     
     private final void createColumn(final NetworkAttributesElement el, final CyTable table) {
     		final String colName = el.getName();
@@ -198,12 +199,11 @@ public final class CxToCy {
     public final List<CyNetwork> createNetwork(final NiceCXNetwork niceCX, 
                                                CyRootNetwork root_network,
                                                final CyNetworkFactory network_factory,
-                                               final CyGroupFactory group_factory,
                                                final String collection_name) throws IOException {
 
        
 
-        
+    	CyGroupFactory group_factory = CyObjectManager.INSTANCE.getCyGroupFactory();
         final Map<Long, List<CyTableColumnElement>> subnetwork_to_col_labels_map = new HashMap<>();
 
         if ( niceCX.getNodes().isEmpty()) {
@@ -387,7 +387,6 @@ public final class CxToCy {
                      //    perform_basic_integrity_checks,
                          isCollection);
             
-
             addColumns(sub_network,
                        subnetwork_to_col_labels_map,
                        subnetwork_id);
@@ -416,6 +415,21 @@ public final class CxToCy {
                                                      CyNetwork.LOCAL_ATTRS));
             }
 
+     //       final Map<Long, List<CyGroupsElement>> subnet_to_groups_map = new HashMap<>();
+
+     //       processGroups(niceCX.getOpaqueAspectTable().get(CyGroupsElement.ASPECT_NAME),
+     //                     subnet_to_groups_map,subnetwork_id);
+
+            Collection<AspectElement> groups_elements = niceCX.getOpaqueAspectTable().get(CyGroupsElement.ASPECT_NAME);
+            
+            if (group_factory != null  && groups_elements != null) {
+                addGroups(group_factory,
+                		groups_elements,
+                          sub_network,
+                          subnetwork_id);
+            }
+            
+            
             final CyTable hidden_attribute_table = sub_network.getTable(CyNetwork.class,
                                                                         CyNetwork.HIDDEN_ATTRS);
             // TODO
@@ -485,17 +499,6 @@ public final class CxToCy {
             }
 
             
-            final Map<Long, List<CyGroupsElement>> view_to_groups_map = new HashMap<>();
-
-            processGroups(niceCX.getOpaqueAspectTable().get(CyGroupsElement.ASPECT_NAME),
-                          view_to_groups_map);
-
-            if (group_factory != null  && !view_to_groups_map.isEmpty()) {
-                addGroups(group_factory,
-                          view_to_groups_map,
-                          sub_network,
-                          subnetwork_id);
-            }
 
             new_networks.add(sub_network);
 
@@ -504,40 +507,44 @@ public final class CxToCy {
         return new_networks;
     }
 
-    public void addGroups(final CyGroupFactory group_factory,
-                          final Map<Long, List<CyGroupsElement>> view_to_groups_map,
+    private void addGroups(final CyGroupFactory group_factory,
+                          final Collection<AspectElement> groupElements,
                           final CySubNetwork sub_network,
                           final Long subnetwork_id) {
-        if (Settings.INSTANCE.isDebug()) {
-            System.out.println(view_to_groups_map);
-            System.out.println("groups: subnetwork_id: " + subnetwork_id);
-            System.out.println(_subnet_to_views_map);
-        }
-        if (_subnet_to_views_map.containsKey(subnetwork_id)) {
+
+ /*       if (_subnet_to_views_map.containsKey(subnetwork_id)) {
             final List<Long> vs = _subnet_to_views_map.get(subnetwork_id);
             for (final Long v : vs) {
 
-                final List<CyGroupsElement> g = view_to_groups_map.get(v);
-                for (final CyGroupsElement ge : g) {
-                    final List<CyNode> nodes_for_group = new ArrayList<>();
-                    for (final Long nod : ge.getNodes()) {
-                        nodes_for_group.add(_cxid_to_cynode_map.get(nod));
-                    }
-                    final List<CyEdge> edges_for_group = new ArrayList<>();
-                    for (final Long ed : ge.getInternalEdges()) {
-                        edges_for_group.add(_cxid_to_cyedge_map.get(ed));
-                    }
-                    for (final Long ed : ge.getExternalEdges()) {
-                        edges_for_group.add(_cxid_to_cyedge_map.get(ed));
-                    }
-                    sub_network.addNode();
-                    group_factory.createGroup(sub_network,
+                final List<CyGroupsElement> g = subnet_to_groups_map.get(v); */
+                for (final AspectElement a : groupElements) {
+                	CyGroupsElement ge = (CyGroupsElement) a;
+                	if ( ge.getSubNet() == null || ge.getSubNet().equals(subnetwork_id)) {
+                		final List<CyNode> nodes_for_group = new ArrayList<>();
+                    
+                		for (final Long nod : ge.getNodes()) {
+                			nodes_for_group.add(_cxid_to_cynode_map.get(nod));
+                		}
+                		final List<CyEdge> edges_for_group = new ArrayList<>();
+                		for (final Long ed : ge.getInternalEdges()) {
+                			edges_for_group.add(_cxid_to_cyedge_map.get(ed));
+                		}
+                		for (final Long ed : ge.getExternalEdges()) {
+                			edges_for_group.add(_cxid_to_cyedge_map.get(ed));
+                		}
+                		CyNode grpNode =  _cxid_to_cynode_map.get(ge.getGroupId());
+                		final CyRow row = sub_network.getRow(grpNode, CyNetwork.DEFAULT_ATTRS);
+                		row.set(CxUtil.SHARED_NAME_COL, ge.getName());
+                		CyGroup grp = group_factory.createGroup(sub_network,
+                    						  grpNode,
                                               nodes_for_group,
                                               edges_for_group,
                                               true);
+                		grp.expand(sub_network);
+                	}                    
                 }
-            }
-        }
+           // }
+       // }
     }
 
     public Set<CyEdge> getEdgesWithVisualProperties() {
@@ -752,7 +759,7 @@ public final class CxToCy {
         }
     }
 
-    private void createColumn(final boolean is_single,
+    private static void createColumn(final boolean is_single,
                              final Class<?> data_type,
                              final String name,
                              final CyTable table) {
@@ -777,12 +784,12 @@ public final class CxToCy {
         }
     }
 
-    private boolean isSingle(final ATTRIBUTE_DATA_TYPE dt) {
+    private static boolean isSingle(final ATTRIBUTE_DATA_TYPE dt) {
 
-        return ( dt == ATTRIBUTE_DATA_TYPE.BOOLEAN || dt == ATTRIBUTE_DATA_TYPE.BYTE || dt == ATTRIBUTE_DATA_TYPE.CHAR
-                || dt == ATTRIBUTE_DATA_TYPE.DOUBLE || dt == ATTRIBUTE_DATA_TYPE.FLOAT
+        return ( dt == ATTRIBUTE_DATA_TYPE.BOOLEAN  
+                || dt == ATTRIBUTE_DATA_TYPE.DOUBLE 
                 || dt == ATTRIBUTE_DATA_TYPE.INTEGER || dt == ATTRIBUTE_DATA_TYPE.LONG
-                || dt == ATTRIBUTE_DATA_TYPE.SHORT || dt == ATTRIBUTE_DATA_TYPE.STRING );
+                 || dt == ATTRIBUTE_DATA_TYPE.STRING );
     }
 
     private final void addNodes(final CySubNetwork network,
@@ -973,7 +980,7 @@ public final class CxToCy {
 		}
 	}
 
-    private Class<?> getDataType(final ATTRIBUTE_DATA_TYPE type) {
+    private static Class<?> getDataType(final ATTRIBUTE_DATA_TYPE type) {
         switch (type) {
         case STRING:
         case LIST_OF_STRING:
@@ -984,24 +991,18 @@ public final class CxToCy {
         case DOUBLE:
         case LIST_OF_DOUBLE:
             return Double.class;
-        case FLOAT:
-        case LIST_OF_FLOAT:
-            return Float.class;
         case INTEGER:
         case LIST_OF_INTEGER:
             return Integer.class;
         case LONG:
         case LIST_OF_LONG:
             return Long.class;
-        case SHORT:
-        case LIST_OF_SHORT:
-            return Integer.class;
         default:
             throw new IllegalArgumentException("don't know how to deal with type '" + type + "'");
         }
     }
 
-    private void processHiddenAttributes(final Collection<AspectElement> hidden_attributes,
+    private static void processHiddenAttributes(final Collection<AspectElement> hidden_attributes,
                                          final Map<Long, List<HiddenAttributesElement>> hidden_attributes_map) {
         if (hidden_attributes != null) {
             for (final AspectElement e : hidden_attributes) {
@@ -1020,7 +1021,7 @@ public final class CxToCy {
         }
     }
 
-	private Map<Long, Collection<NetworkAttributesElement>> processNetworkAttributes(
+	private static Map<Long, Collection<NetworkAttributesElement>> processNetworkAttributes(
 			final Collection<NetworkAttributesElement> network_attributes,
 			final boolean isCollection,
 			final List<Long> subnetworks_ids) {
@@ -1158,14 +1159,14 @@ public final class CxToCy {
                 throw new IllegalArgumentException("could not convert '" + value + "' to integer");
             }
         }
-        else if (type == Short.class) {
+     /*   else if (type == Short.class) {
             try {
                 return Integer.valueOf(value);
             }
             catch (final NumberFormatException e) {
                 throw new IllegalArgumentException("could not convert '" + value + "' to short");
             }
-        }
+        } 
         else if (type == Float.class) {
             try {
                 return Float.valueOf(value);
@@ -1173,7 +1174,7 @@ public final class CxToCy {
             catch (final NumberFormatException e) {
                 throw new IllegalArgumentException("could not convert '" + value + "' to float");
             }
-        }
+        } */
         else if (type == Double.class) {
             try {
                 return Double.valueOf(value);
@@ -1255,21 +1256,25 @@ public final class CxToCy {
         }
     } */
 
-    private final static void processGroups(final Collection<AspectElement> groups_elements,
-                                            final Map<Long, List<CyGroupsElement>> view_to_groups_map
+  /*  private final static void processGroups(final Collection<AspectElement> groups_elements,
+                                            final Map<Long, List<CyGroupsElement>> subnet_to_groups_map,Long subNetworkId
                                             ) {
         if (groups_elements != null) {
             for (final AspectElement e : groups_elements) {
                 final CyGroupsElement ge = (CyGroupsElement) e;
-                final Long view = ge.getView();
-                if (!view_to_groups_map.containsKey(view)) {
-                    view_to_groups_map.put(view,
-                                           new ArrayList<CyGroupsElement>());
+                Long subnetId = ge.getSubNet();
+                if (subnetId == null) {
+                	subnetId = subNetworkId;
+                	ge.setSubNet(subNetworkId);
                 }
-                view_to_groups_map.get(view).add(ge);
+                
+                if (!subnet_to_groups_map.containsKey(subnetId)) {
+                	subnet_to_groups_map.put(subnetId, new ArrayList<CyGroupsElement>());
+                }
+                subnet_to_groups_map.get(subnetId).add(ge);        
             }
         }
-    }
+    } */
 
     private final static void
             processColumnLabels(final Collection<AspectElement> col_labels_elements,

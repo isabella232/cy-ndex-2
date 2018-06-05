@@ -270,7 +270,7 @@ public final class CxImporter {
 		  if( metadata == null) {
 			  metadata = postmetadata;
 		  } else {
-			  for (MetaDataElement e : postmetadata.toCollection()) {
+			  for (MetaDataElement e : postmetadata) {
 				  Long cnt = e.getIdCounter();
 				  if ( cnt !=null) {
 					 metadata.setIdCounter(e.getName(),cnt);

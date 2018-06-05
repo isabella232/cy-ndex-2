@@ -8,7 +8,7 @@ import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.ci.model.CIError;
-import org.cytoscape.cyndex2.internal.CIServiceManager;
+import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 
 public class ErrorBuilder {
 

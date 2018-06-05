@@ -1,5 +1,7 @@
 package org.cytoscape.cyndex2.internal.rest.endpoints;
 
+import java.io.InputStream;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -10,12 +12,15 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import org.cytoscape.ci.model.CIResponse;
+import org.cytoscape.cyndex2.internal.rest.parameter.NdexBasicSaveParameter;
 import org.cytoscape.cyndex2.internal.rest.parameter.NdexImportParams;
 import org.cytoscape.cyndex2.internal.rest.parameter.NdexSaveParameters;
 import org.cytoscape.cyndex2.internal.rest.response.NdexBaseResponse;
 import org.cytoscape.cyndex2.internal.rest.response.SummaryResponse;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -27,10 +32,11 @@ import io.swagger.annotations.ApiResponses;
 @Path("/cyndex2/v1/networks")
 public interface NdexNetworkResource {
 	
+	
 	@ApiModel(
 			value="Summary Response",
 			parent=CIResponse.class)
-    public static class CISummaryResponse extends CIResponse<SummaryResponse>{
+    public static class CISummaryResponse extends CIResponse<SummaryResponse>{/**/
     }
 
 	@ApiOperation(
@@ -56,12 +62,11 @@ public interface NdexNetworkResource {
 	@ApiModel(
 			value="NDEx Base Response",
 			parent=CIResponse.class)
-    public static class CINdexBaseResponse extends CIResponse<NdexBaseResponse>{
-    }
+    public static class CINdexBaseResponse extends CIResponse<NdexBaseResponse>{/**/}
 	
 	@POST
 	@Produces("application/json")
-	@Consumes("application/json")
+	@Consumes(MediaType.APPLICATION_JSON)
 	@Path("/")
 	@ApiOperation(
 			value = "Import network from NDEx",
@@ -73,7 +78,29 @@ public interface NdexNetworkResource {
 					}
 			)
 	public CINdexBaseResponse createNetworkFromNdex(
-			 @ApiParam(value = "Properties required to import network from NDEx.", required = true) NdexImportParams params);
+			 @ApiParam(value = "Raw CX object to be imported to Cytoscape.", required = true) NdexImportParams params);
+	
+
+	@POST
+	@Produces("application/json")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Path("/cx")
+	@ApiOperation(
+			value = "Import network(s) from cyRestClient",
+			notes = "Import network(s) from cyRestClient.",
+			response = CINdexBaseResponse.class)
+	@ApiImplicitParams(
+			@ApiImplicitParam(value="CX network",  paramType="body", required=true)
+			)	
+/*	@ApiResponses(
+			value = {
+						@ApiResponse(code = 404, message = "Network does not exist", response = CINdexBaseResponse.class)
+					}
+			) */
+	public CINdexBaseResponse createNetworkFromCx(
+			@ApiParam(hidden=true) final InputStream is
+			/* @Context HttpServletRequest request /*, byte[] input*//*NdexImportParams params*/);
+
 	
 	@POST
 	@Produces("application/json")
@@ -106,7 +133,7 @@ public interface NdexNetworkResource {
 			@ApiResponse(code = 404, message = "Network does not exist", response = CINdexBaseResponse.class), })
 	public CINdexBaseResponse updateNetworkInNdex(
 			@ApiParam(value="Cytoscape Collection/Subnetwork SUID") @PathParam("suid") Long suid,
-			@ApiParam(value = "Properties required to update a network record in NDEx.", required = true) final NdexSaveParameters params);
+			@ApiParam(value = "Properties required to update a network record in NDEx.", required = true) final NdexBasicSaveParameter params);
 	
 	@PUT
 	@Produces("application/json")
@@ -120,5 +147,5 @@ public interface NdexNetworkResource {
 			value = {
 					@ApiResponse(code = 404, message = "Network does not exist", response = CINdexBaseResponse.class), })
 	public CINdexBaseResponse updateCurrentNetworkInNdex(
-			@ApiParam(value = "Properties required to update a network record in NDEx.", required = true) final NdexSaveParameters params);
+			@ApiParam(value = "Properties required to update a network record in NDEx.", required = true) final NdexBasicSaveParameter params);
 }

@@ -1,65 +1,44 @@
 package org.cytoscape.cyndex2.internal.task;
 
-import java.util.Properties;
+import java.util.Collection;
 
-import javax.swing.JDialog;
-import javax.swing.JFrame;
 import org.cytoscape.application.CyApplicationManager;
-import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
-import org.cytoscape.property.CyProperty;
-import org.cytoscape.work.AbstractTaskFactory;
+import org.cytoscape.task.NetworkViewCollectionTaskFactory;
+import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.TaskIterator;
 
-public class OpenSaveTaskFactory extends AbstractTaskFactory {
-
-	private final String appName;
-	private final ExternalAppManager pm;
+public class OpenSaveTaskFactory extends OpenDialogTaskFactory implements NetworkViewCollectionTaskFactory {
+	private final String saveType;	
 	private final CyApplicationManager appManager;
-	private final String saveType;
-	private String port;
 	
-	
-	private final JDialog dialog;
-	
-
-	public OpenSaveTaskFactory(final String saveType, final CyApplicationManager appManager,
-			final ExternalAppManager pm, final CySwingApplication swingApp, final CyProperty<Properties> cyProps) {
-		super();
+	public OpenSaveTaskFactory(final String saveType, final CyApplicationManager appManager) {
+		super(ExternalAppManager.APP_NAME_SAVE);
 		this.saveType = saveType;
-		this.appName = ExternalAppManager.APP_NAME_SAVE;
 		this.appManager = appManager;
-		this.pm = pm;
-		port = cyProps.getProperties().getProperty("rest.port");
-
-		if (port == null)
-			port = "1234";
-
-		JFrame frame = swingApp.getJFrame();
-		dialog = pm.getDialog(frame);
 	}
 	
 	@Override
 	public TaskIterator createTaskIterator() {
-		// Store query info
-		pm.setAppName(appName);
-		pm.setPort(port);
-		pm.setSaveType(saveType);
-		
-		dialog.setSize(1000, 700);
-		dialog.setLocationRelativeTo(null);
-
-		TaskIterator ti = new TaskIterator();
-		LoadBrowserTask loader = new LoadBrowserTask(pm, dialog, ti);
-		ti.append(loader);
-		return ti;
+		ExternalAppManager.saveType = saveType;
+		return super.createTaskIterator();
 	}
 
 	@Override
 	public boolean isReady() {
-		if (ExternalAppManager.loadFailed)
+		if (ExternalAppManager.loadFailed())
 			return false;
 
 		return appManager.getCurrentNetwork() != null;
+	}
+
+	@Override
+	public TaskIterator createTaskIterator(Collection<CyNetworkView> arg0) {
+		return createTaskIterator();
+	}
+
+	@Override
+	public boolean isReady(Collection<CyNetworkView> arg0) {
+		return isReady();
 	}
 }

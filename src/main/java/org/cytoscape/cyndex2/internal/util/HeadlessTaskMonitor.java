@@ -1,4 +1,4 @@
-package org.cytoscape.cyndex2.internal.rest;
+package org.cytoscape.cyndex2.internal.util;
 
 import org.cytoscape.work.TaskMonitor;
 
