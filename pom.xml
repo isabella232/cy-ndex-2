@@ -7,12 +7,12 @@
 		<bundle.symbolicName>org.cytoscape.cyndex2</bundle.symbolicName>
 		<bundle.namespace>org.cytoscape.cyndex2</bundle.namespace>
 
-		<maven-compiler-plugin.version>3.6.1</maven-compiler-plugin.version>
-		<maven-bundle-plugin.version>3.3.0</maven-bundle-plugin.version>
+		<maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
+		<maven-bundle-plugin.version>3.4.0</maven-bundle-plugin.version>
 
 		<junit.version>4.12</junit.version>
 		<jetty.version>9.3.9.v20160517</jetty.version>
-		<jxbrowser.version>6.17</jxbrowser.version>
+		<jxbrowser.version>6.20</jxbrowser.version>
 		<cytoscape.api.version>3.6.0</cytoscape.api.version>
 		<osgi.api.version>4.2.0</osgi.api.version>
 
