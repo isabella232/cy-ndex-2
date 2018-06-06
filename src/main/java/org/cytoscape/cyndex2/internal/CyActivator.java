@@ -185,17 +185,19 @@ public class CyActivator extends AbstractCyActivator {
 		ndexSaveCollectionTaskFactoryProps.setProperty(TITLE, "Collection to NDEx...");
 		registerService(bc, ndexSaveCollectionTaskFactory, TaskFactory.class, ndexSaveCollectionTaskFactoryProps);
 		
-		ImportNetworkFromNDExTaskFactory importFromNDExTaskFactory = new ImportNetworkFromNDExTaskFactory();
+		ImportNetworkFromNDExTaskFactory importFromNDExTaskFactory = new ImportNetworkFromNDExTaskFactory(ExternalAppManager.APP_NAME_LOAD);
 		Properties importProps = new Properties();
 		importProps.setProperty(IN_TOOL_BAR, "true");
 		importProps.setProperty(TOOL_BAR_GRAVITY, "0.0f");
+		importProps.setProperty(TOOLTIP, StringResources.NDEX_OPEN);
 		String loadIconUrl = getClass().getResource("/images/open_from_ndex_36x36.png").toString();
 		importProps.setProperty(LARGE_ICON_URL, loadIconUrl);
 		importProps.setProperty(SMALL_ICON_URL, loadIconUrl);
 		registerService(bc, importFromNDExTaskFactory, TaskFactory.class, importProps);
 		
 		
-		SaveNetworkToNDExTaskFactory saveToNDExTaskFactory = new SaveNetworkToNDExTaskFactory();
+		
+		SaveNetworkToNDExTaskFactory saveToNDExTaskFactory = new SaveNetworkToNDExTaskFactory(appManager, ExternalAppManager.APP_NAME_SAVE);
 		Properties props = new Properties();
 		props.setProperty(IN_TOOL_BAR, "true");
 		props.setProperty(INSERT_TOOLBAR_SEPARATOR_AFTER, "true");

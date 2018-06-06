@@ -56,8 +56,7 @@ public class BrowserManager {
 		if (browser == null) {
 
 			// Uncomment for development port
-			BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222", "--ipc-connection-timeout=2");
-			// BrowserPreferences.setChromiumSwitches("--ipc-connection-timeout=2");
+			// BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222");
 
 			// Create the binary in the CytoscapeConfig
 			System.setProperty("jxbrowser.chromium.dir", jxbrowserConfigLocation.getAbsolutePath());

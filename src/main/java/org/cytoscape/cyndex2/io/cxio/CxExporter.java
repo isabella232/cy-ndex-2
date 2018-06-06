@@ -924,6 +924,8 @@ public final class CxExporter {
         }
         else if ((additional_to_ignore != null) && additional_to_ignore.contains(column_name)) {
             return true;
+        }else if (column_name.equals(NetworkManager.UUID_COLUMN)){
+        	return true;
         }
         return false;
     }
