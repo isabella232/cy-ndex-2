@@ -26,11 +26,12 @@ import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.task.OpenBrowseTaskFactory;
 import org.cytoscape.cyndex2.internal.task.OpenDialogTaskFactory;
 import org.cytoscape.cyndex2.internal.task.OpenSaveTaskFactory;
-import org.cytoscape.cyndex2.internal.ui.ImportNetworkFromNDExToolbarComponent;
-import org.cytoscape.cyndex2.internal.ui.SaveNetworkToNDExToolbarComponent;
+import org.cytoscape.cyndex2.internal.ui.ImportNetworkFromNDExTaskFactory;
+import org.cytoscape.cyndex2.internal.ui.SaveNetworkToNDExTaskFactory;
 import org.cytoscape.cyndex2.internal.util.BrowserManager;
 import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
+import org.cytoscape.cyndex2.internal.util.StringResources;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.io.write.CyNetworkViewWriterFactory;
 import org.cytoscape.model.CyNetworkManager;
@@ -54,7 +55,6 @@ public class CyActivator extends AbstractCyActivator {
 	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
 	public static final String INSTALL_MAKER_FILE_NAME = "ndex-installed";
 	public static final String WEB_APP_VERSION = "0.1.2";
-	// private static final String STATIC_CONTENT_DIR = "cyndex-2";
 
 	private static CyProperty<Properties> cyProps;
 
@@ -67,7 +67,6 @@ public class CyActivator extends AbstractCyActivator {
 	private CIServiceManager ciServiceManager;
 	private static CySwingApplication swingApp;
 	public static TaskManager<?, ?> taskManager;
-	
 
 	public CyActivator() {
 		super();
@@ -90,7 +89,7 @@ public class CyActivator extends AbstractCyActivator {
 		}
 		return port;
 	}
-	
+
 	public static void openBrowserDialog(String appName) {
 		OpenDialogTaskFactory odtf = new OpenDialogTaskFactory(appName);
 		TaskIterator ti = odtf.createTaskIterator();
@@ -100,7 +99,6 @@ public class CyActivator extends AbstractCyActivator {
 	@Override
 	@SuppressWarnings("unchecked")
 	public void start(BundleContext bc) throws InvalidSyntaxException {
-
 
 		for (Bundle b : bc.getBundles()) {
 			// System.out.println(b.getSymbolicName());
@@ -186,14 +184,27 @@ public class CyActivator extends AbstractCyActivator {
 		ndexSaveCollectionTaskFactoryProps.setProperty(MENU_GRAVITY, "0.1");
 		ndexSaveCollectionTaskFactoryProps.setProperty(TITLE, "Collection to NDEx...");
 		registerService(bc, ndexSaveCollectionTaskFactory, TaskFactory.class, ndexSaveCollectionTaskFactoryProps);
-
-		// TF for NDEx save toolbar component
-		SaveNetworkToNDExToolbarComponent saveToolbar = new SaveNetworkToNDExToolbarComponent();
-		registerAllServices(bc, saveToolbar);
-
-		// TF for NDEx save toolbar component
-		ImportNetworkFromNDExToolbarComponent loadToolbar = new ImportNetworkFromNDExToolbarComponent();
-		registerAllServices(bc, loadToolbar);
+		
+		ImportNetworkFromNDExTaskFactory importFromNDExTaskFactory = new ImportNetworkFromNDExTaskFactory();
+		Properties importProps = new Properties();
+		importProps.setProperty(IN_TOOL_BAR, "true");
+		importProps.setProperty(TOOL_BAR_GRAVITY, "0.0f");
+		String loadIconUrl = getClass().getResource("/images/open_from_ndex_36x36.png").toString();
+		importProps.setProperty(LARGE_ICON_URL, loadIconUrl);
+		importProps.setProperty(SMALL_ICON_URL, loadIconUrl);
+		registerService(bc, importFromNDExTaskFactory, TaskFactory.class, importProps);
+		
+		
+		SaveNetworkToNDExTaskFactory saveToNDExTaskFactory = new SaveNetworkToNDExTaskFactory();
+		Properties props = new Properties();
+		props.setProperty(IN_TOOL_BAR, "true");
+		props.setProperty(INSERT_TOOLBAR_SEPARATOR_AFTER, "true");
+		props.setProperty(TOOLTIP, StringResources.NDEX_SAVE);
+		props.setProperty(TOOL_BAR_GRAVITY, "0.1f");
+		String saveIconUrl = getClass().getResource("/images/save_to_ndex_36x36.png").toString();
+		props.setProperty(LARGE_ICON_URL, saveIconUrl);
+		props.setProperty(SMALL_ICON_URL, saveIconUrl);
+		registerService(bc, saveToNDExTaskFactory, TaskFactory.class, props);
 
 		// TF for NDEx Load
 		final OpenBrowseTaskFactory ndexTaskFactory = new OpenBrowseTaskFactory(icon);
@@ -202,7 +213,6 @@ public class CyActivator extends AbstractCyActivator {
 		ndexTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Import.Network");
 		ndexTaskFactoryProps.setProperty(MENU_GRAVITY, "0.0");
 		ndexTaskFactoryProps.setProperty(TITLE, "NDEx...");
-
 		registerAllServices(bc, ndexTaskFactory, ndexTaskFactoryProps);
 
 		// Expose CyREST endpoints
@@ -226,25 +236,21 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, new NdexNetworkAboutToBeDestroyedListener(), NetworkAboutToBeDestroyedListener.class,
 				new Properties());
 
+		OpenSaveTaskFactory saveNetworkToNDExContextMenuTaskFactory = new OpenSaveTaskFactory(
+				ExternalAppManager.SAVE_NETWORK, appManager);
+		Properties saveNetworkToNDExContextMenuProps = new Properties();
+		saveNetworkToNDExContextMenuProps.setProperty(ID, "saveToNDEx");
+		saveNetworkToNDExContextMenuProps.setProperty(TITLE, "Save Network to NDEx...");
 
-		OpenSaveTaskFactory saveNetworkToNDExContextMenuTaskFactory = new OpenSaveTaskFactory(ExternalAppManager.SAVE_NETWORK, appManager);
-        Properties saveNetworkToNDExContextMenuProps = new Properties();
-        saveNetworkToNDExContextMenuProps
-                .setProperty(ID, "saveToNDEx");
-        saveNetworkToNDExContextMenuProps.setProperty(TITLE, "Save Network to NDEx...");
+		saveNetworkToNDExContextMenuProps.setProperty(IN_NETWORK_PANEL_CONTEXT_MENU, "true");
+		saveNetworkToNDExContextMenuProps.setProperty(INSERT_SEPARATOR_BEFORE, "true");
+		saveNetworkToNDExContextMenuProps.setProperty(ENABLE_FOR, "network");
 
-        saveNetworkToNDExContextMenuProps.setProperty(IN_NETWORK_PANEL_CONTEXT_MENU,
-                "true");
-        saveNetworkToNDExContextMenuProps.setProperty(INSERT_SEPARATOR_BEFORE, "true");
-        saveNetworkToNDExContextMenuProps.setProperty(ENABLE_FOR, "network");
-
-        registerService(bc, saveNetworkToNDExContextMenuTaskFactory,
-                NetworkViewCollectionTaskFactory.class,
-                saveNetworkToNDExContextMenuProps);
-//        registerService(bc, saveNetworkToNDExContextMenuTaskFactory,
-//        		TestTaskFactory.class, saveNetworkToNDExContextMenuProps);
+		registerService(bc, saveNetworkToNDExContextMenuTaskFactory, NetworkViewCollectionTaskFactory.class,
+				saveNetworkToNDExContextMenuProps);
+		// registerService(bc, saveNetworkToNDExContextMenuTaskFactory,
+		// TestTaskFactory.class, saveNetworkToNDExContextMenuProps);
 	}
-
 
 	@Override
 	public void shutDown() {
@@ -256,7 +262,6 @@ public class CyActivator extends AbstractCyActivator {
 		}
 		super.shutDown();
 	}
-
 
 	public static String getCyVersion() {
 		return cytoscapeVersion;
