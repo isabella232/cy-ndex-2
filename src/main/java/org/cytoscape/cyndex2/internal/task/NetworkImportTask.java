@@ -28,14 +28,11 @@ package org.cytoscape.cyndex2.internal.task;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.channels.ReadPendingException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import javax.swing.SwingWorker;
 
 import org.cxio.aspects.datamodels.CartesianLayoutElement;
 import org.cxio.aspects.datamodels.CyGroupsElement;
@@ -191,7 +188,7 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 		if (networkSummary != null) {
 			NetworkManager.INSTANCE.addNetworkUUID(isCollection ? rootNetwork.getSUID() : networks.get(0).getSUID(),
 					networkSummary.getExternalId());
-			
+
 			long key = isCollection ? rootNetwork.getSUID() : networks.get(0).getSUID();
 			CyTable table = (isCollection ? rootNetwork : networks.get(0)).getTable(CyNetwork.class,
 					CyNetwork.HIDDEN_ATTRS);
@@ -225,58 +222,42 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 		}
 	}
 
-	public Long getSUID() {
-		return suid;
-	}
-
 	@Override
 	public void run(TaskMonitor taskMonitor) throws NetworkImportException {
 
-		SwingWorker<Integer, Integer> worker = new SwingWorker<Integer, Integer>() {
-
-			@Override
-			protected Integer doInBackground() throws NetworkImportException {
-
-				{
-
-					// For entire network, we will query again, hence will check
-					// credential
-					// boolean success = true; // selectedServer.check(mal);
-					// if (success) {
-					try {
-						taskMonitor.setStatusMessage("Fetching network from NDEx");
-						if (cxStream == null) {
-							UUID id = networkSummary.getExternalId();
-							if (accessKey == null)
-								cxStream = mal.getNetworkAsCXStream(id);
-							else
-								cxStream = mal.getNetworkAsCXStream(id, accessKey);
-						}
-						taskMonitor.setProgress(.4);
-						createCyNetworkFromCX(taskMonitor);
-					} catch (IOException ex) {
-						throw new NetworkImportException("Failed to parse JSON from NDEx source.");
-					} catch (RuntimeException ex2) {
-						ex2.printStackTrace();
-						throw new NetworkImportException(ex2.getMessage());
-					} catch (NdexException e) {
-						throw new NetworkImportException("Unable to read network from NDEx: " + e.getMessage());
-					}
-					// } else {
-					// throw new NetworkImportException("Failed to communicate with server. Please
-					// connect to a valid server before continuing.");
-					// }
-				}
-				return 1;
+		// For entire network, we will query again, hence will check
+		// credential
+		// boolean success = true; // selectedServer.check(mal);
+		// if (success) {
+		try {
+			taskMonitor.setStatusMessage("Fetching network from NDEx");
+			if (cxStream == null) {
+				UUID id = networkSummary.getExternalId();
+				if (accessKey == null)
+					cxStream = mal.getNetworkAsCXStream(id);
+				else
+					cxStream = mal.getNetworkAsCXStream(id, accessKey);
 			}
+			taskMonitor.setProgress(.4);
+			createCyNetworkFromCX(taskMonitor);
+		} catch (IOException ex) {
+			throw new NetworkImportException("Failed to parse JSON from NDEx source.");
+		} catch (RuntimeException ex2) {
+			ex2.printStackTrace();
+			throw new NetworkImportException(ex2.getMessage());
+		} catch (NdexException e) {
+			throw new NetworkImportException("Unable to read network from NDEx: " + e.getMessage());
+		}
+		// } else {
+		// throw new NetworkImportException("Failed to communicate with server. Please
+		// connect to a valid server before continuing.");
+		// }
 
-		};
 		taskMonitor.setTitle("Importing Network from NDEx...");
 		taskMonitor.setProgress(0);
-		worker.execute();
-		// This is a hack, to wait until the SUID of the root is available to
+		
+		// This is a hack, ensuring the task waits until the SUID of the root is available to
 		// return
-
 		while (suid == null) {
 			try {
 				Thread.sleep(500);
@@ -303,7 +284,10 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <R> R getResults(Class<? extends R> type) {
-		if (type == Long.class) {
+		if (suid == null) {
+			return null;
+		}
+		if (type.equals(Long.class)) {
 			return (R) suid;
 		}
 		return null;

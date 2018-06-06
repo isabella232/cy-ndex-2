@@ -139,7 +139,6 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 				prepareForUpdate(suid);
 				mal.updateCXNetwork(networkUUID, in);
 			}
-
 			// set customized provenance
 			/*
 			 * CXInfoHolder cxInfoHolder = NetworkManager.INSTANCE.getCXInfoHolder(suid);
@@ -217,7 +216,8 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 		if (networkUUID == null) {
 			throw new NetworkExportException("There was a problem exporting the network!");
 		}
-
+		taskMonitor.setProgress(1.0f);
+		
 	}
 
 	private void prepareForUpdate(long suid) throws NetworkUpdateException {
@@ -230,10 +230,6 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 			throw new NetworkUpdateException(
 					"NDEx network UUID not found. You can only update networks that were imported with CyNDEx2");
 		}
-	}
-
-	public UUID getNetworkUUID() {
-		return networkUUID;
 	}
 
 	public class NetworkExportException extends Exception {
@@ -261,7 +257,10 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 	@SuppressWarnings("unchecked")
 	@Override
 	public <R> R getResults(Class<? extends R> type) {
-		if (type == String.class) {
+		if (networkUUID == null)
+			return null;
+		
+		if (type.equals(String.class)) {
 			return (R) networkUUID.toString();
 		}
 		return null;
