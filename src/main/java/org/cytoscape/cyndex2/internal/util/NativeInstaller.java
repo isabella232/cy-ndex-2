@@ -4,13 +4,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.Enumeration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,21 +13,15 @@ import java.util.jar.JarEntry;
 
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZFile;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.teamdev.jxbrowser.chromium.Browser;
-import com.teamdev.jxbrowser.chromium.BrowserContext;
-import com.teamdev.jxbrowser.chromium.BrowserContextParams;
-import com.teamdev.jxbrowser.chromium.BrowserType;
 
 public class NativeInstaller {
 	private final Logger logger = LoggerFactory.getLogger(NativeInstaller.class);
 
 	private static final int BUFFER_SIZE = 2048;
 
-	public static final String JXBROWSER_VERSION = "6.17";
+	public static final String JXBROWSER_VERSION = "6.20";
 	public static final String JXBROWSER_LOCATION = "jxbrowser";
 
 	private static final String PLATFORM_WIN = "win";
@@ -90,7 +79,7 @@ public class NativeInstaller {
 		if (!installLocation.exists()) {
 			installLocation.mkdir();
 		}
-		
+
 		File jarFile = new File(installLocation, getJarName());
 
 		try {
@@ -100,11 +89,11 @@ public class NativeInstaller {
 				int fileSize = checkSize(url);
 				downloadJarFile(sourceUrl, jarFile, fileSize);
 			}
-			
+
 			File zipFile = extractZipFile(jarFile, installLocation);
-			
+
 			extractBinaries(zipFile);
-			
+
 		} catch (IOException e) {
 			e.printStackTrace();
 			logger.error("Failed to extract JAR to " + installLocation.getAbsolutePath());
@@ -124,7 +113,7 @@ public class NativeInstaller {
 		// always check HTTP response code first
 		if (responseCode == HttpURLConnection.HTTP_OK) {
 			String disposition = httpConn.getHeaderField("Content-Disposition");
-			String contentType = httpConn.getContentType();
+			//String contentType = httpConn.getContentType();
 			int contentLength = httpConn.getContentLength();
 
 			String fileName = null;
@@ -146,45 +135,6 @@ public class NativeInstaller {
 		} else {
 			throw new IOException("No file to download. Server replied HTTP code: " + responseCode);
 		}
-	}
-
-	private final void extractNativeApp(File jarFile) throws IOException {
-		String url = getURL();
-		final URL sourceUrl = new URL(url);
-		int fileSize = checkSize(url);
-//		extract(sourceUrl, jarFile, fileSize);
-//		extractJarFile(jarFile, installLocation);
-		// switch (platform) {
-		// case PLATFORM_MAC:
-		// try {
-		// int fileSize = checkSize(url);
-		// extract(sourceUrl, jarFile, fileSize);
-		// extractJarFile(jarFile, installLocation);
-		//
-		// // unzipMac(jarFile);
-		// } catch (Exception e) {
-		// e.printStackTrace();
-		// logger.error("Failed to extract", e);
-		// }
-		// break;
-		// case PLATFORM_WIN:
-		// extractPreviewTemplate(sourceUrl, installLocation);
-		// break;
-		// case PLATFORM_LINUX_32:
-		// case PLATFORM_LINUX_64:
-		// int fileSize = checkSize(url);
-		// extract(sourceUrl, jarFile, fileSize);
-		// try {
-		// unzip(jarFile, installLocation);
-		// } catch (InterruptedException e) {
-		// e.printStackTrace();
-		// logger.error("Failed to extract", e);
-		// }
-		// break;
-		// default:
-		// break;
-		// }
-
 	}
 
 	private final void downloadJarFile(final URL src, File target, final int size) throws IOException {
@@ -224,6 +174,15 @@ public class NativeInstaller {
 		while (enumEntries.hasMoreElements()) {
 			java.util.jar.JarEntry file = (java.util.jar.JarEntry) enumEntries.nextElement();
 			java.io.File f = new java.io.File(destDir + java.io.File.separator + file.getName());
+
+			if (file.getName().matches("chromium-.*\\.7z")) {
+				zipFile = f;
+			}
+
+			if (f.exists()) {
+				break;
+			}
+
 			if (file.isDirectory()) { // if its a directory, create it
 				f.mkdir();
 				continue;
@@ -239,9 +198,7 @@ public class NativeInstaller {
 
 			fos.close();
 			is.close();
-			if (file.getName().matches("chromium-.*\\.7z")) {
-				zipFile = f;
-			}
+
 		}
 		jar.close();
 		return zipFile;
@@ -249,22 +206,25 @@ public class NativeInstaller {
 
 	public void extractBinaries(File zipFile) throws IOException {
 		SevenZFile sevenZFile = new SevenZFile(zipFile);
-
 		SevenZArchiveEntry entry = sevenZFile.getNextEntry();
+
 		while (entry != null) {
 			File f = new File(zipFile.getParentFile(), entry.getName());
-			if (entry.isDirectory()) {
-				f.mkdirs();
-				entry = sevenZFile.getNextEntry();
-				continue;
-			}
+			if (!f.exists()) {
+				if (entry.isDirectory()) {
+					f.mkdirs();
+					entry = sevenZFile.getNextEntry();
+					continue;
+				}
 
-			byte[] content = new byte[(int) entry.getSize()];
-			sevenZFile.read(content);
-			
-			FileOutputStream fos = new FileOutputStream(f);
-			fos.write(content);
-			fos.close();
+				byte[] content = new byte[(int) entry.getSize()];
+				sevenZFile.read(content);
+
+				FileOutputStream fos = new FileOutputStream(f);
+				fos.write(content);
+				fos.close();
+			}
+			f.setExecutable(true);
 			entry = sevenZFile.getNextEntry();
 		}
 		sevenZFile.close();
@@ -275,44 +235,6 @@ public class NativeInstaller {
 			// unzipTemplate(source, destination);
 		} else {
 			// unzipTemplate(source, destination);
-		}
-	}
-
-	// For Mac: Extract with native tar command to avoid broken app.
-	private void unzipMac(File archiveFile) throws IOException, InterruptedException {
-
-		ProcessBuilder pb = new ProcessBuilder("jar", "-xvf", archiveFile.getAbsolutePath());
-		Process p = pb.start();
-		InputStream stream = p.getErrorStream();
-		while (true) {
-			int c = stream.read();
-			if (c == -1) {
-				stream.close();
-				break;
-			}
-		}
-	}
-
-	// For Linux: Extract with native tar command to avoid broken app.
-	private void unzip(File archiveFile, File electronAppDirectory) throws IOException, InterruptedException {
-
-		try {
-			ProcessBuilder pb = new ProcessBuilder("tar", "zxvf", archiveFile.toString(), "-C",
-					electronAppDirectory.toString());
-			Process p = pb.start();
-			InputStream is = p.getInputStream();
-			try {
-				while (is.read() >= 0)
-					;
-			} finally {
-				is.close();
-			}
-
-			p.waitFor();
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			logger.error("Failed to extract Electron file.", e);
 		}
 	}
 
@@ -329,7 +251,6 @@ public class NativeInstaller {
 		NativeInstaller ni = new NativeInstaller(config);
 		ni.install();
 	}
-
 
 	public static void main(String[] args) {
 		File f = new File("/Users/bsettle/Desktop/jxbrowser");

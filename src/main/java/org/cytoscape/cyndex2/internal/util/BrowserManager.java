@@ -5,6 +5,12 @@ import java.awt.Dialog;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
+
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
@@ -18,6 +24,7 @@ import com.teamdev.jxbrowser.chromium.BrowserContext;
 import com.teamdev.jxbrowser.chromium.BrowserContextParams;
 import com.teamdev.jxbrowser.chromium.BrowserPreferences;
 import com.teamdev.jxbrowser.chromium.BrowserType;
+import com.teamdev.jxbrowser.chromium.LoggerProvider;
 import com.teamdev.jxbrowser.chromium.PopupContainer;
 import com.teamdev.jxbrowser.chromium.PopupHandler;
 import com.teamdev.jxbrowser.chromium.PopupParams;
@@ -28,6 +35,8 @@ import com.teamdev.jxbrowser.chromium.events.LoadEvent;
 import com.teamdev.jxbrowser.chromium.swing.BrowserView;
 
 public class BrowserManager {
+	private static final boolean DEBUG = false;
+
 	private static Browser browser;
 	private static BrowserView browserView;
 	private static File jxbrowserDataLocation;
@@ -54,25 +63,58 @@ public class BrowserManager {
 		return browserView;
 	}
 
+	public static void enableLogging() throws IOException {
+		LoggerProvider.setLevel(Level.ALL);
+
+		String dir = "/Users/bsettle/Desktop/jxbrowser-";
+
+		// Redirect Browser log messages to jxbrowser-browser.log
+		redirectLogMessagesToFile(LoggerProvider.getBrowserLogger(), dir + "browser.log");
+
+		// Redirect IPC log messages to jxbrowser-ipc.log
+		redirectLogMessagesToFile(LoggerProvider.getIPCLogger(), dir + "ipc.log");
+
+		// Redirect Chromium Process log messages to jxbrowser-chromium.log
+		redirectLogMessagesToFile(LoggerProvider.getChromiumProcessLogger(), dir + "chromium.log");
+	}
+
+	private static void redirectLogMessagesToFile(Logger logger, String logFilePath) throws IOException {
+		FileHandler fileHandler = new FileHandler(logFilePath);
+		fileHandler.setFormatter(new SimpleFormatter());
+
+		// Remove default handlers including console handler
+		for (Handler handler : logger.getHandlers()) {
+			logger.removeHandler(handler);
+		}
+		logger.addHandler(fileHandler);
+	}
+
 	public static Browser getJXBrowser(TaskMonitor tm) throws BrowserCreationError {
 		if (browser == null) {
 
-			// Uncomment for development port
-			// BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222");
-
+			if (DEBUG) {
+				BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222");
+				try {
+					enableLogging();
+					System.setProperty("jxbrowser.ipc.external", "true");
+				} catch (IOException e) {
+					System.out.println("Failed to load loggers");
+				}
+			}
+			
 			try {
 				tm.setStatusMessage("Setting up JXBrowser binaries");
 				File f = new File(BrowserPreferences.getDefaultChromiumDir());
 				NativeInstaller.installJXBrowser(f);
-//				BrowserPreferences.setChromiumDir(f.getAbsolutePath());
+				// BrowserPreferences.setChromiumDir(f.getAbsolutePath());
 				System.setProperty("jxbrowser.chromium.dir", f.getAbsolutePath());
-				
+
 				tm.setProgress(.1);
 				tm.setStatusMessage("Creating browser instance");
 				BrowserContextParams params = new BrowserContextParams(jxbrowserDataLocation.getAbsolutePath());
 				BrowserContext context = new BrowserContext(params);
 				browser = new Browser(BrowserType.LIGHTWEIGHT, context);
-				
+
 				if (browser == null) {
 					throw new BrowserCreationError("Browser failed to initialize.");
 				}
