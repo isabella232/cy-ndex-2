@@ -17,11 +17,13 @@ import javax.swing.WindowConstants;
 
 import org.apache.commons.io.FileUtils;
 import org.cytoscape.cyndex2.errors.BrowserCreationError;
+import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.work.TaskMonitor;
 
 import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.BrowserContext;
 import com.teamdev.jxbrowser.chromium.BrowserContextParams;
+import com.teamdev.jxbrowser.chromium.BrowserCore;
 import com.teamdev.jxbrowser.chromium.BrowserPreferences;
 import com.teamdev.jxbrowser.chromium.BrowserType;
 import com.teamdev.jxbrowser.chromium.LoggerProvider;
@@ -32,11 +34,10 @@ import com.teamdev.jxbrowser.chromium.events.DisposeEvent;
 import com.teamdev.jxbrowser.chromium.events.DisposeListener;
 import com.teamdev.jxbrowser.chromium.events.LoadAdapter;
 import com.teamdev.jxbrowser.chromium.events.LoadEvent;
+import com.teamdev.jxbrowser.chromium.internal.ipc.IPC;
 import com.teamdev.jxbrowser.chromium.swing.BrowserView;
 
 public class BrowserManager {
-	private static final boolean DEBUG = false;
-
 	private static Browser browser;
 	private static BrowserView browserView;
 	private static File jxbrowserDataLocation;
@@ -66,16 +67,17 @@ public class BrowserManager {
 	public static void enableLogging() throws IOException {
 		LoggerProvider.setLevel(Level.ALL);
 
-		String dir = "/Users/bsettle/Desktop/jxbrowser-";
+		File dir = new File(jxbrowserDataLocation.getParent(), "log");
+		dir.mkdirs();
 
 		// Redirect Browser log messages to jxbrowser-browser.log
-		redirectLogMessagesToFile(LoggerProvider.getBrowserLogger(), dir + "browser.log");
+		redirectLogMessagesToFile(LoggerProvider.getBrowserLogger(), new File(dir, "browser.log").getAbsolutePath());
 
 		// Redirect IPC log messages to jxbrowser-ipc.log
-		redirectLogMessagesToFile(LoggerProvider.getIPCLogger(), dir + "ipc.log");
+		redirectLogMessagesToFile(LoggerProvider.getIPCLogger(), new File(dir, "ipc.log").getAbsolutePath());
 
 		// Redirect Chromium Process log messages to jxbrowser-chromium.log
-		redirectLogMessagesToFile(LoggerProvider.getChromiumProcessLogger(), dir + "chromium.log");
+		redirectLogMessagesToFile(LoggerProvider.getChromiumProcessLogger(), new File(dir, "chromium.log").getAbsolutePath());
 	}
 
 	private static void redirectLogMessagesToFile(Logger logger, String logFilePath) throws IOException {
@@ -89,10 +91,14 @@ public class BrowserManager {
 		logger.addHandler(fileHandler);
 	}
 
+	private static boolean parseDebug() {
+		String debug = CyActivator.getProperty("jxbrowser.debug");
+		return Boolean.parseBoolean(debug);
+	}
+	
 	public static Browser getJXBrowser(TaskMonitor tm) throws BrowserCreationError {
 		if (browser == null) {
-
-			if (DEBUG) {
+			if (parseDebug()) {
 				BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222");
 				try {
 					enableLogging();
@@ -103,8 +109,10 @@ public class BrowserManager {
 			}
 			
 			try {
-				tm.setStatusMessage("Setting up JXBrowser binaries");
-				File f = new File(BrowserPreferences.getDefaultChromiumDir());
+				tm.setStatusMessage("Setting up JXBrowser binaries. This should only occur on first run.");
+				
+//				File f = new File(BrowserPreferences.getDefaultChromiumDir());
+				File f = new File(jxbrowserDataLocation.getParent(), "bin");
 				NativeInstaller.installJXBrowser(f);
 				// BrowserPreferences.setChromiumDir(f.getAbsolutePath());
 				System.setProperty("jxbrowser.chromium.dir", f.getAbsolutePath());
@@ -207,5 +215,14 @@ public class BrowserManager {
 		} catch (IOException e) {
 
 		}
+	}
+
+	public static void shutdown() {
+		if (browser != null) {
+			browser.dispose();
+		}
+		IPC.getDefault().shutdown();
+		BrowserCore.shutdown();
+		
 	}
 }

@@ -7,8 +7,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Enumeration;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.jar.JarEntry;
 
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
@@ -65,15 +63,7 @@ public class NativeInstaller {
 		}
 	}
 
-	public void executeInstaller() {
-		// Extract binary from archive
-		ExecutorService executor = Executors.newSingleThreadExecutor();
-		executor.submit(() -> {
-			install();
-		});
-	}
-
-	private final File install() {
+	private final void install() throws InstallException {
 
 		// Create the directory if it doesn't exist
 		if (!installLocation.exists()) {
@@ -81,27 +71,35 @@ public class NativeInstaller {
 		}
 
 		File jarFile = new File(installLocation, getJarName());
-
+		
 		try {
 			if (!jarFile.exists()) {
+				logger.info("Downloading JAR file...");
 				String url = getURL();
 				final URL sourceUrl = new URL(url);
 				int fileSize = checkSize(url);
 				downloadJarFile(sourceUrl, jarFile, fileSize);
 			}
-
+			
+			if (!jarFile.exists()) {
+				throw new InstallException("Unable to download JxBrowser jar file for " + platform);
+			}
+			
 			File zipFile = extractZipFile(jarFile, installLocation);
-
-			extractBinaries(zipFile);
+			if (zipFile == null || !zipFile.exists()) {
+				throw new InstallException("Unable to extract JxBrowser archive from " + jarFile.getAbsolutePath());
+			}
+			
+			if (!extractBinaries(zipFile)) {
+				throw new InstallException("Unable to extract JxBrowser binaries from archive at " + zipFile.getAbsolutePath());
+			}
 
 		} catch (IOException e) {
 			e.printStackTrace();
-			logger.error("Failed to extract JAR to " + installLocation.getAbsolutePath());
-			System.out.println("Failed to extract JAR to " + installLocation.getAbsolutePath() + ": " + e.getMessage());
-			return null;
+			String message = "Failed to extract JAR to " + installLocation.getAbsolutePath();
+			throw new InstallException(message);
 		}
 
-		return jarFile;
 	}
 
 	private final int checkSize(String fileURL) throws IOException {
@@ -168,7 +166,7 @@ public class NativeInstaller {
 	}
 
 	private final File extractZipFile(File jarFile, File destDir) throws IOException {
-		File zipFile = null;
+		File zipFile = new File(destDir, "chromium-" + platform + ".7z");
 		java.util.jar.JarFile jar = new java.util.jar.JarFile(jarFile);
 		Enumeration<JarEntry> enumEntries = jar.entries();
 		while (enumEntries.hasMoreElements()) {
@@ -182,6 +180,7 @@ public class NativeInstaller {
 			if (f.exists()) {
 				break;
 			}
+			logger.info("Extracting " + file.getName());
 
 			if (file.isDirectory()) { // if its a directory, create it
 				f.mkdir();
@@ -204,13 +203,14 @@ public class NativeInstaller {
 		return zipFile;
 	}
 
-	public void extractBinaries(File zipFile) throws IOException {
+	public boolean extractBinaries(File zipFile) throws IOException {
 		SevenZFile sevenZFile = new SevenZFile(zipFile);
 		SevenZArchiveEntry entry = sevenZFile.getNextEntry();
 
 		while (entry != null) {
 			File f = new File(zipFile.getParentFile(), entry.getName());
 			if (!f.exists()) {
+				logger.info("Extracting " + f.getName());
 				if (entry.isDirectory()) {
 					f.mkdirs();
 					entry = sevenZFile.getNextEntry();
@@ -228,6 +228,7 @@ public class NativeInstaller {
 			entry = sevenZFile.getNextEntry();
 		}
 		sevenZFile.close();
+		return true;
 	}
 
 	public final void extractPreviewTemplate(final URL source, final File destination) throws IOException {
@@ -247,14 +248,22 @@ public class NativeInstaller {
 		return url;
 	}
 
-	public static void installJXBrowser(File config) {
+	public static void installJXBrowser(File config) throws InstallException {
 		NativeInstaller ni = new NativeInstaller(config);
 		ni.install();
 	}
+	
+	class InstallException extends Exception {
 
-	public static void main(String[] args) {
-		File f = new File("/Users/bsettle/Desktop/jxbrowser");
-		NativeInstaller.installJXBrowser(f);
+		public InstallException(String string) {
+			super(string);
+		}
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -625275343732414469L;
+		
 	}
 
 }

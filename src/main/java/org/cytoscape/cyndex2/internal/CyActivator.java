@@ -73,6 +73,10 @@ public class CyActivator extends AbstractCyActivator {
 		
 		hasCyNDEx1 = false;
 	}
+	
+	public static String getProperty(String prop) {
+		return cyProps.getProperties().getProperty(prop);
+	}
 
 	public static JDialog getDialog() {
 		if (dialog == null) {
@@ -244,6 +248,8 @@ public class CyActivator extends AbstractCyActivator {
 		if (ciServiceManager != null) {
 			ciServiceManager.close();
 		}
+		BrowserManager.shutdown();
+		
 		super.shutDown();
 	}
 
