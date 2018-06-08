@@ -86,6 +86,7 @@ public class NativeInstaller {
 			}
 			
 			File zipFile = extractZipFile(jarFile, installLocation);
+			System.out.println("ZIP FILE: " + zipFile.getAbsolutePath());
 			if (zipFile == null || !zipFile.exists()) {
 				throw new InstallException("Unable to extract JxBrowser archive from " + jarFile.getAbsolutePath());
 			}
@@ -173,12 +174,12 @@ public class NativeInstaller {
 			java.util.jar.JarEntry file = (java.util.jar.JarEntry) enumEntries.nextElement();
 			java.io.File f = new java.io.File(destDir + java.io.File.separator + file.getName());
 
-			if (file.getName().matches("chromium-.*\\.7z")) {
+			if (file.getName().startsWith("chromium")) {
 				zipFile = f;
 			}
 
 			if (f.exists()) {
-				break;
+				continue;
 			}
 			logger.info("Extracting " + file.getName());
 
@@ -229,14 +230,6 @@ public class NativeInstaller {
 		}
 		sevenZFile.close();
 		return true;
-	}
-
-	public final void extractPreviewTemplate(final URL source, final File destination) throws IOException {
-		if (!destination.exists() || !destination.isDirectory()) {
-			// unzipTemplate(source, destination);
-		} else {
-			// unzipTemplate(source, destination);
-		}
 	}
 
 	private String getJarName() {
