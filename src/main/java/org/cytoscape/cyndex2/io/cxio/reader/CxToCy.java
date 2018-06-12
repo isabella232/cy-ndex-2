@@ -1266,6 +1266,7 @@ public final class CxToCy {
                 if (subnetId == null) {
                 	subnetId = subNetworkId;
                 	ge.setSubNet(subNetworkId);
+
                 }
                 
                 if (!subnet_to_groups_map.containsKey(subnetId)) {

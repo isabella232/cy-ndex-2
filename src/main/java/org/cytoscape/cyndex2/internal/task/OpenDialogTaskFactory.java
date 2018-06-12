@@ -20,7 +20,7 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 
 		if (ExternalAppManager.busy)
 			return ti;
-
+		
 		// Store query info
 		ExternalAppManager.appName = appName;
 		ExternalAppManager.busy = true;

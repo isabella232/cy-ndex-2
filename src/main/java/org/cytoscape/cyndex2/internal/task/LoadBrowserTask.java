@@ -9,6 +9,7 @@ import org.cytoscape.cyndex2.errors.BrowserCreationError;
 import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.util.BrowserManager;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
+import org.cytoscape.cyndex2.internal.util.StringResources.LoadBrowserStage;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
@@ -48,15 +49,16 @@ public class LoadBrowserTask extends AbstractTask {
 			@Override
 			public void run() {
 				
-				taskMonitor.setTitle("Loading CyNDEx-2 Browser");
+				taskMonitor.setTitle("Loading CyNDEx-2");
 				try {
-					browserView = BrowserManager.getBrowserView();
+					browserView = BrowserManager.getBrowserView(taskMonitor);
 
+					taskMonitor.setTitle("Starting CyNDEx-2");
 					if (browserView == null || browserView.getBrowser() == null)
 						throw new BrowserCreationError("Browser failed to initialize.");
 
-					taskMonitor.setProgress(.5);
-					taskMonitor.setStatusMessage("Browser created, starting CyNDEx-2");
+					taskMonitor.setTitle("Loading CyNDEx-2");
+					LoadBrowserStage.STARTING_BROWSER.updateTaskMonitor(taskMonitor);
 
 					if (browserView.getParent() == null)
 						dialog.add(browserView, BorderLayout.CENTER);
