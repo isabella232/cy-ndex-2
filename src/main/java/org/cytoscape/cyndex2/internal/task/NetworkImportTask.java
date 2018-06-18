@@ -123,20 +123,9 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 
 		NiceCXNetwork niceCX = cxImporter.getCXNetworkFromStream(cxStream);
 		cxStream.close();
-		boolean doLayout;
+		
 		boolean hasCoords = niceCX.getNodeAssociatedAspect(CartesianLayoutElement.ASPECT_NAME) != null;
-
-		if (hasCoords) {
-			doLayout = false;
-		} else // if (networkSummary.getEdgeCount() < 5000) {
-			doLayout = true;
-		/*
-		 * } else { JFrame parent = CyObjectManager.INSTANCE.getApplicationFrame(); int
-		 * response = JOptionPane.showConfirmDialog(parent,
-		 * "Do you want to create a view for your large network? This could take a while."
-		 * , "Importing Large Network", JOptionPane.YES_NO_OPTION); doLayout = response
-		 * == JOptionPane.YES_OPTION; }
-		 */
+		boolean doLayout = !hasCoords && networkSummary.getEdgeCount() < 50000;
 
 		taskMonitor.setProgress(.7);
 		taskMonitor.setStatusMessage("Building Cytoscape networks");
@@ -207,7 +196,7 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 		for (CyNetwork cyNetwork : networks) {
 			CyObjectManager.INSTANCE.getNetworkManager().addNetwork(cyNetwork);
 
-			if (doLayout || hasCoords) {
+			if (doLayout) {
 				CyNetworkViewFactory nvf = CyObjectManager.INSTANCE.getNetworkViewFactory();
 				RenderingEngineManager rem = CyObjectManager.INSTANCE.getRenderingEngineManager();
 				VisualMappingManager vmm = CyObjectManager.INSTANCE.getVisualMappingManager();
