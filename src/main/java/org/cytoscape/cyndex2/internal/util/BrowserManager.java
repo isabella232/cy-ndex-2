@@ -80,7 +80,8 @@ public class BrowserManager {
 		redirectLogMessagesToFile(LoggerProvider.getIPCLogger(), new File(dir, "ipc.log").getAbsolutePath());
 
 		// Redirect Chromium Process log messages to jxbrowser-chromium.log
-		redirectLogMessagesToFile(LoggerProvider.getChromiumProcessLogger(), new File(dir, "chromium.log").getAbsolutePath());
+		redirectLogMessagesToFile(LoggerProvider.getChromiumProcessLogger(),
+				new File(dir, "chromium.log").getAbsolutePath());
 	}
 
 	private static void redirectLogMessagesToFile(Logger logger, String logFilePath) throws IOException {
@@ -98,7 +99,7 @@ public class BrowserManager {
 		String debug = CyActivator.getProperty("jxbrowser.debug");
 		return Boolean.parseBoolean(debug);
 	}
-	
+
 	public static Browser getJXBrowser(TaskMonitor tm) throws BrowserCreationError {
 		tm.setProgress(0.0f);
 		if (browser == null) {
@@ -112,9 +113,9 @@ public class BrowserManager {
 					System.out.println("Failed to load loggers");
 				}
 			}
-			
+
 			try {
-				
+
 				File f = new File(jxbrowserDataLocation.getParent(), "bin");
 				NativeInstaller.installJXBrowser(f, tm);
 				System.setProperty("jxbrowser.chromium.dir", f.getAbsolutePath());
@@ -221,10 +222,14 @@ public class BrowserManager {
 
 	public static void shutdown() {
 		if (browser != null) {
-			browser.dispose();
+			for (Browser b : IPC.getBrowsers()) {
+				b.dispose();
+			}
+			try {
+				BrowserCore.shutdown();
+			} catch (Exception e) {
+				// IGNORE
+			}
 		}
-		IPC.getDefault().shutdown();
-		BrowserCore.shutdown();
-		
 	}
 }
