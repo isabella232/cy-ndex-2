@@ -1,119 +1,240 @@
 package org.cytoscape.cyndex2.internal.singletons;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.UUID;
-
 import org.cxio.core.interfaces.AspectElement;
 import org.cxio.metadata.MetaDataCollection;
+import org.cytoscape.cyndex2.internal.util.StringResources;
+import org.cytoscape.model.CyEdge;
+import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyNode;
+import org.cytoscape.model.CyRow;
+import org.cytoscape.model.CyTable;
 import org.ndexbio.model.cx.NamespacesElement;
 import org.ndexbio.model.cx.Provenance;
 
 public class CXInfoHolder {
-	private Map<Long,Long> cyNode2cxNodeMapping;
-	private Map<Long,Long> cyEdge2cxEdgeMapping;
-	
-	private MetaDataCollection metadata;
-	
-	private Provenance provenance;
-	
-	private NamespacesElement namespaces;
-	
-	private UUID networkId;
-	
-	private int subNetCount;
-	
-	private Map<String,Collection<AspectElement>> opaqueAspectsTable;
-	
-	public CXInfoHolder () {
-		this.cyEdge2cxEdgeMapping = new TreeMap<>();
-		this.cyNode2cxNodeMapping = new TreeMap<>();
+
+	private Map<String, Collection<AspectElement>> opaqueAspectsTable;
+
+	private final CyNetwork network;
+
+	public CXInfoHolder(CyNetwork network) {
+		this.network = network;
 		this.opaqueAspectsTable = new TreeMap<>();
-		
+
 	}
 
-/*	public Map<Long,Long> getCyNode2cxNodeMapping() {
-		return cyNode2cxNodeMapping;
+	private static void createColumnIfNotExists(CyTable table, String name, Class<?> clz) {
+		if (table.getColumn(name) == null) {
+			table.createColumn(name, clz, true);
+		}
 	}
 
-	public void setCyNode2cxNodeMapping(Map<Long,Long> cyNode2cxNodeMapping) {
-		this.cyNode2cxNodeMapping = cyNode2cxNodeMapping;
-	}
-
-	public Map<Long,Long> getCyEdge2cxEdgeMapping() {
-		return cyEdge2cxEdgeMapping;
-	}
-
-	public void setCyEdge2cxEdgeMapping(Map<Long,Long> cyEdge2cxEdgeMapping) {
-		this.cyEdge2cxEdgeMapping = cyEdge2cxEdgeMapping;
-	} */
-
-	public Map<String,Collection<AspectElement>> getOpaqueAspectsTable() {
-		return opaqueAspectsTable;
-	}
-
-	public void setOpaqueAspectsTable(Map<String,Collection<AspectElement>> opaqueAspectsTable) {
-		this.opaqueAspectsTable = opaqueAspectsTable;
-	} 
-	
 	public void addNodeMapping(Long cyNodeId, Long cxNodeId) {
-		this.cyNode2cxNodeMapping.put(cyNodeId, cxNodeId);
+		CyTable table = network.getTable(CyNode.class, CyNetwork.HIDDEN_ATTRS);
+		createColumnIfNotExists(table, StringResources.CX_ID_COLUMN, Long.class);
+		CyRow row = table.getRow(cyNodeId);
+		if (row == null) {
+			System.out.println("Row with id " + cyNodeId + " not found");
+		}
+		row.set(StringResources.CX_ID_COLUMN, cxNodeId);
 	}
 
-	public void addEdgeMapping (Long cyEdgeId, Long cxEdgeId) {
-		this.cyEdge2cxEdgeMapping.put(cyEdgeId, cxEdgeId);
+	public void addEdgeMapping(Long cyEdgeId, Long cxEdgeId) {
+		CyTable table = network.getTable(CyEdge.class, CyNetwork.HIDDEN_ATTRS);
+		createColumnIfNotExists(table, StringResources.CX_ID_COLUMN, Long.class);
+		CyRow row = table.getRow(cyEdgeId);
+		if (row == null) {
+			System.out.println("Row with id " + cyEdgeId + " not found");
+		}
+		row.set(StringResources.CX_ID_COLUMN, cxEdgeId);
 	}
-	
+
 	public Long getCXNodeId(Long cyNodeId) {
-		return this.cyNode2cxNodeMapping.get(cyNodeId);
+		CyTable table = network.getTable(CyNode.class, CyNetwork.HIDDEN_ATTRS);
+		createColumnIfNotExists(table, StringResources.CX_ID_COLUMN, Long.class);
+		CyRow row = table.getRow(cyNodeId);
+		return row.get(StringResources.CX_ID_COLUMN, Long.class);
 	}
-	
+
 	public Long getCXEdgeId(Long cyEdgeId) {
-		return this.cyEdge2cxEdgeMapping.get(cyEdgeId);
-	}
-	
-	public void addOpaqueAspect(String aspectName, Collection<AspectElement> elements) {
-		this.opaqueAspectsTable.put(aspectName, elements);
+		CyTable table = network.getTable(CyEdge.class, CyNetwork.HIDDEN_ATTRS);
+		createColumnIfNotExists(table, StringResources.CX_ID_COLUMN, Long.class);
+		CyRow row = table.getRow(cyEdgeId);
+		return row.get(StringResources.CX_ID_COLUMN, Long.class);
 	}
 
 	public MetaDataCollection getMetadata() {
-		return metadata;
+		CyTable table = network.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
+		createColumnIfNotExists(table, StringResources.METADATA_COLUMN, String.class);
+		CyRow row = table.getRow(network.getSUID());
+		String metadataStr = row.get(StringResources.METADATA_COLUMN, String.class);
+		try {
+			return MetaDataCollection.createInstanceFromJson(metadataStr);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
 	}
 
-	public void setMetadata(MetaDataCollection metadata) {
-		this.metadata = metadata;
+	public static void setMetadata(CyNetwork network, MetaDataCollection metadata) {
+		CyTable table = network.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
+		createColumnIfNotExists(table, StringResources.METADATA_COLUMN, String.class);
+		CyRow row = table.getRow(network.getSUID());
+		row.set(StringResources.METADATA_COLUMN, metadata.toString());
 	}
 
-	public Provenance getProvenance() {
-		return provenance;
+	@SuppressWarnings("unused")
+	private static String serializeObject(Object map) {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ObjectOutputStream oos = null;
+		try {
+			oos = new ObjectOutputStream(baos);
+			oos.writeObject(map);
+			oos.close();
+			baos.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return baos.toString();
+	}
+	
+	@SuppressWarnings("unchecked")
+	private static Map<String, ?> deserializeObject(String map) throws ClassNotFoundException, IOException{
+		BufferedInputStream in = new BufferedInputStream(new ByteArrayInputStream(map.getBytes()));
+		ObjectInputStream ois = new ObjectInputStream(in);
+		return (Map<String, Object>) ois.readObject();
 	}
 
-	public void setProvenance(Provenance provenance) {
-		this.provenance = provenance;
-	}
+	
 
-	public UUID getNetworkId() {
-		return networkId;
+	@SuppressWarnings("unchecked")
+	public static void setOpaqueAspectsTable(CyNetwork network, Map<String, Collection<AspectElement>> opaqueAspectsTable) {
+		
+		String ser = serializeObject(opaqueAspectsTable);
+		System.out.println("OPAQUE ASPECTS: " + ser);
+		
+		CyTable table = network.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
+		createColumnIfNotExists(table, StringResources.OPAQUE_ASPECTS_COLUMN, String.class);
+		CyRow row = table.getRow(network.getSUID());
+		row.set(StringResources.OPAQUE_ASPECTS_COLUMN, ser);
+		
+		try {
+			opaqueAspectsTable = (Map<String, Collection<AspectElement>>) deserializeObject(ser);
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
-
-	public void setNetworkId(UUID networkId) {
-		this.networkId = networkId;
+	
+	public static void setProvenance(CyNetwork network, Provenance provenance) {
+		String ser = serializeObject(provenance);
+		System.out.println("Pro: " + ser);
+		
+		CyTable table = network.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
+		createColumnIfNotExists(table, StringResources.PROVENANCE_COLUMN, String.class);
+		CyRow row = table.getRow(network.getSUID());
+		row.set(StringResources.PROVENANCE_COLUMN, ser);
+		
+		try {
+			Provenance pro = (Provenance) deserializeObject(ser);
+			System.out.println("DESER: " + pro);
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
-
-	public int getSubNetCount() {
-		return subNetCount;
-	}
-
-	public void setSubNetCount(int subNetCount) {
-		this.subNetCount = subNetCount;
+	
+	public static void setNamespaces(CyNetwork network, NamespacesElement namespaces) {
+		String ser = serializeObject(namespaces);
+		System.out.println("NE: " + ser);
+		
+		CyTable table = network.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
+		createColumnIfNotExists(table, StringResources.NAMESPACES_COLUMN, String.class);
+		CyRow row = table.getRow(network.getSUID());
+		row.set(StringResources.NAMESPACES_COLUMN, ser);
+		
+		try {
+			NamespacesElement ne = (NamespacesElement) deserializeObject(ser);
+			System.out.println("DESER: " + ne);
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public NamespacesElement getNamespaces() {
-		return namespaces;
+		CyTable table = network.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
+		createColumnIfNotExists(table, StringResources.NAMESPACES_COLUMN, String.class);
+		CyRow row = table.getRow(network.getSUID());
+		String namespacesStr = row.get(StringResources.NAMESPACES_COLUMN, String.class);
+		try {
+			NamespacesElement namespaces = (NamespacesElement) deserializeObject(namespacesStr);
+			return namespaces;
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 
-	public void setNamespaces(NamespacesElement namespaces) {
-		this.namespaces = namespaces;
+	public Provenance getProvenance() {
+		CyTable table = network.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
+		createColumnIfNotExists(table, StringResources.PROVENANCE_COLUMN, String.class);
+		CyRow row = table.getRow(network.getSUID());
+		String provenanceStr = row.get(StringResources.PROVENANCE_COLUMN, String.class);
+		try {
+			Provenance provenance = (Provenance) deserializeObject(provenanceStr);
+			return provenance;
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
+
+	@SuppressWarnings("unchecked")
+	public Map<String, Collection<AspectElement>> getOpaqueAspectsTable() {
+		CyTable table = network.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
+		createColumnIfNotExists(table, StringResources.OPAQUE_ASPECTS_COLUMN, String.class);
+		CyRow row = table.getRow(network.getSUID());
+		String opaqueTable = row.get(StringResources.OPAQUE_ASPECTS_COLUMN, String.class);
+		
+		try {
+			opaqueAspectsTable = (Map<String, Collection<AspectElement>>) deserializeObject(opaqueTable);
+			return opaqueAspectsTable;
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 }

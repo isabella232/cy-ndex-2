@@ -50,7 +50,7 @@ import org.cxio.misc.AspectElementCounts;
 import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.singletons.CXInfoHolder;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
-import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
+import org.cytoscape.cyndex2.internal.util.StringResources;
 import org.cytoscape.cyndex2.io.cxio.writer.VisualPropertiesGatherer;
 import org.cytoscape.group.CyGroup;
 import org.cytoscape.group.CyGroupManager;
@@ -270,8 +270,8 @@ public final class CxExporter {
             }
         }
 
-        CXInfoHolder cxInfoHolder = write_siblings? null : NetworkManager.INSTANCE.getCXInfoHolder(network.getSUID());
-           
+        CXInfoHolder cxInfoHolder = write_siblings? null : new CXInfoHolder(network);
+        
         final CxWriter w = CxWriter.createInstance(out, false);//_use_default_pretty_printing);
 
         for (final AspectFragmentWriter writer : getCySupportedAspectFragmentWriters()) {
@@ -705,6 +705,7 @@ public final class CxExporter {
 
 	public static Long getNodeIdToExport(CyNode cyNode, CXInfoHolder cxInfoHolder) {
 		Long id = cyNode.getSUID();
+		
 		if (cxInfoHolder != null) {
 			Long cxNodeId = cxInfoHolder.getCXNodeId(id);
 			if (cxNodeId != null) { // this is a node in the original cx network
@@ -924,7 +925,7 @@ public final class CxExporter {
         }
         else if ((additional_to_ignore != null) && additional_to_ignore.contains(column_name)) {
             return true;
-        }else if (column_name.equals(NetworkManager.UUID_COLUMN)){
+        }else if (column_name.equals(StringResources.UUID_COLUMN)){
         	return true;
         }
         return false;

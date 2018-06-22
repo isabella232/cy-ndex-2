@@ -5,7 +5,9 @@ import static org.cytoscape.work.ServiceProperties.*;
 import java.awt.Dialog.ModalityType;
 import java.io.File;
 import java.util.Dictionary;
+import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.UUID;
 
 import javax.swing.ImageIcon;
 import javax.swing.JDialog;
@@ -13,6 +15,8 @@ import javax.swing.JDialog;
 import org.cytoscape.app.swing.CySwingAppAdapter;
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
+import org.cytoscape.application.events.SetCurrentNetworkEvent;
+import org.cytoscape.application.events.SetCurrentNetworkListener;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.cyndex2.internal.rest.NdexClient;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexBaseResource;
@@ -22,7 +26,9 @@ import org.cytoscape.cyndex2.internal.rest.endpoints.impl.NdexBaseResourceImpl;
 import org.cytoscape.cyndex2.internal.rest.endpoints.impl.NdexNetworkResourceImpl;
 import org.cytoscape.cyndex2.internal.rest.endpoints.impl.NdexStatusResourceImpl;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
+import org.cytoscape.cyndex2.internal.singletons.CXInfoHolder;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
+import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
 import org.cytoscape.cyndex2.internal.task.OpenBrowseTaskFactory;
 import org.cytoscape.cyndex2.internal.task.OpenSaveTaskFactory;
 import org.cytoscape.cyndex2.internal.ui.ImportNetworkFromNDExTaskFactory;
@@ -33,9 +39,15 @@ import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.cyndex2.internal.util.StringResources;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.io.write.CyNetworkViewWriterFactory;
+import org.cytoscape.model.CyEdge;
+import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNetworkTableManager;
-import org.cytoscape.model.events.NetworkAboutToBeDestroyedListener;
+import org.cytoscape.model.CyNode;
+import org.cytoscape.model.CyRow;
+import org.cytoscape.model.CyTable;
+import org.cytoscape.model.subnetwork.CyRootNetwork;
+import org.cytoscape.model.subnetwork.CySubNetwork;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.task.NetworkViewCollectionTaskFactory;
@@ -67,10 +79,10 @@ public class CyActivator extends AbstractCyActivator {
 
 	public CyActivator() {
 		super();
-		
+
 		hasCyNDEx1 = false;
 	}
-	
+
 	public static String getProperty(String prop) {
 		return cyProps.getProperties().getProperty(prop);
 	}
@@ -149,7 +161,7 @@ public class CyActivator extends AbstractCyActivator {
 		File jxBrowserDir = new File(config.getConfigurationDirectoryLocation(), "jxbrowser");
 		jxBrowserDir.mkdir();
 		BrowserManager.setDataDirectory(new File(jxBrowserDir, "data"));
-		
+
 		// get QueryPanel icon
 		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
 
@@ -172,8 +184,9 @@ public class CyActivator extends AbstractCyActivator {
 		ndexSaveCollectionTaskFactoryProps.setProperty(MENU_GRAVITY, "0.1");
 		ndexSaveCollectionTaskFactoryProps.setProperty(TITLE, "Collection to NDEx...");
 		registerService(bc, ndexSaveCollectionTaskFactory, TaskFactory.class, ndexSaveCollectionTaskFactoryProps);
-		
-		ImportNetworkFromNDExTaskFactory importFromNDExTaskFactory = new ImportNetworkFromNDExTaskFactory(ExternalAppManager.APP_NAME_LOAD);
+
+		ImportNetworkFromNDExTaskFactory importFromNDExTaskFactory = new ImportNetworkFromNDExTaskFactory(
+				ExternalAppManager.APP_NAME_LOAD);
 		Properties importProps = new Properties();
 		importProps.setProperty(IN_TOOL_BAR, "true");
 		importProps.setProperty(TOOL_BAR_GRAVITY, "0.0f");
@@ -183,8 +196,8 @@ public class CyActivator extends AbstractCyActivator {
 		importProps.setProperty(SMALL_ICON_URL, loadIconUrl);
 		registerService(bc, importFromNDExTaskFactory, TaskFactory.class, importProps);
 
-		
-		SaveNetworkToNDExTaskFactory saveToNDExTaskFactory = new SaveNetworkToNDExTaskFactory(appManager, ExternalAppManager.APP_NAME_SAVE);
+		SaveNetworkToNDExTaskFactory saveToNDExTaskFactory = new SaveNetworkToNDExTaskFactory(appManager,
+				ExternalAppManager.APP_NAME_SAVE);
 		Properties props = new Properties();
 		props.setProperty(IN_TOOL_BAR, "true");
 		props.setProperty(INSERT_TOOLBAR_SEPARATOR_AFTER, "true");
@@ -199,9 +212,9 @@ public class CyActivator extends AbstractCyActivator {
 		final OpenBrowseTaskFactory ndexTaskFactory = new OpenBrowseTaskFactory(icon);
 		final Properties ndexTaskFactoryProps = new Properties();
 		// ndexTaskFactoryProps.setProperty(IN_MENU_BAR, "false");
-		ndexTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Import.Network");
+		ndexTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Import");
 		ndexTaskFactoryProps.setProperty(MENU_GRAVITY, "0.0");
-		ndexTaskFactoryProps.setProperty(TITLE, "NDEx...");
+		ndexTaskFactoryProps.setProperty(TITLE, "Network From NDEx...");
 		registerAllServices(bc, ndexTaskFactory, ndexTaskFactoryProps);
 
 		// Expose CyREST endpoints
@@ -221,10 +234,6 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, new NdexNetworkResourceImpl(ndexClient, errorBuilder, appManager, netmgr, ciServiceManager),
 				NdexNetworkResource.class, new Properties());
 
-		// add Handler to remove networks from NetworkManager when deleted
-		registerService(bc, new NdexNetworkAboutToBeDestroyedListener(), NetworkAboutToBeDestroyedListener.class,
-				new Properties());
-
 		OpenSaveTaskFactory saveNetworkToNDExContextMenuTaskFactory = new OpenSaveTaskFactory(
 				ExternalAppManager.SAVE_NETWORK, appManager);
 		Properties saveNetworkToNDExContextMenuProps = new Properties();
@@ -239,18 +248,85 @@ public class CyActivator extends AbstractCyActivator {
 				saveNetworkToNDExContextMenuProps);
 		// registerService(bc, saveNetworkToNDExContextMenuTaskFactory,
 		// TestTaskFactory.class, saveNetworkToNDExContextMenuProps);
+
+		registerService(bc, new SetCurrentNetworkListener() {
+
+			@Override
+			public void handleEvent(SetCurrentNetworkEvent arg0) {
+//				printInfo(arg0.getNetwork());
+			}
+		}, SetCurrentNetworkListener.class);
+	}
+
+	private void printInfo(CyNetwork network) {
+		if (network == null) {
+			return;
+		}
+		CyRootNetwork root = ((CySubNetwork) network).getRootNetwork();
+		UUID uuid = NetworkManager.INSTANCE.getNdexNetworkId(network);
+		if (uuid != null) {
+			CXInfoHolder cxInfo = new CXInfoHolder(network);
+			System.out.println("Subnetwork has UUID " + uuid.toString());
+			System.out.println("Metadata: " + cxInfo.getMetadata());
+			System.out.println("Provenance: " + cxInfo.getProvenance());
+			System.out.println("Namespaces: " + cxInfo.getNamespaces());
+			System.out.println("Opaques: " + cxInfo.getOpaqueAspectsTable());
+
+			// print hidden node table
+			System.out.println("\nHidden Node Table");
+			CyTable node_table = network.getTable(CyNode.class, CyNetwork.HIDDEN_ATTRS);
+			for (CyRow r : node_table.getAllRows()) {
+				for (Entry<String, Object> ent : r.getAllValues().entrySet()) {
+					System.out.printf("%s=%s, ", ent.getKey(), ent.getValue());
+				}
+			}
+
+			// print hidden edge table
+			System.out.println("\nHidden Edge Table");
+			CyTable edge_table = network.getTable(CyEdge.class, CyNetwork.HIDDEN_ATTRS);
+			for (CyRow r : edge_table.getAllRows()) {
+				for (Entry<String, Object> ent : r.getAllValues().entrySet()) {
+					System.out.printf("%s=%s, ", ent.getKey(), ent.getValue());
+				}
+			}
+
+		}
+		UUID rootUuid = NetworkManager.INSTANCE.getNdexNetworkId(root);
+		if (rootUuid != null) {
+			CXInfoHolder cxInfo = new CXInfoHolder(root);
+			System.out.println("Root has UUID " + rootUuid.toString());
+			System.out.println("Metadata: " + cxInfo.getMetadata());
+			System.out.println("Provenance: " + cxInfo.getProvenance());
+			System.out.println("Namespaces: " + cxInfo.getNamespaces());
+			System.out.println("Opaques: " + cxInfo.getOpaqueAspectsTable());
+			
+			System.out.println("\nRoot Node Table");
+			CyTable root_node_table = root.getTable(CyNode.class, CyNetwork.HIDDEN_ATTRS);
+			for (CyRow r : root_node_table.getAllRows()) {
+				for (Entry<String, Object> ent : r.getAllValues().entrySet()) {
+					System.out.printf("%s=%s, ", ent.getKey(), ent.getValue());
+				}
+			}
+			
+			System.out.println("\nRoot Edge Table");
+			CyTable root_edge_table = root.getTable(CyEdge.class, CyNetwork.HIDDEN_ATTRS);
+			for (CyRow r : root_edge_table.getAllRows()) {
+				for (Entry<String, Object> ent : r.getAllValues().entrySet()) {
+					System.out.printf("%s=%s, ", ent.getKey(), ent.getValue());
+				}
+			}
+		}
 	}
 
 	@Override
 	public void shutDown() {
 		logger.info("Shutting down CyNDEx-2...");
-
 		BrowserManager.clearCache();
 		if (ciServiceManager != null) {
 			ciServiceManager.close();
 		}
 		BrowserManager.shutdown();
-		
+
 		super.shutDown();
 	}
 

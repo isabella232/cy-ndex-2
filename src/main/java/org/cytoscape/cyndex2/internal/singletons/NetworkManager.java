@@ -28,6 +28,14 @@ package org.cytoscape.cyndex2.internal.singletons;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.Map.Entry;
+
+import org.cytoscape.cyndex2.internal.util.StringResources;
+import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyRow;
+import org.cytoscape.model.CyTable;
+import org.cytoscape.model.subnetwork.CyRootNetwork;
+import org.cytoscape.model.subnetwork.CySubNetwork;
 
 
 public enum NetworkManager
@@ -35,32 +43,38 @@ public enum NetworkManager
     INSTANCE;
 //    private NetworkSummary selectedNetworkSummary;
     
-    private final Map<Long, CXInfoHolder> cxNetworkInfoTable;
-    private final Map<Long,UUID> networkIdTable; // store the network ids for collections from NDEx
-    public static final String UUID_COLUMN = "NDEx UUID";
+//    private final Map<Long, CXInfoHolder> cxNetworkInfoTable;
     
     NetworkManager() { 
-    	cxNetworkInfoTable = new TreeMap<>();
-    	networkIdTable = new TreeMap<>();	}
- 
-    public CXInfoHolder getCXInfoHolder(Long subNetworkId) {
-    	return this.cxNetworkInfoTable.get(subNetworkId);
+
     }
     
-    public void setCXInfoHolder(Long subNetworkId, CXInfoHolder cxInfoHolder) {
-    	this.cxNetworkInfoTable.put(subNetworkId, cxInfoHolder);
+    public void setCXInfoHolder(CyNetwork network, CXInfoHolder cxInfoHolder) {
+    	// write values to network hidden tables
     }
     
-    public void addNetworkUUID (Long subNetworkId, UUID networkId) {
-    	networkIdTable.put(subNetworkId, networkId);
+    private void createColumnIfNotExists(CyTable table, String name, Class<?> clz) {
+    	if (table.getColumn(name) == null) {
+    		table.createColumn(name, clz, false);
+    	}
     }
     
-    public UUID getNdexNetworkId(Long subNetworkId) {
-    	return networkIdTable.get(subNetworkId);
+    public void addNetworkUUID (CyNetwork network, UUID networkId) {
+    	CyTable net_table = network.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
+    	createColumnIfNotExists(net_table, StringResources.UUID_COLUMN, String.class);
+    	CyRow row = net_table.getRow(network.getSUID());
+    	row.set(StringResources.UUID_COLUMN, networkId.toString());
     }
     
-    public void deleteCyNetworkEntry(Long subNetworkId) {
-    	this.cxNetworkInfoTable.remove(subNetworkId);
-    	this.networkIdTable.remove(subNetworkId);
+    public UUID getNdexNetworkId(CyNetwork network) {
+    	CyTable net_table = network.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
+    	createColumnIfNotExists(net_table, StringResources.UUID_COLUMN, String.class);
+    	CyRow row = net_table.getRow(network.getSUID());
+    	String uuidStr = row.get(StringResources.UUID_COLUMN, String.class);
+    	if (uuidStr == null) {
+    		return null;
+    	}
+    	return UUID.fromString(uuidStr);
     }
+    
 }
