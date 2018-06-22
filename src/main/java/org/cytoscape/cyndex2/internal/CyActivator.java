@@ -199,9 +199,9 @@ public class CyActivator extends AbstractCyActivator {
 		final OpenBrowseTaskFactory ndexTaskFactory = new OpenBrowseTaskFactory(icon);
 		final Properties ndexTaskFactoryProps = new Properties();
 		// ndexTaskFactoryProps.setProperty(IN_MENU_BAR, "false");
-		ndexTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Import.Network");
+		ndexTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Import");
 		ndexTaskFactoryProps.setProperty(MENU_GRAVITY, "0.0");
-		ndexTaskFactoryProps.setProperty(TITLE, "NDEx...");
+		ndexTaskFactoryProps.setProperty(TITLE, "Network From NDEx...");
 		registerAllServices(bc, ndexTaskFactory, ndexTaskFactoryProps);
 
 		// Expose CyREST endpoints
@@ -228,8 +228,8 @@ public class CyActivator extends AbstractCyActivator {
 		OpenSaveTaskFactory saveNetworkToNDExContextMenuTaskFactory = new OpenSaveTaskFactory(
 				ExternalAppManager.SAVE_NETWORK, appManager);
 		Properties saveNetworkToNDExContextMenuProps = new Properties();
-		saveNetworkToNDExContextMenuProps.setProperty(ID, "saveToNDEx");
-		saveNetworkToNDExContextMenuProps.setProperty(TITLE, "Save Network to NDEx...");
+		saveNetworkToNDExContextMenuProps.setProperty(ID, "exportToNDEx");
+		saveNetworkToNDExContextMenuProps.setProperty(TITLE, "Export Network to NDEx...");
 
 		saveNetworkToNDExContextMenuProps.setProperty(IN_NETWORK_PANEL_CONTEXT_MENU, "true");
 		saveNetworkToNDExContextMenuProps.setProperty(INSERT_SEPARATOR_BEFORE, "true");
