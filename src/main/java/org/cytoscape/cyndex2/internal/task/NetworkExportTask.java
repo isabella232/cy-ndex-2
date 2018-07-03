@@ -36,7 +36,6 @@ import org.cytoscape.cyndex2.internal.rest.parameter.NdexBasicSaveParameter;
 import org.cytoscape.cyndex2.internal.singletons.CXInfoHolder;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
-import org.cytoscape.cyndex2.internal.util.StringResources;
 import org.cytoscape.cyndex2.io.cxio.writer.CxNetworkWriter;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
@@ -112,9 +111,15 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 				? params.metadata.get(CyNetwork.NAME)
 				: (writeCollection ? collectionName : networkName);
 
-		CyNetwork my_net = writeCollection ? rootNetwork : network;
-		my_net.getRow(my_net).set(CyNetwork.NAME, uploadName);
-		
+		Long suid;
+		// Set root or network name
+		if (writeCollection) {
+			rootNetwork.getRow(rootNetwork).set(CyNetwork.NAME, uploadName);
+			suid = rootNetwork.getSUID();
+		} else {
+			network.getRow(network).set(CyNetwork.NAME, uploadName);
+			suid = network.getSUID();
+		}
 		PipedInputStream in = null;
 		PipedOutputStream out = null;
 
@@ -129,9 +134,9 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 			taskMonitor.setStatusMessage("Converting network to CX");
 			if (!isUpdate) {
 				networkUUID = mal.createCXNetwork(in);
-				NetworkManager.INSTANCE.addNetworkUUID(my_net, networkUUID);
+				NetworkManager.INSTANCE.addNetworkUUID(suid, networkUUID);
 			} else {
-				prepareForUpdate(my_net);
+				prepareForUpdate(suid);
 				mal.updateCXNetwork(networkUUID, in);
 			}
 			// set customized provenance
@@ -193,8 +198,18 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 			network.getRow(network).set(CyNetwork.NAME, networkName);
 
 			// add UUID to hidden network table
-			NetworkManager.INSTANCE.addNetworkUUID(my_net, networkUUID);
+			Long key = writeCollection ? rootNetwork.getSUID() : network.getSUID();
+			CyTable table = (writeCollection ? rootNetwork : network).getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
 			
+			if (table.getColumn(NetworkManager.UUID_COLUMN) == null) {
+				table.createColumn(NetworkManager.UUID_COLUMN, String.class, false);
+			}
+			table.getRow(key).set(NetworkManager.UUID_COLUMN, networkUUID.toString());
+
+			NetworkManager.INSTANCE.addNetworkUUID(suid, networkUUID);
+			CXInfoHolder cxInfo = NetworkManager.INSTANCE.getCXInfoHolder(suid);
+			if (cxInfo != null)
+				cxInfo.setNetworkId(networkUUID);
 			CyObjectManager.INSTANCE.getApplicationFrame().revalidate();
 		}
 		
@@ -205,9 +220,12 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 		
 	}
 
-	private void prepareForUpdate(CyNetwork network) throws NetworkUpdateException {
-		
-		networkUUID = NetworkManager.INSTANCE.getNdexNetworkId(network);
+	private void prepareForUpdate(long suid) throws NetworkUpdateException {
+		CXInfoHolder cxInfo = NetworkManager.INSTANCE.getCXInfoHolder(suid);
+		if (cxInfo != null)
+			networkUUID = cxInfo.getNetworkId();
+		if (networkUUID == null)
+			networkUUID = NetworkManager.INSTANCE.getNdexNetworkId(suid);
 		if (networkUUID == null) {
 			throw new NetworkUpdateException(
 					"NDEx network UUID not found. You can only update networks that were imported with CyNDEx2");

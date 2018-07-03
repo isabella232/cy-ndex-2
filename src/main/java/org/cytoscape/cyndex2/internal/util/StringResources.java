@@ -6,16 +6,6 @@ public class StringResources {
 	public static final String NDEX_SAVE = "Export Network to NDEx";
 	public static final String NDEX_OPEN = "Import Network from NDEx";
 	
-	
-	public static final String UUID_COLUMN = "NDEx UUID";
-	public static final String CX_ID_COLUMN = "NDEx CX ID";
-	public static final String METADATA_COLUMN = "NDEx Metadata";
-	public static final String PROVENANCE_COLUMN = "NDEx Provenance";
-	public static final String OPAQUE_ASPECTS_COLUMN = "NDEx Opaque Aspects";
-	public static final String NAMESPACES_COLUMN = "NDEx Namespaces";
-
-
-	
 	public enum LoadBrowserStage {
 		ENABLE_LOGGING(0.0f, "Enabling logging for JXBrowser"),
 		DOWNLOAD_JAR(0.1f, "Downloading JxBrowser JAR from TeamDev"),

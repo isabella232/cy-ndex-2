@@ -123,7 +123,7 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 
 		NiceCXNetwork niceCX = cxImporter.getCXNetworkFromStream(cxStream);
 		cxStream.close();
-
+		
 		boolean hasCoords = niceCX.getNodeAssociatedAspect(CartesianLayoutElement.ASPECT_NAME) != null;
 		boolean doLayout = !hasCoords && networkSummary.getEdgeCount() < 50000;
 
@@ -132,82 +132,61 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 		List<CyNetwork> networks = cxToCy.createNetwork(niceCX, null, networkFactory, null);
 		boolean isCollection = niceCX.getOpaqueAspectTable().containsKey(SubNetworkElement.ASPECT_NAME);
 
-		CyRootNetwork rootNetwork = ((CySubNetwork) networks.get(0)).getRootNetwork();
-
-		CyNetwork my_net = isCollection ? rootNetwork : networks.get(0);
-
 		taskMonitor.setProgress(.8);
 		taskMonitor.setStatusMessage("Storing hidden NDEx attributes");
-
-		// network/collection level aspects
-		CXInfoHolder.setMetadata(my_net, niceCX.getMetadata());
-
-		Map<String, Collection<AspectElement>> opaqueTable = niceCX.getOpaqueAspectTable().entrySet().stream()
-				.filter(map -> (!map.getKey().equals(SubNetworkElement.ASPECT_NAME)
-						&& !map.getKey().equals(CyGroupsElement.ASPECT_NAME))
-						&& !map.getKey().equals(CyViewsElement.ASPECT_NAME)
-						&& !map.getKey().equals(CyVisualPropertiesElement.ASPECT_NAME)
-						&& !map.getKey().equals(CartesianLayoutElement.ASPECT_NAME)
-						&& !map.getKey().equals(CyTableColumnElement.ASPECT_NAME)
-						&& !map.getKey().equals(HiddenAttributesElement.ASPECT_NAME))
-				.collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
-		
-		CXInfoHolder.setOpaqueAspectsTable(my_net, opaqueTable);
-		CXInfoHolder.setNamespaces(my_net, niceCX.getNamespaces());
-		CXInfoHolder.setProvenance(my_net, niceCX.getProvenance());
-
-		// per network attributes
-		for (CyNetwork net : networks) {
-			CXInfoHolder cxInfoHolder = new CXInfoHolder(net);
-			for (Map.Entry<Long, CyNode> entry : cxToCy.get_cxid_to_cynode_map().entrySet()) {
-				if (net.containsNode(entry.getValue())) {
-					cxInfoHolder.addNodeMapping(entry.getValue().getSUID(), entry.getKey());
-				}
-			}
-			for (Map.Entry<Long, CyEdge> entry : cxToCy.get_cxid_to_cyedge_map().entrySet()) {
-				if (net.containsEdge(entry.getValue())) {
-					cxInfoHolder.addEdgeMapping(entry.getValue().getSUID(), entry.getKey());
-				}
-			}
-
-		}
-
 		if (!isCollection) {
 			// populate the CXInfoHolder object.
-			CXInfoHolder cxInfoHolder = new CXInfoHolder(my_net);
+			CXInfoHolder cxInfoHolder = new CXInfoHolder();
 
-//			cxInfoHolder.setNamespaces(niceCX.getNamespaces());
+			cxInfoHolder.setNamespaces(niceCX.getNamespaces());
 
-			// for (Map.Entry<Long, CyNode> entry :
-			// cxToCy.get_cxid_to_cynode_map().entrySet()) {
-			// cxInfoHolder.addNodeMapping(entry.getValue().getSUID(), entry.getKey());
-			// }
-			//
-			// for (Map.Entry<Long, CyEdge> entry :
-			// cxToCy.get_cxid_to_cyedge_map().entrySet()) {
-			// cxInfoHolder.addEdgeMapping(entry.getValue().getSUID(), entry.getKey());
-			// }
+			for (Map.Entry<Long, CyNode> entry : cxToCy.get_cxid_to_cynode_map().entrySet()) {
+				cxInfoHolder.addNodeMapping(entry.getValue().getSUID(), entry.getKey());
+			}
 
-//			cxInfoHolder.setOpaqueAspectsTable(opaqueTable);
+			for (Map.Entry<Long, CyEdge> entry : cxToCy.get_cxid_to_cyedge_map().entrySet()) {
+				cxInfoHolder.addEdgeMapping(entry.getValue().getSUID(), entry.getKey());
+			}
 
-//			cxInfoHolder.setProvenance(niceCX.getProvenance());
-			// cxInfoHolder.setMetadata(niceCX.getMetadata());
+			cxInfoHolder.setOpaqueAspectsTable(niceCX.getOpaqueAspectTable().entrySet().stream()
+					.filter(map -> (!map.getKey().equals(SubNetworkElement.ASPECT_NAME)
+							&& !map.getKey().equals(CyGroupsElement.ASPECT_NAME))
+							&& !map.getKey().equals(CyViewsElement.ASPECT_NAME)
+							&& !map.getKey().equals(CyVisualPropertiesElement.ASPECT_NAME)
+							&& !map.getKey().equals(CartesianLayoutElement.ASPECT_NAME)
+							&& !map.getKey().equals(CyTableColumnElement.ASPECT_NAME)
+							&& !map.getKey().equals(HiddenAttributesElement.ASPECT_NAME))
+					.collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue())));
 
-			// Collection<AspectElement> subNets =
-			// niceCX.getOpaqueAspectTable().get(SubNetworkElement.ASPECT_NAME);
+			cxInfoHolder.setProvenance(niceCX.getProvenance());
+			cxInfoHolder.setMetadata(niceCX.getMetadata());
+			if (networkSummary != null)
+				cxInfoHolder.setNetworkId(networkSummary.getExternalId());
+			Collection<AspectElement> subNets = niceCX.getOpaqueAspectTable().get(SubNetworkElement.ASPECT_NAME);
 
-			// cxInfoHolder.setSubNetCount(subNets == null ? 0 : subNets.size());
+			cxInfoHolder.setSubNetCount(subNets == null ? 0 : subNets.size());
 
-			// for (CyNetwork subNetwork : networks) {
-			// NetworkManager.INSTANCE.setCXInfoHolder(subNetwork, cxInfoHolder);
-			// }
+			for (CyNetwork subNetwork : networks) {
+				NetworkManager.INSTANCE.setCXInfoHolder(subNetwork.getSUID(), cxInfoHolder);
+			}
 		}
+
+		CyRootNetwork rootNetwork = ((CySubNetwork) networks.get(0)).getRootNetwork();
+		suid = rootNetwork.getSUID();
 
 		if (networkSummary != null) {
-			NetworkManager.INSTANCE.addNetworkUUID(my_net, networkSummary.getExternalId());
-		}
+			NetworkManager.INSTANCE.addNetworkUUID(isCollection ? rootNetwork.getSUID() : networks.get(0).getSUID(),
+					networkSummary.getExternalId());
 
-		suid = rootNetwork.getSUID();
+			long key = isCollection ? rootNetwork.getSUID() : networks.get(0).getSUID();
+			CyTable table = (isCollection ? rootNetwork : networks.get(0)).getTable(CyNetwork.class,
+					CyNetwork.HIDDEN_ATTRS);
+			if (table.getColumn(NetworkManager.UUID_COLUMN) == null) {
+				table.createColumn(NetworkManager.UUID_COLUMN, String.class, false);
+			}
+			UUID uuid = networkSummary.getExternalId();
+			table.getRow(key).set(NetworkManager.UUID_COLUMN, uuid.toString());
+		}
 
 		String collectionName = (networkSummary != null) ? networkSummary.getName() : niceCX.getNetworkName();
 		rootNetwork.getRow(rootNetwork).set(CyNetwork.NAME, collectionName);
@@ -265,9 +244,8 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 
 		taskMonitor.setTitle("Importing Network from NDEx...");
 		taskMonitor.setProgress(0);
-
-		// This is a hack, ensuring the task waits until the SUID of the root is
-		// available to
+		
+		// This is a hack, ensuring the task waits until the SUID of the root is available to
 		// return
 		while (suid == null) {
 			try {
