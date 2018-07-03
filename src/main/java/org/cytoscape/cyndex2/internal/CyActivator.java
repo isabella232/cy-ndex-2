@@ -237,8 +237,8 @@ public class CyActivator extends AbstractCyActivator {
 		OpenSaveTaskFactory saveNetworkToNDExContextMenuTaskFactory = new OpenSaveTaskFactory(
 				ExternalAppManager.SAVE_NETWORK, appManager);
 		Properties saveNetworkToNDExContextMenuProps = new Properties();
-		saveNetworkToNDExContextMenuProps.setProperty(ID, "saveToNDEx");
-		saveNetworkToNDExContextMenuProps.setProperty(TITLE, "Save Network to NDEx...");
+		saveNetworkToNDExContextMenuProps.setProperty(ID, "exportToNDEx");
+		saveNetworkToNDExContextMenuProps.setProperty(TITLE, "Export Network to NDEx...");
 
 		saveNetworkToNDExContextMenuProps.setProperty(IN_NETWORK_PANEL_CONTEXT_MENU, "true");
 		saveNetworkToNDExContextMenuProps.setProperty(INSERT_SEPARATOR_BEFORE, "true");
