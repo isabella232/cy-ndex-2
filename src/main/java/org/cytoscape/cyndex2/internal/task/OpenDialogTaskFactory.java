@@ -33,7 +33,7 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 
 	@Override
 	public boolean isReady() {
-		return !ExternalAppManager.busy && !ExternalAppManager.loadFailed();
+		return !ExternalAppManager.loadFailed();
 	}
 
 }
