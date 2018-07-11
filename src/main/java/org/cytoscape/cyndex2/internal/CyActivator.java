@@ -24,7 +24,6 @@ import org.cytoscape.cyndex2.internal.rest.endpoints.impl.NdexStatusResourceImpl
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.task.OpenBrowseTaskFactory;
-import org.cytoscape.cyndex2.internal.task.OpenDialogTaskFactory;
 import org.cytoscape.cyndex2.internal.task.OpenSaveTaskFactory;
 import org.cytoscape.cyndex2.internal.ui.ImportNetworkFromNDExTaskFactory;
 import org.cytoscape.cyndex2.internal.ui.SaveNetworkToNDExTaskFactory;
@@ -41,7 +40,6 @@ import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.task.NetworkViewCollectionTaskFactory;
 import org.cytoscape.work.TaskFactory;
-import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskManager;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -53,7 +51,6 @@ public class CyActivator extends AbstractCyActivator {
 
 	// Logger for this activator
 	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
-	public static final String INSTALL_MAKER_FILE_NAME = "ndex-installed";
 	public static final String WEB_APP_VERSION = "0.1.2";
 
 	private static CyProperty<Properties> cyProps;
@@ -70,7 +67,12 @@ public class CyActivator extends AbstractCyActivator {
 
 	public CyActivator() {
 		super();
+		
 		hasCyNDEx1 = false;
+	}
+	
+	public static String getProperty(String prop) {
+		return cyProps.getProperties().getProperty(prop);
 	}
 
 	public static JDialog getDialog() {
@@ -88,12 +90,6 @@ public class CyActivator extends AbstractCyActivator {
 			return "1234";
 		}
 		return port;
-	}
-
-	public static void openBrowserDialog(String appName) {
-		OpenDialogTaskFactory odtf = new OpenDialogTaskFactory(appName);
-		TaskIterator ti = odtf.createTaskIterator();
-		taskManager.execute(ti);
 	}
 
 	@Override
@@ -148,20 +144,12 @@ public class CyActivator extends AbstractCyActivator {
 
 		ciServiceManager = new CIServiceManager(bc);
 
-		// For loading networks...
+		// Create subdirectories in config dir for jxbrowser
 		final CyNetworkManager netmgr = getService(bc, CyNetworkManager.class);
-
-		// JXBrowser configuration
-		BrowserManager.setConfigurationDirectory(new File(config.getConfigurationDirectoryLocation(), "jxbrowser"));
-
-		// Create web app dir
-		/*
-		 * installWebApp(staticContentPath, bc); removing it now because the webpage is
-		 * served from cyndex.ndexbio.org/version now. File staticPath = new
-		 * File(staticContentPath, STATIC_CONTENT_DIR); startHttpServer(bc,
-		 * staticPath.getAbsolutePath());
-		 */
-
+		File jxBrowserDir = new File(config.getConfigurationDirectoryLocation(), "jxbrowser");
+		jxBrowserDir.mkdir();
+		BrowserManager.setDataDirectory(new File(jxBrowserDir, "data"));
+		
 		// get QueryPanel icon
 		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
 
@@ -194,8 +182,7 @@ public class CyActivator extends AbstractCyActivator {
 		importProps.setProperty(LARGE_ICON_URL, loadIconUrl);
 		importProps.setProperty(SMALL_ICON_URL, loadIconUrl);
 		registerService(bc, importFromNDExTaskFactory, TaskFactory.class, importProps);
-		
-		
+
 		
 		SaveNetworkToNDExTaskFactory saveToNDExTaskFactory = new SaveNetworkToNDExTaskFactory(appManager, ExternalAppManager.APP_NAME_SAVE);
 		Properties props = new Properties();
@@ -212,9 +199,9 @@ public class CyActivator extends AbstractCyActivator {
 		final OpenBrowseTaskFactory ndexTaskFactory = new OpenBrowseTaskFactory(icon);
 		final Properties ndexTaskFactoryProps = new Properties();
 		// ndexTaskFactoryProps.setProperty(IN_MENU_BAR, "false");
-		ndexTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Import.Network");
+		ndexTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Import");
 		ndexTaskFactoryProps.setProperty(MENU_GRAVITY, "0.0");
-		ndexTaskFactoryProps.setProperty(TITLE, "NDEx...");
+		ndexTaskFactoryProps.setProperty(TITLE, "Network From NDEx...");
 		registerAllServices(bc, ndexTaskFactory, ndexTaskFactoryProps);
 
 		// Expose CyREST endpoints
@@ -241,8 +228,8 @@ public class CyActivator extends AbstractCyActivator {
 		OpenSaveTaskFactory saveNetworkToNDExContextMenuTaskFactory = new OpenSaveTaskFactory(
 				ExternalAppManager.SAVE_NETWORK, appManager);
 		Properties saveNetworkToNDExContextMenuProps = new Properties();
-		saveNetworkToNDExContextMenuProps.setProperty(ID, "saveToNDEx");
-		saveNetworkToNDExContextMenuProps.setProperty(TITLE, "Save Network to NDEx...");
+		saveNetworkToNDExContextMenuProps.setProperty(ID, "exportToNDEx");
+		saveNetworkToNDExContextMenuProps.setProperty(TITLE, "Export Network to NDEx...");
 
 		saveNetworkToNDExContextMenuProps.setProperty(IN_NETWORK_PANEL_CONTEXT_MENU, "true");
 		saveNetworkToNDExContextMenuProps.setProperty(INSERT_SEPARATOR_BEFORE, "true");
@@ -262,6 +249,8 @@ public class CyActivator extends AbstractCyActivator {
 		if (ciServiceManager != null) {
 			ciServiceManager.close();
 		}
+		BrowserManager.shutdown();
+		
 		super.shutDown();
 	}
 

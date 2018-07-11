@@ -20,7 +20,7 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 
 		if (ExternalAppManager.busy)
 			return ti;
-
+		
 		// Store query info
 		ExternalAppManager.appName = appName;
 		ExternalAppManager.busy = true;
@@ -33,7 +33,7 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 
 	@Override
 	public boolean isReady() {
-		return !ExternalAppManager.busy && !ExternalAppManager.loadFailed();
+		return !ExternalAppManager.loadFailed();
 	}
 
 }

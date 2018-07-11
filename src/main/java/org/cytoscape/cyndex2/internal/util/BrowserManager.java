@@ -5,17 +5,29 @@ import java.awt.Dialog;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
+
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import org.apache.commons.io.FileUtils;
 import org.cytoscape.cyndex2.errors.BrowserCreationError;
+import org.cytoscape.cyndex2.internal.CyActivator;
+import org.cytoscape.cyndex2.internal.util.StringResources.LoadBrowserStage;
+import org.cytoscape.work.TaskMonitor;
+
 import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.BrowserContext;
 import com.teamdev.jxbrowser.chromium.BrowserContextParams;
+import com.teamdev.jxbrowser.chromium.BrowserCore;
 import com.teamdev.jxbrowser.chromium.BrowserPreferences;
 import com.teamdev.jxbrowser.chromium.BrowserType;
+import com.teamdev.jxbrowser.chromium.LoggerProvider;
 import com.teamdev.jxbrowser.chromium.PopupContainer;
 import com.teamdev.jxbrowser.chromium.PopupHandler;
 import com.teamdev.jxbrowser.chromium.PopupParams;
@@ -23,12 +35,13 @@ import com.teamdev.jxbrowser.chromium.events.DisposeEvent;
 import com.teamdev.jxbrowser.chromium.events.DisposeListener;
 import com.teamdev.jxbrowser.chromium.events.LoadAdapter;
 import com.teamdev.jxbrowser.chromium.events.LoadEvent;
+import com.teamdev.jxbrowser.chromium.internal.ipc.IPC;
 import com.teamdev.jxbrowser.chromium.swing.BrowserView;
 
 public class BrowserManager {
 	private static Browser browser;
 	private static BrowserView browserView;
-	private static File jxbrowserConfigLocation;
+	private static File jxbrowserDataLocation;
 
 	private static boolean supportedOSAndArchitecture() {
 		String os = System.getProperty("os.name");
@@ -38,7 +51,7 @@ public class BrowserManager {
 		return arch.endsWith("64");
 	}
 
-	public static BrowserView getBrowserView() throws BrowserCreationError {
+	public static BrowserView getBrowserView(TaskMonitor tm) throws BrowserCreationError {
 		// returns non-null Browser object or an Exception
 
 		if (!supportedOSAndArchitecture()) {
@@ -46,24 +59,69 @@ public class BrowserManager {
 		}
 
 		if (browserView == null) {
-			Browser b = getJXBrowser();
+			Browser b = getJXBrowser(tm);
 			browserView = new BrowserView(b);
 		}
 		return browserView;
 	}
 
-	public static Browser getJXBrowser() throws BrowserCreationError {
+	public static void enableLogging() throws IOException {
+		LoggerProvider.setLevel(Level.ALL);
+
+		// Uncomment for development port
+		// BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222");
+		File dir = new File(jxbrowserDataLocation.getParent(), "log");
+		dir.mkdirs();
+
+		// Redirect Browser log messages to jxbrowser-browser.log
+		redirectLogMessagesToFile(LoggerProvider.getBrowserLogger(), new File(dir, "browser.log").getAbsolutePath());
+
+		// Redirect IPC log messages to jxbrowser-ipc.log
+		redirectLogMessagesToFile(LoggerProvider.getIPCLogger(), new File(dir, "ipc.log").getAbsolutePath());
+
+		// Redirect Chromium Process log messages to jxbrowser-chromium.log
+		redirectLogMessagesToFile(LoggerProvider.getChromiumProcessLogger(),
+				new File(dir, "chromium.log").getAbsolutePath());
+	}
+
+	private static void redirectLogMessagesToFile(Logger logger, String logFilePath) throws IOException {
+		FileHandler fileHandler = new FileHandler(logFilePath);
+		fileHandler.setFormatter(new SimpleFormatter());
+
+		// Remove default handlers including console handler
+		for (Handler handler : logger.getHandlers()) {
+			logger.removeHandler(handler);
+		}
+		logger.addHandler(fileHandler);
+	}
+
+	private static boolean parseDebug() {
+		String debug = CyActivator.getProperty("jxbrowser.debug");
+		return Boolean.parseBoolean(debug);
+	}
+
+	public static Browser getJXBrowser(TaskMonitor tm) throws BrowserCreationError {
+		tm.setProgress(0.0f);
 		if (browser == null) {
-
-			// Uncomment for development port
-			// BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222");
-
-			// Create the binary in the CytoscapeConfig
-			System.setProperty("jxbrowser.chromium.dir", jxbrowserConfigLocation.getAbsolutePath());
+			LoadBrowserStage.ENABLE_LOGGING.updateTaskMonitor(tm);
+			if (parseDebug()) {
+				BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222");
+				try {
+					enableLogging();
+					System.setProperty("jxbrowser.ipc.external", "true");
+				} catch (IOException e) {
+					System.out.println("Failed to load loggers");
+				}
+			}
 
 			try {
 
-				BrowserContextParams params = new BrowserContextParams(jxbrowserConfigLocation.getAbsolutePath());
+				File f = new File(jxbrowserDataLocation.getParent(), "bin");
+				NativeInstaller.installJXBrowser(f, tm);
+				System.setProperty("jxbrowser.chromium.dir", f.getAbsolutePath());
+
+				LoadBrowserStage.CREATING_BROWSER.updateTaskMonitor(tm);
+				BrowserContextParams params = new BrowserContextParams(jxbrowserDataLocation.getAbsolutePath());
 				BrowserContext context = new BrowserContext(params);
 				browser = new Browser(BrowserType.LIGHTWEIGHT, context);
 
@@ -71,6 +129,7 @@ public class BrowserManager {
 					throw new BrowserCreationError("Browser failed to initialize.");
 				}
 
+				LoadBrowserStage.BROWSER_SETUP.updateTaskMonitor(tm);
 				// Enable local storage and popups
 				BrowserPreferences preferences = browser.getPreferences();
 				preferences.setLocalStorageEnabled(true);
@@ -84,8 +143,9 @@ public class BrowserManager {
 				});
 
 				browser.setPopupHandler(new CustomPopupHandler());
-
 			} catch (Exception e) {
+				e.printStackTrace();
+				browser = null;
 				throw new BrowserCreationError(e.getMessage());
 			}
 
@@ -128,20 +188,22 @@ public class BrowserManager {
 		}
 	}
 
-	public static void setConfigurationDirectory(File directory) {
+	public static File getDataDirectory() {
+		return jxbrowserDataLocation;
+	}
+
+	public static void setDataDirectory(File directory) {
 		// JXBrowser configuration
-		jxbrowserConfigLocation = directory;
-		if (!jxbrowserConfigLocation.exists())
+		jxbrowserDataLocation = directory;
+		if (!jxbrowserDataLocation.exists())
 			try {
-				jxbrowserConfigLocation.mkdir();
+				jxbrowserDataLocation.mkdirs();
 			} catch (SecurityException e) {
 				ExternalAppManager.setLoadFailed(
 						"Failed to create JXBrowser directory in CytoscapeConfiguration: " + e.getMessage());
 			}
-		BrowserPreferences.setChromiumDir(jxbrowserConfigLocation.getAbsolutePath());
-		System.setProperty(BrowserPreferences.TEMP_DIR_PROPERTY, jxbrowserConfigLocation.getAbsolutePath());
-		System.setProperty(BrowserPreferences.CHROMIUM_DIR_PROPERTY, jxbrowserConfigLocation.getAbsolutePath());
-		System.setProperty(BrowserPreferences.USER_AGENT_PROPERTY, jxbrowserConfigLocation.getAbsolutePath());
+		System.setProperty(BrowserPreferences.TEMP_DIR_PROPERTY, jxbrowserDataLocation.getAbsolutePath());
+		System.setProperty(BrowserPreferences.USER_AGENT_PROPERTY, jxbrowserDataLocation.getAbsolutePath());
 
 	}
 
@@ -149,12 +211,25 @@ public class BrowserManager {
 		if (browser != null)
 			browser.getCacheStorage().clearCache();
 		try {
-			if (jxbrowserConfigLocation.exists()) {
-				File cacheDir = new File(jxbrowserConfigLocation.getAbsolutePath(), "Cache");
+			if (jxbrowserDataLocation.exists()) {
+				File cacheDir = new File(jxbrowserDataLocation.getAbsolutePath(), "Cache");
 				FileUtils.deleteDirectory(cacheDir);
 			}
 		} catch (IOException e) {
 
+		}
+	}
+
+	public static void shutdown() {
+		if (browser != null) {
+			for (Browser b : IPC.getBrowsers()) {
+				b.dispose();
+			}
+			try {
+				BrowserCore.shutdown();
+			} catch (Exception e) {
+				// IGNORE
+			}
 		}
 	}
 }

@@ -197,7 +197,7 @@ public final class ViewMaker {
         {
             CyLayoutAlgorithmManager lam = CyObjectManager.INSTANCE.getLayoutAlgorithmManager();
             CyLayoutAlgorithm algorithm = lam.getLayout( 
-            							edgeCount > 5000 ? "grid":"force-directed");
+            							edgeCount > 10000 ? "grid":"force-directed");
             TaskIterator ti = algorithm.createTaskIterator(networkView, algorithm.getDefaultLayoutContext(), CyLayoutAlgorithm.ALL_NODE_VIEWS, "");
             DialogTaskManager tm = CyObjectManager.INSTANCE.getTaskManager();
             tm.execute(ti);
