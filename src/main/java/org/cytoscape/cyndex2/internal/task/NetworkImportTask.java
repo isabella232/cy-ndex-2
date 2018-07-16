@@ -230,6 +230,9 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 				else
 					cxStream = mal.getNetworkAsCXStream(id, accessKey);
 			}
+			if (cxStream == null) {
+				throw new NdexException("Unable to get network as CX stream");
+			}
 			taskMonitor.setProgress(.4);
 			createCyNetworkFromCX(taskMonitor);
 		} catch (IOException ex) {
