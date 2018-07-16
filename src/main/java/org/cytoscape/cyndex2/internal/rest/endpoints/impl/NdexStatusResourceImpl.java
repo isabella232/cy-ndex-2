@@ -29,18 +29,6 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 		this.ciServiceManager = ciServiceManager;
 	}
 
-	private AppStatusParameters setLoadProps() {
-		final LoadParameters loadParameters = new LoadParameters();
-		loadParameters.searchTerm = ExternalAppManager.query;
-		return loadParameters;
-	}
-	
-	private AppStatusParameters setSaveProps(){
-		final SaveParameters saveParameters = new SaveParameters();
-		saveParameters.saveType = ExternalAppManager.saveType;
-		return saveParameters;
-	}
-
 	@Override
 	@CIWrapping
 	public CIAppStatusResponse getAppStatus() {
@@ -55,11 +43,11 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 		status = new AppStatusResponse<>();
 
 		if ( widget.equals(ExternalAppManager.APP_NAME_LOAD)) {
-			status.parameters = setLoadProps();
 			status.widget = "choose";
+			status.parameters = LoadParameters.INSTANCE;
 		} else {
 			status.widget = "save";
-			status.parameters = setSaveProps();
+			status.parameters = SaveParameters.INSTANCE;
 		}
 		
 		try {

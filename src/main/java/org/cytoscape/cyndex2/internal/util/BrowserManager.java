@@ -104,6 +104,8 @@ public class BrowserManager {
 		tm.setProgress(0.0f);
 		if (browser == null) {
 			LoadBrowserStage.ENABLE_LOGGING.updateTaskMonitor(tm);
+			BrowserPreferences.setChromiumSwitches("--disable-gpu");
+			
 			if (parseDebug()) {
 				BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222");
 				try {

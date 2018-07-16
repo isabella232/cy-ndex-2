@@ -29,7 +29,7 @@ public class LoadBrowserTask extends AbstractTask {
 		
 		//give warnings if cyNDEX1 is found.
 		if ( CyActivator.hasCyNDEx1()) {
-			JOptionPane.showMessageDialog(dialog, 
+			JOptionPane.showMessageDialog(dialog,
 					"We have detected you have both the CyNDEx and CyNDEx-2 apps installed and ENABLED.\n" + 
 					"We recommend you DISABLE one of the two apps or you might run into compatibility "
 					+ "issues in Cytoscape.", 

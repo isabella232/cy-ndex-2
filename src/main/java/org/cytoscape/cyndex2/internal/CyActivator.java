@@ -24,6 +24,7 @@ import org.cytoscape.cyndex2.internal.rest.endpoints.impl.NdexStatusResourceImpl
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.task.OpenBrowseTaskFactory;
+import org.cytoscape.cyndex2.internal.task.OpenSaveCollectionTaskFactory;
 import org.cytoscape.cyndex2.internal.task.OpenSaveTaskFactory;
 import org.cytoscape.cyndex2.internal.ui.ImportNetworkFromNDExTaskFactory;
 import org.cytoscape.cyndex2.internal.ui.SaveNetworkToNDExTaskFactory;
@@ -38,7 +39,8 @@ import org.cytoscape.model.CyNetworkTableManager;
 import org.cytoscape.model.events.NetworkAboutToBeDestroyedListener;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
-import org.cytoscape.task.NetworkViewCollectionTaskFactory;
+import org.cytoscape.task.NetworkCollectionTaskFactory;
+import org.cytoscape.task.RootNetworkCollectionTaskFactory;
 import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskManager;
 import org.osgi.framework.Bundle;
@@ -51,7 +53,7 @@ public class CyActivator extends AbstractCyActivator {
 
 	// Logger for this activator
 	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
-	public static final String WEB_APP_VERSION = "0.1.2";
+	public static final String WEB_APP_VERSION = "0.1.3";
 
 	private static CyProperty<Properties> cyProps;
 
@@ -154,8 +156,7 @@ public class CyActivator extends AbstractCyActivator {
 		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
 
 		// TF for NDEx Save Network
-		final OpenSaveTaskFactory ndexSaveNetworkTaskFactory = new OpenSaveTaskFactory(ExternalAppManager.SAVE_NETWORK,
-				appManager);
+		final OpenSaveTaskFactory ndexSaveNetworkTaskFactory = new OpenSaveTaskFactory(appManager);
 		final Properties ndexSaveNetworkTaskFactoryProps = new Properties();
 
 		ndexSaveNetworkTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export");
@@ -164,8 +165,7 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, ndexSaveNetworkTaskFactory, TaskFactory.class, ndexSaveNetworkTaskFactoryProps);
 
 		// TF for NDEx Save Collection
-		final OpenSaveTaskFactory ndexSaveCollectionTaskFactory = new OpenSaveTaskFactory(
-				ExternalAppManager.SAVE_COLLECTION, appManager);
+		final OpenSaveCollectionTaskFactory ndexSaveCollectionTaskFactory = new OpenSaveCollectionTaskFactory(appManager);
 		final Properties ndexSaveCollectionTaskFactoryProps = new Properties();
 
 		ndexSaveCollectionTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export");
@@ -225,20 +225,25 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, new NdexNetworkAboutToBeDestroyedListener(), NetworkAboutToBeDestroyedListener.class,
 				new Properties());
 
-		OpenSaveTaskFactory saveNetworkToNDExContextMenuTaskFactory = new OpenSaveTaskFactory(
-				ExternalAppManager.SAVE_NETWORK, appManager);
+		OpenSaveTaskFactory saveNetworkToNDExContextMenuTaskFactory = new OpenSaveTaskFactory(appManager);
 		Properties saveNetworkToNDExContextMenuProps = new Properties();
 		saveNetworkToNDExContextMenuProps.setProperty(ID, "exportToNDEx");
-		saveNetworkToNDExContextMenuProps.setProperty(TITLE, "Export Network to NDEx...");
-
+		saveNetworkToNDExContextMenuProps.setProperty(TITLE, StringResources.NDEX_SAVE.concat("..."));
 		saveNetworkToNDExContextMenuProps.setProperty(IN_NETWORK_PANEL_CONTEXT_MENU, "true");
 		saveNetworkToNDExContextMenuProps.setProperty(INSERT_SEPARATOR_BEFORE, "true");
 		saveNetworkToNDExContextMenuProps.setProperty(ENABLE_FOR, "network");
 
-		registerService(bc, saveNetworkToNDExContextMenuTaskFactory, NetworkViewCollectionTaskFactory.class,
+		registerService(bc, saveNetworkToNDExContextMenuTaskFactory, NetworkCollectionTaskFactory.class,
 				saveNetworkToNDExContextMenuProps);
-		// registerService(bc, saveNetworkToNDExContextMenuTaskFactory,
-		// TestTaskFactory.class, saveNetworkToNDExContextMenuProps);
+		
+		OpenSaveCollectionTaskFactory saveCollectionToNDExContextMenuTaskFactory = new OpenSaveCollectionTaskFactory(appManager);
+		Properties saveCollectionToNDExContextMenuProps = new Properties();
+		saveNetworkToNDExContextMenuProps.setProperty(ID, "saveCollectionToNDEx");
+		saveCollectionToNDExContextMenuProps.setProperty(TITLE, StringResources.NDEX_SAVE_COLLECTION.concat("..."));
+		saveCollectionToNDExContextMenuProps.setProperty(IN_NETWORK_PANEL_CONTEXT_MENU, "true");
+		saveCollectionToNDExContextMenuProps.setProperty(MENU_GRAVITY, "1.0");
+		registerService(bc, saveCollectionToNDExContextMenuTaskFactory, RootNetworkCollectionTaskFactory.class,
+				saveCollectionToNDExContextMenuProps);
 	}
 
 	@Override

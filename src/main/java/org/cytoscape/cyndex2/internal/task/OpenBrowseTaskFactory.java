@@ -20,6 +20,7 @@ import javax.swing.JToolTip;
 import javax.swing.ToolTipManager;
 
 import org.cytoscape.application.swing.search.NetworkSearchTaskFactory;
+import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskObserver;
@@ -169,7 +170,7 @@ public class OpenBrowseTaskFactory extends OpenDialogTaskFactory implements Netw
 
 	@Override
 	public TaskIterator createTaskIterator() {
-		ExternalAppManager.query = getQuery();
+		LoadParameters.INSTANCE.searchTerm = getQuery();
 		return super.createTaskIterator();
 	}
 
