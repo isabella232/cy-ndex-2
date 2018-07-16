@@ -128,7 +128,7 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 		boolean hasCoords = niceCX.getNodeAssociatedAspect(CartesianLayoutElement.ASPECT_NAME) != null;
 		// else if < 50k edges, create view and layout
 		// ViewMaker uses grid if edges < 10k else force-directed
-		boolean doLayout = !hasCoords && networkSummary.getEdgeCount() < 50000;
+		boolean doLayout = !hasCoords && (networkSummary == null || networkSummary.getEdgeCount() < 50000);
 
 		taskMonitor.setProgress(.7);
 		taskMonitor.setStatusMessage("Building Cytoscape networks");

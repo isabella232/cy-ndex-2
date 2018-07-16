@@ -557,12 +557,11 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	/* NdexImportParams params */
 	) {
 
-		// MyTaskObserver to = new MyTaskObserver();
 		NetworkImportTask importer;
 		try {
 			importer = new NetworkImportTask(in);
-			// TaskIterator ti = new TaskIterator(importer);
-			// CyActivator.taskManager.execute(ti, to);
+			TaskIterator ti = new TaskIterator(importer);
+			CyActivator.taskManager.execute(ti);
 			// importer.run(new HeadlessTaskMonitor());
 		} catch (Exception e) {
 			final String message = "Unable to create CyNetwork from NDEx." + e.getMessage();
