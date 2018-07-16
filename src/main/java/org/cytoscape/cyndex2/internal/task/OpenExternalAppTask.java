@@ -67,7 +67,6 @@ public class OpenExternalAppTask extends AbstractTask {
 					dialog.setVisible(true);
 					
 					//Re-enable the search bar/toolbar components
-					ExternalAppManager.busy = false;
 				} catch (Exception e) {
 					dialog.setVisible(false);
 					System.out.println("Error loading CyNDEx2 browser: " + e.getMessage());

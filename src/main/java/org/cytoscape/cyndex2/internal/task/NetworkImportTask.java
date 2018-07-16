@@ -124,7 +124,10 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 		NiceCXNetwork niceCX = cxImporter.getCXNetworkFromStream(cxStream);
 		cxStream.close();
 		
+		// if has coordinates, create view, do not layout
 		boolean hasCoords = niceCX.getNodeAssociatedAspect(CartesianLayoutElement.ASPECT_NAME) != null;
+		// else if < 50k edges, create view and layout
+		// ViewMaker uses grid if edges < 10k else force-directed
 		boolean doLayout = !hasCoords && networkSummary.getEdgeCount() < 50000;
 
 		taskMonitor.setProgress(.7);
@@ -196,7 +199,7 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 		for (CyNetwork cyNetwork : networks) {
 			CyObjectManager.INSTANCE.getNetworkManager().addNetwork(cyNetwork);
 
-			if (doLayout) {
+			if (doLayout || hasCoords) {
 				CyNetworkViewFactory nvf = CyObjectManager.INSTANCE.getNetworkViewFactory();
 				RenderingEngineManager rem = CyObjectManager.INSTANCE.getRenderingEngineManager();
 				VisualMappingManager vmm = CyObjectManager.INSTANCE.getVisualMappingManager();

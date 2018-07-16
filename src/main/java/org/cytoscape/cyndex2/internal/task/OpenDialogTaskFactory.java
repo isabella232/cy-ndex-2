@@ -17,13 +17,9 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 	@Override
 	public TaskIterator createTaskIterator() {
 		TaskIterator ti = new TaskIterator();
-
-		if (ExternalAppManager.busy)
-			return ti;
 		
 		// Store query info
 		ExternalAppManager.appName = appName;
-		ExternalAppManager.busy = true;
 
 		LoadBrowserTask loader = new LoadBrowserTask();
 		ti.append(loader);

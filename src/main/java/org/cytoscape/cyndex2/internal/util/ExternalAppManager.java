@@ -15,12 +15,11 @@ public class ExternalAppManager {
 	public static String appName;
 	public static String saveType;
 	
-	public static boolean busy = false;
 	private static boolean loadFailed = false;
 	
 	public static void setLoadFailed(String reason){
 		OpenBrowseTaskFactory.getEntry().setDisabled(reason);
-//		loadFailed = true;
+		loadFailed = true;
 	}
 	
 	public static boolean loadFailed(){
