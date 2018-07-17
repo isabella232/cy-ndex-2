@@ -331,7 +331,7 @@ public final class CxExporter {
         try {
 			writeNodes(network, write_siblings, w, cxInfoHolder, groupNodeIds);
 
-			writeGroups(network, w,write_siblings);
+			writeGroups(network, w,write_siblings, cxInfoHolder);
 			writeNodeAttributes(network, write_siblings, w, CyNetwork.DEFAULT_ATTRS, cxInfoHolder, groupNodeIds);
 
 			
@@ -1011,7 +1011,7 @@ public final class CxExporter {
         }	
     }
 
-    private final void writeGroups(final CyNetwork network,final CxWriter w, boolean writeSiblings)
+    private final void writeGroups(final CyNetwork network,final CxWriter w, boolean writeSiblings,CXInfoHolder cxInfoHolder)
             throws IOException {
         final CySubNetwork my_subnet = (CySubNetwork) network;
         final CyRootNetwork my_root = my_subnet.getRootNetwork();
@@ -1043,16 +1043,17 @@ public final class CxExporter {
          /*       if ((name == null) || (name.length() < 1)) {
                     name = "group " + group.getGroupNode().getSUID();
                 } */
-                final CyGroupsElement group_element = new CyGroupsElement(group.getGroupNode().getSUID(), 
+                
+                final CyGroupsElement group_element = new CyGroupsElement(getNodeIdToExport(group.getGroupNode(), cxInfoHolder), 
                 		writeSiblings? subnet.getSUID() : null, name);
                 for (final CyEdge e : group.getExternalEdgeList()) {
-                    group_element.addExternalEdge(e.getSUID());
+                    group_element.addExternalEdge(Long.valueOf(getEdgeIdToExport(e, cxInfoHolder)));
                 }
                 for (final CyEdge e : group.getInternalEdgeList()) {
-                    group_element.addInternalEdge(e.getSUID());
+                    group_element.addInternalEdge(Long.valueOf(getEdgeIdToExport(e, cxInfoHolder)));
                 }
-                for (final CyNode e : group.getNodeList()) {
-                    group_element.addNode(e.getSUID());
+                for (final CyNode n : group.getNodeList()) {
+                    group_element.addNode(getNodeIdToExport(n,cxInfoHolder));
                 }
                 boolean isCollapsed = group.isCollapsed(subnet);
                 group_element.set_isCollapsed(isCollapsed);
