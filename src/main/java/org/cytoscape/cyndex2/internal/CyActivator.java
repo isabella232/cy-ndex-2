@@ -201,7 +201,7 @@ public class CyActivator extends AbstractCyActivator {
 		// ndexTaskFactoryProps.setProperty(IN_MENU_BAR, "false");
 		ndexTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Import");
 		ndexTaskFactoryProps.setProperty(MENU_GRAVITY, "0.0");
-		ndexTaskFactoryProps.setProperty(TITLE, "Network From NDEx...");
+		ndexTaskFactoryProps.setProperty(TITLE, "Network from NDEx...");
 		registerAllServices(bc, ndexTaskFactory, ndexTaskFactoryProps);
 
 		// Expose CyREST endpoints
