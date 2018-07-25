@@ -77,9 +77,8 @@ public class CyActivator extends AbstractCyActivator {
 
 	public static JDialog getDialog() {
 		if (dialog == null) {
-			dialog = new JDialog(swingApp.getJFrame(), "CyNDEx2 Browser", ModalityType.APPLICATION_MODAL);
-			// ensure modality type
-			dialog.getModalityType();
+			dialog = new JDialog(null, "CyNDEx2 Browser", ModalityType.MODELESS);
+			dialog.setAlwaysOnTop(false);
 		}
 		return dialog;
 	}

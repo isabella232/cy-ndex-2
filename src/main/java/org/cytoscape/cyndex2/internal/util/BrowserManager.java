@@ -1,7 +1,6 @@
 package org.cytoscape.cyndex2.internal.util;
 
 import java.awt.BorderLayout;
-import java.awt.Dialog;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
@@ -168,7 +167,6 @@ public class BrowserManager {
 							browserViewLocal.setPreferredSize(initialBounds.getSize());
 
 							final JFrame frame = new JFrame("Popup");
-							frame.setModalExclusionType(Dialog.ModalExclusionType.APPLICATION_EXCLUDE);
 							frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 							frame.add(browserViewLocal, BorderLayout.CENTER);
 							frame.pack();

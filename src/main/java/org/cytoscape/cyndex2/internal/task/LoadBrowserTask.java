@@ -21,34 +21,35 @@ public class LoadBrowserTask extends AbstractTask {
 	protected boolean complete = false;
 
 	public LoadBrowserTask() {
-		
+
 		dialog = CyActivator.getDialog();
-		
-		dialog.setSize(1000, 700);
+		if (!dialog.isVisible()) {
+			dialog.setSize(1000, 700);
+		}
 		dialog.setLocationRelativeTo(null);
 		
-		//give warnings if cyNDEX1 is found.
-		if ( CyActivator.hasCyNDEx1()) {
-			JOptionPane.showMessageDialog(dialog, 
-					"We have detected you have both the CyNDEx and CyNDEx-2 apps installed and ENABLED.\n" + 
-					"We recommend you DISABLE one of the two apps or you might run into compatibility "
-					+ "issues in Cytoscape.", 
+		// give warnings if cyNDEX1 is found.
+		if (CyActivator.hasCyNDEx1()) {
+			JOptionPane.showMessageDialog(dialog,
+					"We have detected you have both the CyNDEx and CyNDEx-2 apps installed and ENABLED.\n"
+							+ "We recommend you DISABLE one of the two apps or you might run into compatibility "
+							+ "issues in Cytoscape.",
 					"Warning", JOptionPane.WARNING_MESSAGE);
 			CyActivator.setHasCyNDEX1(false);
 		}
-		
+
 	}
 
 	@Override
 	public void run(TaskMonitor taskMonitor) {
-		
+
 		// Load browserView and start external task, or show error message
 		LoadBrowserTask task = this;
 		Runnable runnable = new Runnable() {
 
 			@Override
 			public void run() {
-				
+
 				taskMonitor.setTitle("Loading CyNDEx-2");
 				try {
 					browserView = BrowserManager.getBrowserView(taskMonitor);
@@ -63,7 +64,8 @@ public class LoadBrowserTask extends AbstractTask {
 					if (browserView.getParent() == null)
 						dialog.add(browserView, BorderLayout.CENTER);
 
-					getTaskIterator().insertTasksAfter(task, new OpenExternalAppTask(dialog, browserView, CyActivator.getCyRESTPort()));
+					getTaskIterator().insertTasksAfter(task,
+							new OpenExternalAppTask(dialog, browserView, CyActivator.getCyRESTPort()));
 				} catch (BrowserCreationError e) {
 					taskMonitor.showMessage(TaskMonitor.Level.ERROR,
 							"Failed to create browser instance for CyNDEx-2. Restart Cytoscape and try again.\nError: "

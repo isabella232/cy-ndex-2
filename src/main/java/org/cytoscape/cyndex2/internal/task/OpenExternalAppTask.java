@@ -43,9 +43,9 @@ public class OpenExternalAppTask extends AbstractTask {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				
+
 				try {
-					if (dialog.getComponentCount() == 0){
+					if (dialog.getComponentCount() == 0) {
 						throw new Exception("BrowserView was not added to the dialog");
 					}
 					Browser browser = browserView.getBrowser();
@@ -61,16 +61,19 @@ public class OpenExternalAppTask extends AbstractTask {
 							}
 						}
 					});
-					browser.loadURL("http://cyndex.ndexbio.org/"+ CyActivator.WEB_APP_VERSION + "/index.html?cyrestport="+port);
-					
-					dialog.setAlwaysOnTop(false);
-					dialog.setVisible(true);
-					
-					//Re-enable the search bar/toolbar components
+					if (!dialog.isVisible()) {
+						browser.loadURL("http://cyndex.ndexbio.org/" + CyActivator.WEB_APP_VERSION
+								+ "/index.html?cyrestport=" + port);
+						dialog.setVisible(true);
+					} else {
+						dialog.toFront();
+					}
+
+					// Re-enable the search bar/toolbar components
 				} catch (Exception e) {
 					dialog.setVisible(false);
 					System.out.println("Error loading CyNDEx2 browser: " + e.getMessage());
-					
+
 					JOptionPane.showMessageDialog(null,
 							"An error occurred communicating with JxBrowser. Restart and try again.", "JxBrowser Error",
 							JOptionPane.ERROR_MESSAGE);
