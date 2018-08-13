@@ -25,8 +25,9 @@ public class LoadBrowserTask extends AbstractTask {
 		dialog = CyActivator.getDialog();
 		if (!dialog.isVisible()) {
 			dialog.setSize(1000, 700);
+			dialog.setLocationRelativeTo(null);
 		}
-		dialog.setLocationRelativeTo(null);
+		
 		
 		// give warnings if cyNDEX1 is found.
 		if (CyActivator.hasCyNDEx1()) {
@@ -94,7 +95,7 @@ public class LoadBrowserTask extends AbstractTask {
 		Thread thread = new Thread(runnable);
 
 		thread.start();
-
+		
 		new Thread(new Runnable() {
 
 			@Override
@@ -113,8 +114,10 @@ public class LoadBrowserTask extends AbstractTask {
 				thread.interrupt();
 				break;
 			}
-			if (complete)
+			if (complete) {
+				dialog.toFront();
 				break;
+			}
 		}
 	}
 }

@@ -210,39 +210,6 @@
 			<version>1.5.3</version>
 			<scope>provided</scope>
 		</dependency>
-
-		<!-- Web Socket Server -->
-<!--		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-server</artifactId>
-			<version>${jetty.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.eclipse.jetty.websocket</groupId>
-			<artifactId>javax-websocket-server-impl</artifactId>
-			<version>${jetty.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.eclipse.jetty.websocket</groupId>
-			<artifactId>websocket-server</artifactId>
-			<version>${jetty.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.eclipse.jetty.websocket</groupId>
-			<artifactId>javax-websocket-client-impl</artifactId>
-			<version>${jetty.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.eclipse.jetty.websocket</groupId>
-			<artifactId>websocket-client</artifactId>
-			<version>${jetty.version}</version>
-		</dependency>
--->
-
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
 			<artifactId>javax.ws.rs-api</artifactId>
@@ -275,13 +242,7 @@
 			<artifactId>jxbrowser</artifactId>
 			<version>${jxbrowser.version}</version>
 		</dependency>
-		<!-- <dependency> <groupId>com.teamdev.jxbrowser</groupId> <artifactId>jxbrowser-mac</artifactId> 
-			<version>${jxbrowser.version}</version> <scope>provided</scope> </dependency> 
-			<dependency> <groupId>com.teamdev.jxbrowser</groupId> <artifactId>jxbrowser-win</artifactId> 
-			<version>${jxbrowser.version}</version> <scope>provided</scope> </dependency> 
-			<dependency> <groupId>com.teamdev.jxbrowser</groupId> <artifactId>jxbrowser-linux64</artifactId> 
-			<version>${jxbrowser.version}</version> <scope>provided</scope> </dependency> -->
-
+		
 		<!-- Testing -->
 		<dependency>
 			<groupId>junit</groupId>
