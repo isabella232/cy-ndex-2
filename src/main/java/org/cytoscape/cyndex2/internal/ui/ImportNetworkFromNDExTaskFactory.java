@@ -1,7 +1,7 @@
 package org.cytoscape.cyndex2.internal.ui;
 
+import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
 import org.cytoscape.cyndex2.internal.task.OpenDialogTaskFactory;
-import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.work.TaskIterator;
 
 public class ImportNetworkFromNDExTaskFactory extends OpenDialogTaskFactory{
@@ -12,7 +12,7 @@ public class ImportNetworkFromNDExTaskFactory extends OpenDialogTaskFactory{
 	
 	@Override
 	public TaskIterator createTaskIterator() {
-		ExternalAppManager.query = "";
+		LoadParameters.INSTANCE.searchTerm = "";
 		return super.createTaskIterator();
 	}
 

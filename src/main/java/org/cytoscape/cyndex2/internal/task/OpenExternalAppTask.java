@@ -5,6 +5,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import org.cytoscape.cyndex2.internal.CyActivator;
+import org.cytoscape.cyndex2.internal.rest.parameter.SaveParameters;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
@@ -61,15 +62,18 @@ public class OpenExternalAppTask extends AbstractTask {
 							}
 						}
 					});
-					if (!dialog.isVisible()) {
-						browser.loadURL("http://cyndex.ndexbio.org/" + CyActivator.WEB_APP_VERSION
-								+ "/index.html?cyrestport=" + port);
-						dialog.setVisible(true);
-					} else {
-						dialog.toFront();
+					String url = "http://cyndex.ndexbio.org/"+ CyActivator.WEB_APP_VERSION + "/index.html?cyrestport="+port;
+	
+					if (ExternalAppManager.appName.equals(ExternalAppManager.APP_NAME_SAVE)) {
+						url += "&suid=" + String.valueOf(SaveParameters.suid);
 					}
-
-					// Re-enable the search bar/toolbar components
+					
+					browser.loadURL(url);
+					
+					dialog.setVisible(true);
+					dialog.toFront();
+					
+					//Re-enable the search bar/toolbar components
 				} catch (Exception e) {
 					dialog.setVisible(false);
 					System.out.println("Error loading CyNDEx2 browser: " + e.getMessage());
