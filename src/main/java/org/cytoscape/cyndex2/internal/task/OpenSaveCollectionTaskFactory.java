@@ -47,7 +47,7 @@ public class OpenSaveCollectionTaskFactory extends OpenDialogTaskFactory impleme
 
 	@Override
 	public boolean isReady(Collection<CyRootNetwork> roots) {
-		return !ExternalAppManager.loadFailed() && roots.size() == 1;
+		return !(ExternalAppManager.loadFailed() || roots.size() != 1);
 	}
 	
 	private TaskIterator createTaskIterator(CyRootNetwork root) {
