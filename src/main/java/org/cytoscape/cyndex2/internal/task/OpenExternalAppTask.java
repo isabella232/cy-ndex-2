@@ -1,5 +1,8 @@
 package org.cytoscape.cyndex2.internal.task;
 
+import java.awt.Desktop;
+import java.net.URI;
+
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -36,52 +39,75 @@ public class OpenExternalAppTask extends AbstractTask {
 		this.browserView = browserView;
 	}
 
+	public OpenExternalAppTask(String port) {
+		this.port = port;
+		this.dialog = null;
+		this.browserView = null;
+	}
+	
+	private Browser initBrowser() throws Exception {
+		if (dialog.getComponentCount() == 0) {
+			throw new Exception("BrowserView was not added to the dialog");
+		}
+		Browser browser = browserView.getBrowser();
+		browser.addScriptContextListener(new ScriptContextAdapter() {
+
+			@Override
+			public void onScriptContextCreated(ScriptContextEvent arg0) {
+				JSValue window = browser.executeJavaScriptAndReturnValue("window");
+				if (window != null) {
+					window.asObject().setProperty("frame", dialog);
+					window.asObject().setProperty("restPort", port);
+				}
+			}
+		});
+		return browser;
+	}
+
 	@Override
 	public void run(TaskMonitor taskMonitor) {
 		if (this.cancelled)
 			return;
+		
+		StringBuilder urlStr = new StringBuilder();
+		urlStr.append("http://cyndex.ndexbio.org/");
+		urlStr.append(CyActivator.WEB_APP_VERSION);
+		urlStr.append("/index.html?cyrestport=");
+		urlStr.append(port);
+
+		if (ExternalAppManager.appName.equals(ExternalAppManager.APP_NAME_SAVE)) {
+			urlStr.append("&suid=" + String.valueOf(SaveParameters.suid));
+		}
+		
+		final String url = urlStr.toString();
+		
 		// Open the CyNDEx-2 browser
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-
 				try {
-					if (dialog.getComponentCount() == 0) {
-						throw new Exception("BrowserView was not added to the dialog");
-					}
-					Browser browser = browserView.getBrowser();
-
-					browser.addScriptContextListener(new ScriptContextAdapter() {
-
-						@Override
-						public void onScriptContextCreated(ScriptContextEvent arg0) {
-							JSValue window = browser.executeJavaScriptAndReturnValue("window");
-							if (window != null) {
-								window.asObject().setProperty("frame", dialog);
-								window.asObject().setProperty("restPort", port);
-							}
+					if (dialog == null) {
+						if (Desktop.isDesktopSupported()) {
+						    Desktop.getDesktop().browse(new URI(url));
+						}else {
+							throw new Exception("Unable to open the default browser from a Java application.");
 						}
-					});
-					String url = "http://cyndex.ndexbio.org/"+ CyActivator.WEB_APP_VERSION + "/index.html?cyrestport="+port;
-	
-					if (ExternalAppManager.appName.equals(ExternalAppManager.APP_NAME_SAVE)) {
-						url += "&suid=" + String.valueOf(SaveParameters.suid);
+					} else {
+						Browser browser = initBrowser();
+						browser.loadURL(url);
+						dialog.setVisible(true);
+						dialog.toFront();
 					}
-					
-					browser.loadURL(url);
-					
-					dialog.setVisible(true);
-					dialog.toFront();
-					
-					//Re-enable the search bar/toolbar components
+					// Re-enable the search bar/toolbar components
 				} catch (Exception e) {
-					dialog.setVisible(false);
-					System.out.println("Error loading CyNDEx2 browser: " + e.getMessage());
+					if (dialog != null) {
+						dialog.setVisible(false);
+					}
 
 					JOptionPane.showMessageDialog(null,
-							"An error occurred communicating with JxBrowser. Restart and try again.", "JxBrowser Error",
+							"Unable to load the CyNDEx2 browser: " + e.getMessage(), "JxBrowser Error",
 							JOptionPane.ERROR_MESSAGE);
-					ExternalAppManager.setLoadFailed("Failed to load browser instance.\n" + e.getMessage());
+//					ExternalAppManager.setLoadFailed("Failed to load browser instance.\n" + e.getMessage());
 				}
 
 			}

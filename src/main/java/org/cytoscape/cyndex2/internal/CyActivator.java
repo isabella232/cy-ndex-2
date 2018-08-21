@@ -2,13 +2,11 @@ package org.cytoscape.cyndex2.internal;
 
 import static org.cytoscape.work.ServiceProperties.*;
 
-import java.awt.Dialog.ModalityType;
 import java.io.File;
 import java.util.Dictionary;
 import java.util.Properties;
 
 import javax.swing.ImageIcon;
-import javax.swing.JDialog;
 
 import org.cytoscape.app.swing.CySwingAppAdapter;
 import org.cytoscape.application.CyApplicationConfiguration;
@@ -61,7 +59,6 @@ public class CyActivator extends AbstractCyActivator {
 	private static String appName;
 	private static boolean hasCyNDEx1;
 
-	private static JDialog dialog;
 	private CIServiceManager ciServiceManager;
 	public static TaskManager<?, ?> taskManager;
 
@@ -75,14 +72,6 @@ public class CyActivator extends AbstractCyActivator {
 		return cyProps.getProperties().getProperty(prop);
 	}
 
-	public static JDialog getDialog() {
-		if (dialog == null) {
-			dialog = new JDialog(null, "CyNDEx2 Browser", ModalityType.MODELESS);
-			dialog.setAlwaysOnTop(false);
-		}
-		return dialog;
-	}
-
 	public static String getCyRESTPort() {
 		String port = cyProps.getProperties().getProperty("rest.port");
 		if (port == null) {
@@ -90,6 +79,12 @@ public class CyActivator extends AbstractCyActivator {
 		}
 		return port;
 	}
+	
+	public static boolean useDefaultBrowser() {
+		String val = cyProps.getProperties().getProperty("cyndex2.defaultBrowser");
+		return Boolean.parseBoolean(val);
+	}
+	
 
 	@Override
 	@SuppressWarnings("unchecked")

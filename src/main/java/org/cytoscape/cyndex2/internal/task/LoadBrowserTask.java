@@ -17,18 +17,12 @@ import com.teamdev.jxbrowser.chromium.swing.BrowserView;
 
 public class LoadBrowserTask extends AbstractTask {
 	private BrowserView browserView;
-	private JDialog dialog;
+	private final JDialog dialog;
 	protected boolean complete = false;
 
-	public LoadBrowserTask() {
-
-		dialog = CyActivator.getDialog();
-		if (!dialog.isVisible()) {
-			dialog.setSize(1000, 700);
-			dialog.setLocationRelativeTo(null);
-		}
-		
-		
+	public LoadBrowserTask(JDialog dialog) {
+		this.dialog = dialog;
+	
 		//give warnings if cyNDEX1 is found.
 		if ( CyActivator.hasCyNDEx1()) {
 			JOptionPane.showMessageDialog(dialog,
@@ -52,6 +46,14 @@ public class LoadBrowserTask extends AbstractTask {
 			public void run() {
 
 				taskMonitor.setTitle("Loading CyNDEx-2");
+				
+				if (dialog == null) {
+					getTaskIterator().insertTasksAfter(task,
+							new OpenExternalAppTask(CyActivator.getCyRESTPort()));
+					complete = true;
+					return;
+				}
+				
 				try {
 					browserView = BrowserManager.getBrowserView(taskMonitor);
 
@@ -93,7 +95,6 @@ public class LoadBrowserTask extends AbstractTask {
 
 		};
 		Thread thread = new Thread(runnable);
-
 		thread.start();
 		
 		new Thread(new Runnable() {
@@ -109,13 +110,16 @@ public class LoadBrowserTask extends AbstractTask {
 				}
 			}
 		}).start();
+		
 		while (true) {
 			if (cancelled) {
 				thread.interrupt();
 				break;
 			}
 			if (complete) {
-				dialog.toFront();
+				if (dialog != null) {
+					dialog.toFront();
+				}
 				break;
 			}
 		}
