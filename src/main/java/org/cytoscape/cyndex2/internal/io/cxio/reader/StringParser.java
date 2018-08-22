@@ -1,4 +1,4 @@
-package org.cytoscape.cyndex2.io.cxio.reader;
+package org.cytoscape.cyndex2.internal.io.cxio.reader;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.cytoscape.cyndex2.io.cxio.CxUtil;
+import org.cytoscape.cyndex2.internal.io.cxio.CxUtil;
 
 public final class StringParser {
     private final Map<String, String> _data = new HashMap<>();

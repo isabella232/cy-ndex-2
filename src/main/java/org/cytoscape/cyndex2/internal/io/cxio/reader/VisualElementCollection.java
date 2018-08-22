@@ -1,4 +1,4 @@
-package org.cytoscape.cyndex2.io.cxio.reader;
+package org.cytoscape.cyndex2.internal.io.cxio.reader;
 
 import java.util.HashMap;
 import java.util.Map;
