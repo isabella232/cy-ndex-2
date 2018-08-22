@@ -3,7 +3,7 @@ package org.cytoscape.cyndex2.internal.task;
 import java.util.Collection;
 
 import org.cytoscape.application.CyApplicationManager;
-import org.cytoscape.cyndex2.internal.rest.parameter.SaveParameters;
+import org.cytoscape.cyndex2.external.SaveParameters;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.subnetwork.CyRootNetwork;

@@ -168,7 +168,7 @@ public class CyActivator extends AbstractCyActivator {
 		importProps.setProperty(IN_TOOL_BAR, "true");
 		importProps.setProperty(TOOL_BAR_GRAVITY, "0.0f");
 		importProps.setProperty(TOOLTIP, StringResources.NDEX_OPEN);
-		String loadIconUrl = getClass().getResource("/images/open_from_ndex_36x36.png").toString();
+		String loadIconUrl = getClass().getResource("/images/cy-open-3_7_36x36_final.png").toString();
 		importProps.setProperty(LARGE_ICON_URL, loadIconUrl);
 		importProps.setProperty(SMALL_ICON_URL, loadIconUrl);
 		registerService(bc, importFromNDExTaskFactory, TaskFactory.class, importProps);
@@ -180,7 +180,7 @@ public class CyActivator extends AbstractCyActivator {
 		props.setProperty(INSERT_TOOLBAR_SEPARATOR_AFTER, "true");
 		props.setProperty(TOOLTIP, StringResources.NDEX_SAVE);
 		props.setProperty(TOOL_BAR_GRAVITY, "0.1f");
-		String saveIconUrl = getClass().getResource("/images/save_to_ndex_36x36.png").toString();
+		String saveIconUrl = getClass().getResource("/images/cy-save-3_7_36x36_final.png").toString();
 		props.setProperty(LARGE_ICON_URL, saveIconUrl);
 		props.setProperty(SMALL_ICON_URL, saveIconUrl);
 		registerService(bc, saveToNDExTaskFactory, TaskFactory.class, props);

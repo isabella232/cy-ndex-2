@@ -3,12 +3,12 @@ package org.cytoscape.cyndex2.internal.rest.endpoints.impl;
 import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.ci.CIWrapping;
+import org.cytoscape.cyndex2.external.SaveParameters;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexStatusResource;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorType;
 import org.cytoscape.cyndex2.internal.rest.parameter.AppStatusParameters;
 import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
-import org.cytoscape.cyndex2.internal.rest.parameter.SaveParameters;
 import org.cytoscape.cyndex2.internal.rest.response.AppStatusResponse;
 import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
