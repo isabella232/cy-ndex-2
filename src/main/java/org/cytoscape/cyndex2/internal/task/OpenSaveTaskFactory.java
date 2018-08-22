@@ -45,7 +45,7 @@ public class OpenSaveTaskFactory extends OpenDialogTaskFactory implements Networ
 	}
 	
 	private TaskIterator createTaskIterator(CyNetwork net) {
-		SaveParameters.suid = net.getSUID();
+		SaveParameters.INSTANCE.suid = net.getSUID();
 		SaveParameters.INSTANCE.saveType = ExternalAppManager.SAVE_NETWORK;
 		return super.createTaskIterator();
 		

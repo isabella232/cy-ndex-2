@@ -76,7 +76,7 @@ public class OpenExternalAppTask extends AbstractTask {
 		urlStr.append(port);
 
 		if (ExternalAppManager.appName.equals(ExternalAppManager.APP_NAME_SAVE)) {
-			urlStr.append("&suid=" + String.valueOf(SaveParameters.suid));
+			urlStr.append("&suid=" + String.valueOf(SaveParameters.INSTANCE.suid));
 		}
 		
 		final String url = urlStr.toString();

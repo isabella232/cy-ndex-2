@@ -1,4 +1,4 @@
-package org.cytoscape.cyndex2.io.cxio.writer;
+package org.cytoscape.cyndex2.internal.io.cxio.writer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -9,11 +9,11 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 
-import org.cytoscape.cyndex2.io.cxio.Aspect;
-import org.cytoscape.cyndex2.io.cxio.AspectSet;
-import org.cytoscape.cyndex2.io.cxio.CxExporter;
-import org.cytoscape.cyndex2.io.cxio.Settings;
-import org.cytoscape.cyndex2.io.cxio.TimingUtil;
+import org.cytoscape.cyndex2.internal.io.cxio.Aspect;
+import org.cytoscape.cyndex2.internal.io.cxio.AspectSet;
+import org.cytoscape.cyndex2.internal.io.cxio.CxExporter;
+import org.cytoscape.cyndex2.internal.io.cxio.Settings;
+import org.cytoscape.cyndex2.internal.io.cxio.TimingUtil;
 import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.io.write.CyWriter;
 import org.cytoscape.model.CyNetwork;

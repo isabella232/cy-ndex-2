@@ -32,11 +32,11 @@ import java.io.PipedOutputStream;
 import java.util.UUID;
 
 import org.cytoscape.cyndex2.internal.CyActivator;
+import org.cytoscape.cyndex2.internal.io.cxio.writer.CxNetworkWriter;
 import org.cytoscape.cyndex2.internal.rest.parameter.NdexBasicSaveParameter;
 import org.cytoscape.cyndex2.internal.singletons.CXInfoHolder;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
-import org.cytoscape.cyndex2.io.cxio.writer.CxNetworkWriter;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.subnetwork.CyRootNetwork;

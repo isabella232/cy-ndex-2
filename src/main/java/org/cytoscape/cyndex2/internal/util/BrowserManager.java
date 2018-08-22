@@ -15,8 +15,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import org.apache.commons.io.FileUtils;
-import org.cytoscape.cyndex2.errors.BrowserCreationError;
 import org.cytoscape.cyndex2.internal.CyActivator;
+import org.cytoscape.cyndex2.internal.errors.BrowserCreationError;
 import org.cytoscape.cyndex2.internal.util.StringResources.LoadBrowserStage;
 import org.cytoscape.work.TaskMonitor;
 

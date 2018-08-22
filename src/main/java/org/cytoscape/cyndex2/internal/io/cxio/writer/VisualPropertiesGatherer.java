@@ -1,4 +1,4 @@
-package org.cytoscape.cyndex2.io.cxio.writer;
+package org.cytoscape.cyndex2.internal.io.cxio.writer;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,10 +14,10 @@ import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTable;
+import org.cytoscape.cyndex2.internal.io.cxio.CxExporter;
+import org.cytoscape.cyndex2.internal.io.cxio.CxUtil;
+import org.cytoscape.cyndex2.internal.io.cxio.VisualPropertyType;
 import org.cytoscape.cyndex2.internal.singletons.CXInfoHolder;
-import org.cytoscape.cyndex2.io.cxio.CxExporter;
-import org.cytoscape.cyndex2.io.cxio.CxUtil;
-import org.cytoscape.cyndex2.io.cxio.VisualPropertyType;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.View;
 import org.cytoscape.view.model.VisualLexicon;

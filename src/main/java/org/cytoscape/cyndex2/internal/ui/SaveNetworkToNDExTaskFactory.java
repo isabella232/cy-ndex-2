@@ -19,6 +19,11 @@ public class SaveNetworkToNDExTaskFactory extends OpenDialogTaskFactory {
 	@Override
 	public TaskIterator createTaskIterator() {
 		SaveParameters.INSTANCE.saveType = ExternalAppManager.SAVE_NETWORK;
+		CyNetwork net = appManager.getCurrentNetwork();
+		if (net == null) {
+			return new TaskIterator();
+		}
+		SaveParameters.INSTANCE.suid = net.getSUID();
 		return super.createTaskIterator();
 	}
 	

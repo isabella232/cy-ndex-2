@@ -1,4 +1,4 @@
-package org.cytoscape.cyndex2.errors;
+package org.cytoscape.cyndex2.internal.errors;
 
 public class BrowserCreationError extends Exception {
 	/**

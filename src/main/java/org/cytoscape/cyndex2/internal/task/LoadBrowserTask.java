@@ -5,8 +5,8 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
-import org.cytoscape.cyndex2.errors.BrowserCreationError;
 import org.cytoscape.cyndex2.internal.CyActivator;
+import org.cytoscape.cyndex2.internal.errors.BrowserCreationError;
 import org.cytoscape.cyndex2.internal.util.BrowserManager;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.cyndex2.internal.util.StringResources.LoadBrowserStage;

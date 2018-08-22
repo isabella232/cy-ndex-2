@@ -1,4 +1,4 @@
-package org.cytoscape.cyndex2.io.cxio;
+package org.cytoscape.cyndex2.internal.io.cxio;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -48,10 +48,10 @@ import org.cxio.metadata.MetaDataCollection;
 import org.cxio.metadata.MetaDataElement;
 import org.cxio.misc.AspectElementCounts;
 import org.cytoscape.cyndex2.internal.CyActivator;
+import org.cytoscape.cyndex2.internal.io.cxio.writer.VisualPropertiesGatherer;
 import org.cytoscape.cyndex2.internal.singletons.CXInfoHolder;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
-import org.cytoscape.cyndex2.io.cxio.writer.VisualPropertiesGatherer;
 import org.cytoscape.group.CyGroup;
 import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.model.CyColumn;

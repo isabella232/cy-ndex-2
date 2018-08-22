@@ -51,7 +51,7 @@ public class OpenSaveCollectionTaskFactory extends OpenDialogTaskFactory impleme
 	}
 	
 	private TaskIterator createTaskIterator(CyRootNetwork root) {
-		SaveParameters.suid = root.getSUID();
+		SaveParameters.INSTANCE.suid = root.getSUID();
 		SaveParameters.INSTANCE.saveType = ExternalAppManager.SAVE_COLLECTION;
 		return super.createTaskIterator();
 		
