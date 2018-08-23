@@ -864,11 +864,12 @@ public final class CxExporter {
 
 		if (hasNDExData) {
 			MetaDataCollection originalCXMetadata = CXInfoHolder.getMetadata(network);
-
-			for (MetaDataElement mdElement : originalCXMetadata) {
-				if (pre_meta_data.getMetaDataElement(mdElement.getName()) == null) { // not a cy supported aspect, then
+			if (originalCXMetadata != null) {
+				for (MetaDataElement mdElement : originalCXMetadata) {
+					if (pre_meta_data.getMetaDataElement(mdElement.getName()) == null) { // not a cy supported aspect, then
 																						// add it
-					pre_meta_data.add(mdElement);
+						pre_meta_data.add(mdElement);
+					}
 				}
 			}
 		}
