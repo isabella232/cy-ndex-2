@@ -63,8 +63,7 @@ public final class VisualPropertiesGatherer {
                                                                                    final VisualMappingManager visual_mapping_manager,
                                                                                    final VisualLexicon lexicon,
                                                                                    final Set<VisualPropertyType> types,
-                                                                                   boolean writeSiblings,
-                                                                                   CXInfoHolder cxInfoHolder) {
+                                                                                   boolean writeSiblings) {
 
         final List<AspectElement> elements = new ArrayList<>();
         final VisualStyle current_visual_style = visual_mapping_manager.getVisualStyle(view);
@@ -83,11 +82,11 @@ public final class VisualPropertiesGatherer {
         }
 
         if (types.contains(VisualPropertyType.NODES)) {
-            gatherNodeVisualProperties(view, elements, all_visual_properties, writeSiblings, cxInfoHolder);
+            gatherNodeVisualProperties(view, elements, all_visual_properties, writeSiblings);
         }
 
         if (types.contains(VisualPropertyType.EDGES)) {
-            gatherEdgeVisualProperties(view, elements, all_visual_properties, writeSiblings, cxInfoHolder);
+            gatherEdgeVisualProperties(view, elements, all_visual_properties, writeSiblings);
         }
 
         return elements;
@@ -357,12 +356,11 @@ public final class VisualPropertiesGatherer {
     private static void gatherEdgeVisualProperties(final CyNetworkView view,
                                                    final List<AspectElement> visual_properties,
                                                    final Set<VisualProperty<?>> all_visual_properties,
-                                                   boolean writeSiblings , 
-                                                   CXInfoHolder cxInfoHolder) {
+                                                   boolean writeSiblings) {
         for (final CyEdge edge : view.getModel().getEdgeList()) {
             final View<CyEdge> edge_view = view.getEdgeView(edge);
             final CyVisualPropertiesElement e = new CyVisualPropertiesElement(VisualPropertyType.EDGES.asString(),
-            												CxExporter.getEdgeIdToExport(edge, cxInfoHolder),//edge.getSUID(),                                                                             
+            												CxExporter.getEdgeIdToExport(edge, view.getModel()),//edge.getSUID(),                                                                             
             												writeSiblings ? view.getSUID() : null);
      //       e.setApplies_to(edge.getSUID());
             for (final VisualProperty visual_property : all_visual_properties) {
@@ -432,12 +430,11 @@ public final class VisualPropertiesGatherer {
     private static void gatherNodeVisualProperties(final CyNetworkView view,
                                                    final List<AspectElement> visual_properties,
                                                    final Set<VisualProperty<?>> all_visual_properties,
-                                                   boolean writeSiblings,
-                                                   CXInfoHolder cxInfoHolder) {
+                                                   boolean writeSiblings) {
         for (final CyNode cy_node : view.getModel().getNodeList()) {
             final View<CyNode> node_view = view.getNodeView(cy_node);
             final CyVisualPropertiesElement e = new CyVisualPropertiesElement(VisualPropertyType.NODES.asString(),
-            																CxExporter.getNodeIdToExport(cy_node, cxInfoHolder),//cy_node.getSUID(),
+            																CxExporter.getNodeIdToExport(cy_node, view.getModel()),//cy_node.getSUID(),
                                                                              writeSiblings? view.getSUID() : null);
       //      e.setApplies_to(cy_node.getSUID());
             for (final VisualProperty visual_property : all_visual_properties) {

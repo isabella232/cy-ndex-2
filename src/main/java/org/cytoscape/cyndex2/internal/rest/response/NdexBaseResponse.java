@@ -6,7 +6,7 @@ import io.swagger.annotations.ApiModelProperty;
 @ApiModel(description = "Response for import API call.")
 public final class NdexBaseResponse {
 
-	@ApiModelProperty(value = "Cytoscape session-unique ID (SUID) of the new network imported from NDEx")
+	@ApiModelProperty(value = "Cytoscape session-unique ID (SUID) of the network")
 	public Long suid;
 	
 	@ApiModelProperty(value = "NDEx network UUID")

@@ -7,7 +7,7 @@ import io.swagger.annotations.ApiModelProperty;
 @ApiModel(description = "Required parameters for loading network(s) from NDEx.")
 public class NdexImportParams {
 
-	@ApiModelProperty(value = "URL of NDEx V2 API server, defaults to http://ndexbio.org/v2", example="http://ndexbio.org/v2", required=true)
+	@ApiModelProperty(value = "URL of NDEx V2 API server, defaults to http://ndexbio.org/v2", example="http://ndexbio.org/v2")
 	public String serverUrl;
 
 	@ApiModelProperty(value = "UUID of the NDEx network", example="", required=true)
