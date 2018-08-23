@@ -97,6 +97,10 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 		DialogTaskManager tm = CyObjectManager.INSTANCE.getTaskManager();
 		tm.execute(ti);
 	}
+	
+	public CyNetwork getNetwork() {
+		return network;
+	}
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws NetworkExportException {
@@ -190,7 +194,6 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 					e.printStackTrace();
 				}
 			}
-
 			taskMonitor.setProgress(.9);
 			taskMonitor.setStatusMessage("Saving changes to network in Cytoscape");
 			// Revert names back to original?

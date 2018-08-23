@@ -175,8 +175,11 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 		}
 
 		CyRootNetwork rootNetwork = ((CySubNetwork) networks.get(0)).getRootNetwork();
-		suid = rootNetwork.getSUID();
-
+		if (isCollection) {
+			suid = rootNetwork.getSUID();
+		}else {
+			suid = networks.get(0).getSUID();
+		}
 		if (networkSummary != null) {
 			NetworkManager.INSTANCE.addNetworkUUID(isCollection ? rootNetwork.getSUID() : networks.get(0).getSUID(),
 					networkSummary.getExternalId());
