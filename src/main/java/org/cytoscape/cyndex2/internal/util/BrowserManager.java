@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
+import java.util.Map.Entry;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -230,6 +231,12 @@ public class BrowserManager {
 			} catch (Exception e) {
 				// IGNORE
 			}
+			IPC def = IPC.getDefault();
+			if (def != null) {
+				def.stop();
+				def.shutdown();
+			}
+			
 		}
 	}
 }

@@ -66,7 +66,7 @@ public class NativeInstaller {
 	}
 
 	private final void install(TaskMonitor tm) throws InstallException {
-		tm.setTitle("Installing JXBrowser binaries. This should only occur on first run.");
+		tm.setStatusMessage("Installing JXBrowser binaries. This should only occur on first run.");
 		// Create the directory if it doesn't exist
 		if (!installLocation.exists()) {
 			installLocation.mkdir();
