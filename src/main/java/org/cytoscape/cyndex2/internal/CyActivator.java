@@ -1,16 +1,24 @@
 package org.cytoscape.cyndex2.internal;
 
-import static org.cytoscape.work.ServiceProperties.*;
+import static org.cytoscape.work.ServiceProperties.ENABLE_FOR;
+import static org.cytoscape.work.ServiceProperties.ID;
+import static org.cytoscape.work.ServiceProperties.INSERT_SEPARATOR_BEFORE;
+import static org.cytoscape.work.ServiceProperties.IN_NETWORK_PANEL_CONTEXT_MENU;
+import static org.cytoscape.work.ServiceProperties.MENU_GRAVITY;
+import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
+import static org.cytoscape.work.ServiceProperties.TITLE;
 
+import java.awt.Font;
 import java.io.File;
 import java.util.Dictionary;
 import java.util.Properties;
 
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 
 import org.cytoscape.app.swing.CySwingAppAdapter;
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
+import org.cytoscape.application.swing.CyAction;
 import org.cytoscape.cyndex2.internal.rest.NdexClient;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexBaseResource;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexNetworkResource;
@@ -24,10 +32,12 @@ import org.cytoscape.cyndex2.internal.task.OpenBrowseTaskFactory;
 import org.cytoscape.cyndex2.internal.task.OpenSaveCollectionTaskFactory;
 import org.cytoscape.cyndex2.internal.task.OpenSaveTaskFactory;
 import org.cytoscape.cyndex2.internal.ui.ImportNetworkFromNDExTaskFactory;
+import org.cytoscape.cyndex2.internal.ui.MainToolBarAction;
 import org.cytoscape.cyndex2.internal.ui.SaveNetworkToNDExTaskFactory;
 import org.cytoscape.cyndex2.internal.util.BrowserManager;
 import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
+import org.cytoscape.cyndex2.internal.util.IconUtil;
 import org.cytoscape.cyndex2.internal.util.StringResources;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.io.write.CyNetworkViewWriterFactory;
@@ -36,8 +46,11 @@ import org.cytoscape.model.CyNetworkTableManager;
 import org.cytoscape.model.events.NetworkAboutToBeDestroyedListener;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
+import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.task.NetworkCollectionTaskFactory;
 import org.cytoscape.task.RootNetworkCollectionTaskFactory;
+import org.cytoscape.util.swing.IconManager;
+import org.cytoscape.util.swing.TextIcon;
 import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskManager;
 import org.osgi.framework.Bundle;
@@ -89,7 +102,6 @@ public class CyActivator extends AbstractCyActivator {
 	@Override
 	@SuppressWarnings("unchecked")
 	public void start(BundleContext bc) throws InvalidSyntaxException {
-
 		for (Bundle b : bc.getBundles()) {
 			// System.out.println(b.getSymbolicName());
 			if (b.getSymbolicName().equals("org.cytoscape.api-bundle")) {
@@ -111,14 +123,14 @@ public class CyActivator extends AbstractCyActivator {
 		appName = (String) d.get("Bundle-name");
 
 		// Import dependencies
+		final CyServiceRegistrar serviceRegistrar = getService(bc, CyServiceRegistrar.class);
 		final CyApplicationConfiguration config = getService(bc, CyApplicationConfiguration.class);
-
 		final CyApplicationManager appManager = getService(bc, CyApplicationManager.class);
 		cyProps = getService(bc, CyProperty.class, "(cyPropertyName=cytoscape3.props)");
 		taskManager = getService(bc, TaskManager.class);
-
 		final CySwingAppAdapter appAdapter = getService(bc, CySwingAppAdapter.class); 
 	    final CyNetworkTableManager networkTableManager = getService(bc, CyNetworkTableManager.class); 
+	    final IconManager iconManager = getService(bc, IconManager.class); 
 	 
 	    // Register these with the CyObjectManager singleton. 
 	    CyObjectManager manager = CyObjectManager.INSTANCE; 
@@ -142,9 +154,6 @@ public class CyActivator extends AbstractCyActivator {
 		jxBrowserDir.mkdir();
 		BrowserManager.setDataDirectory(new File(jxBrowserDir, "data"));
 		
-		// get QueryPanel icon
-		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
-
 		// TF for NDEx Save Network
 		final OpenSaveTaskFactory ndexSaveNetworkTaskFactory = new OpenSaveTaskFactory(appManager);
 		final Properties ndexSaveNetworkTaskFactoryProps = new Properties();
@@ -164,28 +173,15 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, ndexSaveCollectionTaskFactory, TaskFactory.class, ndexSaveCollectionTaskFactoryProps);
 		
 		ImportNetworkFromNDExTaskFactory importFromNDExTaskFactory = new ImportNetworkFromNDExTaskFactory(ExternalAppManager.APP_NAME_LOAD);
-		Properties importProps = new Properties();
-		importProps.setProperty(IN_TOOL_BAR, "true");
-		importProps.setProperty(TOOL_BAR_GRAVITY, "0.0f");
-		importProps.setProperty(TOOLTIP, StringResources.NDEX_OPEN);
-		String loadIconUrl = getClass().getResource("/images/cy-open-3_7_36x36_final.png").toString();
-		importProps.setProperty(LARGE_ICON_URL, loadIconUrl);
-		importProps.setProperty(SMALL_ICON_URL, loadIconUrl);
-		registerService(bc, importFromNDExTaskFactory, TaskFactory.class, importProps);
-
-		
 		SaveNetworkToNDExTaskFactory saveToNDExTaskFactory = new SaveNetworkToNDExTaskFactory(appManager, ExternalAppManager.APP_NAME_SAVE);
-		Properties props = new Properties();
-		props.setProperty(IN_TOOL_BAR, "true");
-		props.setProperty(INSERT_TOOLBAR_SEPARATOR_AFTER, "true");
-		props.setProperty(TOOLTIP, StringResources.NDEX_SAVE);
-		props.setProperty(TOOL_BAR_GRAVITY, "0.1f");
-		String saveIconUrl = getClass().getResource("/images/cy-save-3_7_36x36_final.png").toString();
-		props.setProperty(LARGE_ICON_URL, saveIconUrl);
-		props.setProperty(SMALL_ICON_URL, saveIconUrl);
-		registerService(bc, saveToNDExTaskFactory, TaskFactory.class, props);
 
+		MainToolBarAction action = new MainToolBarAction(importFromNDExTaskFactory, saveToNDExTaskFactory, serviceRegistrar);
+		registerService(bc, action, CyAction.class);
+		
 		// TF for NDEx Load
+		Font iconFont = IconUtil.getIconFont(32f);
+		Icon icon = new TextIcon(IconUtil.ICON_NDEX_LOGO, iconFont, IconUtil.NDEX_LOGO_COLOR, 36, 36);
+		
 		final OpenBrowseTaskFactory ndexTaskFactory = new OpenBrowseTaskFactory(icon);
 		final Properties ndexTaskFactoryProps = new Properties();
 		// ndexTaskFactoryProps.setProperty(IN_MENU_BAR, "false");
