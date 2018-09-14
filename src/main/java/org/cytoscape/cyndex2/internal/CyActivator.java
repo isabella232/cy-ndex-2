@@ -179,8 +179,7 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, action, CyAction.class);
 		
 		// TF for NDEx Load
-		Font iconFont = IconUtil.getIconFont(32f);
-		Icon icon = new TextIcon(IconUtil.ICON_NDEX_LOGO, iconFont, IconUtil.ICON_COLOR_1, 32, 32);
+		Icon icon = IconUtil.getNdexIcon();
 		
 		final OpenBrowseTaskFactory ndexTaskFactory = new OpenBrowseTaskFactory(icon);
 		final Properties ndexTaskFactoryProps = new Properties();
