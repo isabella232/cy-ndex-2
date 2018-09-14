@@ -41,9 +41,7 @@ public class MainToolBarAction extends AbstractCyAction {
 		
 		putValue(SHORT_DESCRIPTION, TITLE); // Tooltip's short description
 		
-		Font iconFont = IconUtil.getIconFont(32f);
-		Icon icon = new TextIcon(IconUtil.ICON_NDEX_LOGO, iconFont, IconUtil.ICON_COLOR_1, 32, 32);
-		putValue(LARGE_ICON_KEY, icon);
+		putValue(LARGE_ICON_KEY, IconUtil.getNdexIcon());
 	}
 
 	@Override

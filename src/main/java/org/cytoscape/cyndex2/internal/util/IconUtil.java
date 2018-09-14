@@ -5,7 +5,10 @@ import java.awt.Font;
 import java.awt.FontFormatException;
 import java.io.IOException;
 
+import javax.swing.Icon;
 import javax.swing.UIManager;
+
+import org.cytoscape.util.swing.TextIcon;
 
 public final class IconUtil {
 
@@ -40,5 +43,10 @@ public final class IconUtil {
 	
 	private IconUtil() {
 		// restrict instantiation
+	}
+
+	public static Icon getNdexIcon() {
+		Font iconFont = getIconFont(32f);
+		return new TextIcon(IconUtil.ICON_NDEX_LOGO, iconFont, IconUtil.ICON_COLOR_1, 32, 32);
 	}
 }
