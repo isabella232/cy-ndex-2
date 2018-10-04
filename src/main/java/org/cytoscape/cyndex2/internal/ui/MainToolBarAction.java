@@ -16,11 +16,12 @@ import org.cytoscape.util.swing.LookAndFeelUtil;
 import org.cytoscape.util.swing.TextIcon;
 import org.cytoscape.work.swing.DialogTaskManager;
 
+
 @SuppressWarnings("serial")
 public class MainToolBarAction extends AbstractCyAction {
 
 	private static final String TITLE = "Open or Save Networks in NDEx...";
-	
+	private static final String DESCRIPTION = "Open or Save Networks and Collections in NDEx, the Cloud Storage for the Cytoscape Cyberinfrastructure";
 	private final ImportNetworkFromNDExTaskFactory importTaskFactory;
 	private final SaveNetworkToNDExTaskFactory saveTaskFactory;
 	private final CyServiceRegistrar serviceRegistrar;
@@ -40,7 +41,7 @@ public class MainToolBarAction extends AbstractCyAction {
 		toolbarGravity = Short.MIN_VALUE;
 		
 		putValue(SHORT_DESCRIPTION, TITLE); // Tooltip's short description
-		
+		putValue(LONG_DESCRIPTION, DESCRIPTION);
 		putValue(LARGE_ICON_KEY, IconUtil.getNdexIcon());
 	}
 
