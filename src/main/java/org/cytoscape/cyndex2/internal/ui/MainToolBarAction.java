@@ -11,6 +11,7 @@ import javax.swing.JPopupMenu;
 import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.cyndex2.internal.util.IconUtil;
+import org.cytoscape.cyndex2.internal.util.StringResources;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.util.swing.LookAndFeelUtil;
 import org.cytoscape.util.swing.TextIcon;
@@ -66,14 +67,14 @@ public class MainToolBarAction extends AbstractCyAction {
 		
 		{
 			Icon icon = new TextIcon(IconUtil.LAYERED_OPEN_ICON, font, IconUtil.LAYERED_OPEN_SAVE_COLORS, iconSize, iconSize, 1);
-			JMenuItem mi = new JMenuItem("Open Network...", icon);
+			JMenuItem mi = new JMenuItem(StringResources.NDEX_OPEN, icon);
 			mi.addActionListener(evt -> taskManager.execute(importTaskFactory.createTaskIterator()));
 			mi.setEnabled(importTaskFactory.isReady());
 			popup.add(mi);
 		}
 		{
 			Icon icon = new TextIcon(IconUtil.LAYERED_SAVE_ICON, font, IconUtil.LAYERED_OPEN_SAVE_COLORS, iconSize, iconSize, 1);
-			JMenuItem mi = new JMenuItem("Save Network...", icon);
+			JMenuItem mi = new JMenuItem(StringResources.NDEX_SAVE, icon);
 			mi.addActionListener(evt -> taskManager.execute(saveTaskFactory.createTaskIterator()));
 			mi.setEnabled(saveTaskFactory.isReady());
 			popup.add(mi);

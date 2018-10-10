@@ -27,7 +27,7 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 		
 		if (dialog == null) {
 			dialog = new JDialog(null, "CyNDEx2 Browser", ModalityType.MODELESS);
-			dialog.setAlwaysOnTop(false);
+			dialog.setAlwaysOnTop(true);
 			if (!dialog.isVisible()) {
 				dialog.setSize(1000, 700);
 				dialog.setLocationRelativeTo(null);
