@@ -390,12 +390,13 @@ public final class CxToCy {
             addColumns(sub_network,
                        subnetwork_to_col_labels_map,
                        subnetwork_id);
-
+            
+            
             if (network_attributes_map.containsKey(subnetwork_id)) {
                 addNetworkAttributeData(network_attributes_map.get(subnetwork_id),
                                         sub_network,
                                         sub_network.getTable(CyNetwork.class,
-                                                             CyNetwork.LOCAL_ATTRS));
+                                                             CyNetwork.DEFAULT_ATTRS));
             } else if (network_attributes_map.containsKey(DEFAULT_SUBNET)) {
             		// This is the root network! 
                 if (Settings.INSTANCE.isDebug()) {
@@ -686,6 +687,7 @@ public final class CxToCy {
 	private final void addNetworkAttributeData(
 			final Collection<NetworkAttributesElement> elements, final CyNetwork network,
 			final CyTable table) {
+		
 		if (table == null) {
 			throw new IllegalArgumentException("table (network) must not be null");
 		}
@@ -929,8 +931,8 @@ public final class CxToCy {
 		}
 
 		final String name = e.getName();
-		// TODO: This is necessary for now because core creates this special attributes
-		if (name == null || name.equals("__Annotations")) {
+		
+		if (name == null) {
 			return;
 		}
 		
@@ -1040,13 +1042,14 @@ public final class CxToCy {
 		for (final NetworkAttributesElement nae : network_attributes) {
 
 			Long subnet = nae.getSubnetwork() ;
-			if (subnet == null)
-				subnet = DEFAULT_SUBNET;
-		/*	if (nae.getSubnetwork() != null) {
+
+			if (nae.getSubnetwork() != null) {
 					subnet = nae.getSubnetwork();
 				} else if (subnetworks_ids.size() == 1) {
 					subnet = subnetworks_ids.get(0);
-				}*/
+				}else {
+					subnet = DEFAULT_SUBNET;
+				}
 			
 
 			if (!network_attributes_map.containsKey(subnet)) {
