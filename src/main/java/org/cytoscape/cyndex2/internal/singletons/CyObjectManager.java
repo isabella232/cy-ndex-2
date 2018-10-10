@@ -37,6 +37,7 @@ import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNetworkTableManager;
 import org.cytoscape.model.subnetwork.CyRootNetworkManager;
+import org.cytoscape.session.CySessionManager;
 import org.cytoscape.view.layout.CyLayoutAlgorithmManager;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewFactory;
@@ -126,5 +127,6 @@ public enum CyObjectManager
         CyApplicationManager applicationManager = adapter.getCyApplicationManager();
         return applicationManager == null ? null : applicationManager.getCurrentNetworkView();
     }
+	public CySessionManager getCySessionManager() { return adapter.getCySessionManager(); }
 
 }

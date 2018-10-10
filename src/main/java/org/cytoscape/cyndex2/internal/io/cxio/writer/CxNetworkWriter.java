@@ -17,6 +17,7 @@ import org.cytoscape.cyndex2.internal.io.cxio.TimingUtil;
 import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.io.write.CyWriter;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.session.CySessionManager;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.model.VisualLexicon;
 import org.cytoscape.view.vizmap.VisualMappingManager;
@@ -43,18 +44,20 @@ public class CxNetworkWriter implements CyWriter {
 	private final VisualLexicon _lexicon;
 	private final CyNetworkViewManager _networkview_manager;
 //	private final CyGroupManager _group_manager;
+	private final CySessionManager _session_manager;
 	private boolean _write_siblings;
 	private boolean isUpdate;
 
 	public CxNetworkWriter(final OutputStream os, final CyNetwork network,
 			final VisualMappingManager visual_mapping_manager, final CyNetworkViewManager networkview_manager,
-		/*	final CyGroupManager group_manager,*/ final VisualLexicon lexicon, boolean isUpdate) {
+		/*	final CyGroupManager group_manager,*/ final VisualLexicon lexicon, final CySessionManager session_manager, boolean isUpdate) {
 
 		_visual_mapping_manager = visual_mapping_manager;
 		_networkview_manager = networkview_manager;
 		_lexicon = lexicon;
 		_os = os;
 		_network = network;
+		_session_manager = session_manager;
 	//	_group_manager = group_manager;
 		_write_siblings = WRITE_SIBLINGS_DEFAULT;
 		this.isUpdate = isUpdate;
@@ -77,6 +80,9 @@ public class CxNetworkWriter implements CyWriter {
 			taskMonitor.setStatusMessage("Exporting current network as CX...");
 		}
 
+		//This triggers the same flush events that force Apps to prepare their data for serialization.
+		_session_manager.getCurrentSession();
+		
 		if (Settings.INSTANCE.isDebug()) {
 			System.out.println("Encoding = " + _encoder.charset());
 		}

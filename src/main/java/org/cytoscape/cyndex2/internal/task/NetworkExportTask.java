@@ -41,6 +41,7 @@ import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
 import org.cytoscape.model.subnetwork.CySubNetwork;
+import org.cytoscape.session.CySessionManager;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.model.VisualLexicon;
 import org.cytoscape.view.vizmap.VisualMappingManager;
@@ -89,7 +90,9 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 		//final CyGroupManager gm = CyObjectManager.INSTANCE.getCyGroupManager();
 		final VisualLexicon lexicon = CyObjectManager.INSTANCE.getDefaultVisualLexicon();
 
-		CxNetworkWriter writer = new CxNetworkWriter(out, cyNetwork, vmm, nvm, /*gm,*/ lexicon, isUpdateNdex);
+		final CySessionManager sessionManager = CyObjectManager.INSTANCE.getCySessionManager();
+		
+		CxNetworkWriter writer = new CxNetworkWriter(out, cyNetwork, vmm, nvm, /*gm,*/ lexicon, sessionManager, isUpdateNdex);
 
 		writer.setWriteSiblings(writeCollection);
 
