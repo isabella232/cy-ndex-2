@@ -51,6 +51,7 @@ import org.cytoscape.task.NetworkCollectionTaskFactory;
 import org.cytoscape.task.RootNetworkCollectionTaskFactory;
 import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.util.swing.TextIcon;
+import org.cytoscape.view.presentation.annotations.AnnotationManager;
 import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskManager;
 import org.osgi.framework.Bundle;
@@ -122,6 +123,7 @@ public class CyActivator extends AbstractCyActivator {
 		Dictionary d = currentBundle.getHeaders();
 		appName = (String) d.get("Bundle-name");
 
+		
 		// Import dependencies
 		final CyServiceRegistrar serviceRegistrar = getService(bc, CyServiceRegistrar.class);
 		final CyApplicationConfiguration config = getService(bc, CyApplicationConfiguration.class);
@@ -131,7 +133,8 @@ public class CyActivator extends AbstractCyActivator {
 		final CySwingAppAdapter appAdapter = getService(bc, CySwingAppAdapter.class); 
 	    final CyNetworkTableManager networkTableManager = getService(bc, CyNetworkTableManager.class); 
 	    final IconManager iconManager = getService(bc, IconManager.class); 
-	 
+	    final AnnotationManager annotationManager = getService(bc, AnnotationManager.class);
+	    
 	    // Register these with the CyObjectManager singleton. 
 	    CyObjectManager manager = CyObjectManager.INSTANCE; 
 	    File configDir = config.getAppConfigurationDirectoryLocation(CyActivator.class); 
@@ -139,6 +142,7 @@ public class CyActivator extends AbstractCyActivator {
 	    manager.setConfigDir(configDir); 
 	    manager.setCySwingAppAdapter(appAdapter); 
 	    manager.setNetworkTableManager(networkTableManager);
+	    manager.setAnnotationManager(annotationManager);
 		
 		// For loading network
 		final CxTaskFactoryManager tfManager = new CxTaskFactoryManager();

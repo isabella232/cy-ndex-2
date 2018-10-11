@@ -206,7 +206,11 @@ public final class ViewMaker {
         style.apply(networkView);
         networkView.updateView();	
         CyObjectManager.INSTANCE.getNetworkViewManager().addNetworkView(networkView);
-        networkView.fitContent();
+        if (!networkView.isSet(BasicVisualLexicon.NETWORK_CENTER_X_LOCATION)
+				&& !networkView.isSet(BasicVisualLexicon.NETWORK_CENTER_Y_LOCATION)
+				&& !networkView.isSet(BasicVisualLexicon.NETWORK_CENTER_Z_LOCATION)) {
+        	networkView.fitContent();
+        }
         
         return networkView;
         

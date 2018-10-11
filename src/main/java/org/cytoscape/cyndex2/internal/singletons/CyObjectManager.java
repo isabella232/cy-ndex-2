@@ -44,6 +44,7 @@ import org.cytoscape.view.model.CyNetworkViewFactory;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.model.VisualLexicon;
 import org.cytoscape.view.presentation.RenderingEngineManager;
+import org.cytoscape.view.presentation.annotations.AnnotationManager;
 import org.cytoscape.view.vizmap.VisualMappingFunctionFactory;
 import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.view.vizmap.VisualStyleFactory;
@@ -64,7 +65,8 @@ public enum CyObjectManager
     private CySwingAppAdapter adapter;
     // The network table manager.
     private CyNetworkTableManager networkTableManager;
-
+    private AnnotationManager annotationManager;
+    
     public File getConfigDir()
     {
         return configDir;
@@ -77,6 +79,11 @@ public enum CyObjectManager
     {
         this.adapter = appAdapter;
     }
+    
+    public void setAnnotationManager(AnnotationManager annotationManager) 
+    {
+		this.annotationManager = annotationManager;
+	}
 
     // Trivial Getters
     public CyNetworkFactory getNetworkFactory()
@@ -128,5 +135,9 @@ public enum CyObjectManager
         return applicationManager == null ? null : applicationManager.getCurrentNetworkView();
     }
 	public CySessionManager getCySessionManager() { return adapter.getCySessionManager(); }
+	
+	public AnnotationManager getAnnotationManager() {
+		return annotationManager;
+	}
 
 }

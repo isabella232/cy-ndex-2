@@ -120,6 +120,8 @@ public final class VisualPropertiesGatherer {
                                                    final VisualStyle style,
                                                    final VisualProperty vp,
                                                    final CyVisualPropertiesElement cvp) {
+    	
+    	//TODO: CENTER_XYZ attributes and others seem to be locked and so are not saved to CX
         if (view.isSet(vp) && view.isValueLocked(vp)) {
             final Object vp_value = view.getVisualProperty(vp);
             if (vp_value != null) {
