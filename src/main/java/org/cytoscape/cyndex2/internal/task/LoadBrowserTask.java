@@ -37,7 +37,9 @@ public class LoadBrowserTask extends AbstractTask {
 
 	@Override
 	public void run(TaskMonitor taskMonitor) {
-
+		if (BrowserManager.loading) {
+			return;
+		}
 		// Load browserView and start external task, or show error message
 		LoadBrowserTask task = this;
 		Runnable runnable = new Runnable() {
@@ -70,6 +72,7 @@ public class LoadBrowserTask extends AbstractTask {
 					getTaskIterator().insertTasksAfter(task,
 							new OpenExternalAppTask(dialog, browserView, CyActivator.getCyRESTPort()));
 				} catch (BrowserCreationError e) {
+					BrowserManager.loading = false;
 					taskMonitor.showMessage(TaskMonitor.Level.ERROR,
 							"Failed to create browser instance for CyNDEx-2. Restart Cytoscape and try again.\nError: "
 									+ e.getMessage());

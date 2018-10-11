@@ -41,6 +41,7 @@ public class BrowserManager {
 	private static Browser browser;
 	private static BrowserView browserView;
 	private static File jxbrowserDataLocation;
+	public static boolean loading = false;
 
 	private static boolean supportedOSAndArchitecture() {
 		String os = System.getProperty("os.name");
@@ -57,9 +58,11 @@ public class BrowserManager {
 			throw new BrowserCreationError("JxBrowser is not supported on your system.");
 		}
 
-		if (browserView == null) {
+		if (!loading && browserView == null) {
+			loading = true;
 			Browser b = getJXBrowser(tm);
 			browserView = new BrowserView(b);
+			loading = false;
 		}
 		return browserView;
 	}
