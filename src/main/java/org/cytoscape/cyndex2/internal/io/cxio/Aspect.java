@@ -1,4 +1,4 @@
-package org.cytoscape.cyndex2.io.cxio;
+package org.cytoscape.cyndex2.internal.io.cxio;
 
 /**
  * This enumeration is used to identify aspects relevant for Cytoscape networks

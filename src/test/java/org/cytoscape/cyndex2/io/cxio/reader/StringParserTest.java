@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 
+import org.cytoscape.cyndex2.internal.io.cxio.reader.StringParser;
 import org.junit.Test;
 
 public class StringParserTest {

@@ -1,4 +1,4 @@
-package org.cytoscape.cyndex2.io.cxio;
+package org.cytoscape.cyndex2.internal.io.cxio;
 
 import org.cytoscape.model.CyIdentifiable;
 

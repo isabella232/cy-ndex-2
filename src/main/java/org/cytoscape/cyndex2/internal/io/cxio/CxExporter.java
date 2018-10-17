@@ -1,4 +1,4 @@
-package org.cytoscape.cyndex2.io.cxio;
+package org.cytoscape.cyndex2.internal.io.cxio;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -48,10 +48,10 @@ import org.cxio.metadata.MetaDataCollection;
 import org.cxio.metadata.MetaDataElement;
 import org.cxio.misc.AspectElementCounts;
 import org.cytoscape.cyndex2.internal.CyActivator;
+import org.cytoscape.cyndex2.internal.io.cxio.writer.VisualPropertiesGatherer;
 import org.cytoscape.cyndex2.internal.singletons.CXInfoHolder;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
-import org.cytoscape.cyndex2.io.cxio.writer.VisualPropertiesGatherer;
 import org.cytoscape.group.CyGroup;
 import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.model.CyColumn;
@@ -107,15 +107,11 @@ import org.ndexbio.model.object.SimplePropertyValuePair;
  */
 public final class CxExporter {
 
-//    private final static boolean     DEFAULT_USE_DEFAULT_PRETTY_PRINTING      = true;
 
     private VisualLexicon            _lexicon;
-//    private boolean                  _use_default_pretty_printing;
     private VisualMappingManager     _visual_mapping_manager;
     private CyNetworkViewManager     _networkview_manager;
     private CyGroupManager           _group_manager;
-
-  //  private long                     _next_suid;
     
     public final static  String[] cySupportedAspectNames = {
     		NodesElement.ASPECT_NAME, EdgesElement.ASPECT_NAME, CartesianLayoutElement.ASPECT_NAME, 
@@ -194,46 +190,10 @@ public final class CxExporter {
 
     }
 
- /*   public final void setNextSuid(final long next_suid) {
-        _next_suid = next_suid;
-    } */
-
- /*   public void setUseDefaultPrettyPrinting(final boolean use_default_pretty_printing) {
-        _use_default_pretty_printing = use_default_pretty_printing;
-    } */
-
     public void setVisualMappingManager(final VisualMappingManager visual_mapping_manager) {
         _visual_mapping_manager = visual_mapping_manager;
     }
 
-
-    /**
-     * This is a method for serializing a Cytoscape network and associated table
-     * data as CX formatted OutputStream. <br>
-     * Method arguments control which aspects to serialize, and for data stored
-     * in node and tables (serialized as node attributes and edge attributes
-     * aspects), which table columns to include or exclude.
-     *
-     *
-     * @param network
-     *            the CyNetwork, and by association, tables to be serialized
-     * @param aspects
-     *            the set of aspects to serialize
-     * @param filters
-     *            the set of filters controlling which node and edge table
-     *            columns to include or exclude
-     * @param out
-     *            the stream to write to
-     * @return a CxOutput object which contains the output stream as well as a
-     *         status
-     * @throws IOException
-     *
-     *
-     * @see AspectSet
-     * @see Aspect
-     * @see FilterSet
-     *
-     */
     
     /**
      * This is a method for serializing a Cytoscape network and associated table
@@ -442,53 +402,6 @@ public final class CxExporter {
         }
         return null;
     }
-    
-  /*  
-    private final static String getRepresentsFromNodeTable(final CyNetwork network, final CyNode node) {
-        final CyRow row = network.getTable(CyNode.class, CyNetwork.DEFAULT_ATTRS).getRow(node.getSUID());
-        if (row != null) {
-            final Object o = row.getRaw(CxUtil.REPRESENTS);
-            if ((o != null) && (o instanceof String)) {
-                return String.valueOf(o);
-            }
-        }
-        return null;
-    }
-
-    private final static String getNameFromNodeTable(final CyNetwork network, final CyNode node) {
-    	
-        final CyRow row = network.getTable(CyNode.class, CyNetwork.DEFAULT_ATTRS).getRow(node.getSUID());
-        if (row != null) {
-            final String o = row.get(CxUtil.NAME_COL, String.class);
-            if (o != null) {
-                return String.valueOf(o);
-            }
-        }
-        return null;
-    } */
-
- /*   private final static String getNameFromNodeTable(final CyNetwork network, final CyNode node) {
-    	String myNodeName = network.getRow(node).get(CyNetwork.NAME, String.class);
-    	System.out.println("  =====> name:" + myNodeName);
-
-    	CyRow row2 = network.getTable(CyNode.class, CyNetwork.DEFAULT_ATTRS).getRow(node.getSUID());
-         if (row2 != null) {
-         	Map<String,Object> all = row2.getAllValues();
-         	all.forEach((k,v) -> System.out.println( "--->   " + k + "=" + v.toString()));
-         }         	
-    	
-    	final CyRow row = network.getTable(CyNode.class, CyNetwork.LOCAL_ATTRS).getRow(node.getSUID());
-        if (row != null) {
-        	Map<String,Object> all = row.getAllValues();
-        	all.forEach((k,v) -> System.out.println(k + "=" + v.toString()));
-        	
-            final Object o = row.getRaw(CxUtil.NAME_COL);
-            if ((o != null) && (o instanceof String)) {
-                return String.valueOf(o);
-            }
-        }
-        return null;
-    } */
     
     
     private final static List<CySubNetwork> makeSubNetworkList(final boolean write_siblings,

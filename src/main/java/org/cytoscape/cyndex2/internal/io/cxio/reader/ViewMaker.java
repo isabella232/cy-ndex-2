@@ -1,4 +1,4 @@
-package org.cytoscape.cyndex2.io.cxio.reader;
+package org.cytoscape.cyndex2.internal.io.cxio.reader;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -14,10 +14,10 @@ import org.cxio.aspects.datamodels.Mapping;
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
+import org.cytoscape.cyndex2.internal.io.cxio.CxUtil;
+import org.cytoscape.cyndex2.internal.io.cxio.Settings;
+import org.cytoscape.cyndex2.internal.io.cxio.TimingUtil;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
-import org.cytoscape.cyndex2.io.cxio.CxUtil;
-import org.cytoscape.cyndex2.io.cxio.Settings;
-import org.cytoscape.cyndex2.io.cxio.TimingUtil;
 import org.cytoscape.view.layout.CyLayoutAlgorithm;
 import org.cytoscape.view.layout.CyLayoutAlgorithmManager;
 import org.cytoscape.view.model.CyNetworkView;
@@ -206,7 +206,11 @@ public final class ViewMaker {
         style.apply(networkView);
         networkView.updateView();	
         CyObjectManager.INSTANCE.getNetworkViewManager().addNetworkView(networkView);
-        networkView.fitContent();
+        if (!networkView.isSet(BasicVisualLexicon.NETWORK_CENTER_X_LOCATION)
+				&& !networkView.isSet(BasicVisualLexicon.NETWORK_CENTER_Y_LOCATION)
+				&& !networkView.isSet(BasicVisualLexicon.NETWORK_CENTER_Z_LOCATION)) {
+        	networkView.fitContent();
+        }
         
         return networkView;
         

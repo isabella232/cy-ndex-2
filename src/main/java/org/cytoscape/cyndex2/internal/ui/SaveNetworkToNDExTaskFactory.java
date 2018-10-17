@@ -1,6 +1,7 @@
 package org.cytoscape.cyndex2.internal.ui;
 
 import org.cytoscape.application.CyApplicationManager;
+import org.cytoscape.cyndex2.external.SaveParameters;
 import org.cytoscape.cyndex2.internal.task.OpenDialogTaskFactory;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.model.CyNetwork;
@@ -17,7 +18,12 @@ public class SaveNetworkToNDExTaskFactory extends OpenDialogTaskFactory {
 	
 	@Override
 	public TaskIterator createTaskIterator() {
-		ExternalAppManager.saveType = ExternalAppManager.SAVE_NETWORK;
+		SaveParameters.INSTANCE.saveType = ExternalAppManager.SAVE_NETWORK;
+		CyNetwork net = appManager.getCurrentNetwork();
+		if (net == null) {
+			return new TaskIterator();
+		}
+		SaveParameters.INSTANCE.suid = net.getSUID();
 		return super.createTaskIterator();
 	}
 	

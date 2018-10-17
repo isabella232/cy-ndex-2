@@ -3,12 +3,12 @@ package org.cytoscape.cyndex2.internal.rest.endpoints.impl;
 import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.ci.CIWrapping;
+import org.cytoscape.cyndex2.external.SaveParameters;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexStatusResource;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorType;
 import org.cytoscape.cyndex2.internal.rest.parameter.AppStatusParameters;
 import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
-import org.cytoscape.cyndex2.internal.rest.parameter.SaveParameters;
 import org.cytoscape.cyndex2.internal.rest.response.AppStatusResponse;
 import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
@@ -29,18 +29,6 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 		this.ciServiceManager = ciServiceManager;
 	}
 
-	private AppStatusParameters setLoadProps() {
-		final LoadParameters loadParameters = new LoadParameters();
-		loadParameters.searchTerm = ExternalAppManager.query;
-		return loadParameters;
-	}
-	
-	private AppStatusParameters setSaveProps(){
-		final SaveParameters saveParameters = new SaveParameters();
-		saveParameters.saveType = ExternalAppManager.saveType;
-		return saveParameters;
-	}
-
 	@Override
 	@CIWrapping
 	public CIAppStatusResponse getAppStatus() {
@@ -55,11 +43,11 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 		status = new AppStatusResponse<>();
 
 		if ( widget.equals(ExternalAppManager.APP_NAME_LOAD)) {
-			status.parameters = setLoadProps();
 			status.widget = "choose";
+			status.parameters = LoadParameters.INSTANCE;
 		} else {
 			status.widget = "save";
-			status.parameters = setSaveProps();
+			status.parameters = SaveParameters.INSTANCE;
 		}
 		
 		try {

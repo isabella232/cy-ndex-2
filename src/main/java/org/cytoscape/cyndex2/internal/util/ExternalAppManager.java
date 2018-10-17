@@ -10,8 +10,6 @@ public class ExternalAppManager {
 	public static final String SAVE_NETWORK = "network";
 	public static final String SAVE_COLLECTION = "collection";
 	
-
-	public static String query;
 	public static String appName;
 	public static String saveType;
 	

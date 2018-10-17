@@ -1,4 +1,4 @@
-package org.cytoscape.cyndex2.io.cxio.writer;
+package org.cytoscape.cyndex2.internal.io.cxio.writer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -8,17 +8,28 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-import org.cytoscape.cyndex2.io.cxio.Aspect;
-import org.cytoscape.cyndex2.io.cxio.AspectSet;
-import org.cytoscape.cyndex2.io.cxio.CxExporter;
-import org.cytoscape.cyndex2.io.cxio.Settings;
-import org.cytoscape.cyndex2.io.cxio.TimingUtil;
+import javax.swing.text.ViewFactory;
+
+import org.cytoscape.cyndex2.internal.io.cxio.Aspect;
+import org.cytoscape.cyndex2.internal.io.cxio.AspectSet;
+import org.cytoscape.cyndex2.internal.io.cxio.CxExporter;
+import org.cytoscape.cyndex2.internal.io.cxio.Settings;
+import org.cytoscape.cyndex2.internal.io.cxio.TimingUtil;
+import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.io.write.CyWriter;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.session.CySessionManager;
+import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.model.VisualLexicon;
+import org.cytoscape.view.presentation.annotations.Annotation;
 import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.work.TaskMonitor;
 import org.slf4j.Logger;
@@ -31,7 +42,8 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class CxNetworkWriter implements CyWriter {
-
+	private static final String ANNOTATION_ATTRIBUTE = "__Annotations";
+	
 	private final static Logger logger = LoggerFactory.getLogger(CxNetworkWriter.class);
 	private static final boolean WRITE_SIBLINGS_DEFAULT = true;
 	private final static String ENCODING = "UTF-8";
@@ -68,7 +80,49 @@ public class CxNetworkWriter implements CyWriter {
 			_encoder = Charset.defaultCharset().newEncoder();
 		}
 	}
+	
+	private void serializeAnnotations() {
+		List<String> networkAnnotation = createSavableNetworkAttribute();
+		
+		if (_network.getDefaultNetworkTable().getColumn(ANNOTATION_ATTRIBUTE) == null) {
+			_network.getDefaultNetworkTable().createListColumn(ANNOTATION_ATTRIBUTE, String.class, false, Collections.emptyList());
+		}
 
+		_network.getRow(_network, CyNetwork.LOCAL_ATTRS).set(ANNOTATION_ATTRIBUTE, networkAnnotation);
+	}
+
+	// TODO: Temporary hack to serialize Annotations to network table before converting
+	private List<String> createSavableNetworkAttribute() {
+		List<Map<String,String>> networkAnnotations = new ArrayList<>();
+		for (CyNetworkView view : CyObjectManager.INSTANCE.getNetworkViewManager().getNetworkViews(_network)){
+			for (Annotation annotation : CyObjectManager.INSTANCE.getAnnotationManager().getAnnotations(view))
+				networkAnnotations.add(annotation.getArgMap());
+		}
+		return convertAnnotationMap(networkAnnotations);
+	}
+	
+	private List<String> convertAnnotationMap(List<Map<String, String>>networkAnnotations) {
+		List<String> result = new ArrayList<>();
+
+		if (networkAnnotations == null || networkAnnotations.size() == 0)
+			return result;
+
+		for (Map<String,String> map: networkAnnotations) {
+			StringBuilder props = new StringBuilder();
+			Iterator<Map.Entry<String,String>> iter = map.entrySet().iterator();
+			if(iter.hasNext()) {
+				Map.Entry<String,String> entry = iter.next();
+				props.append(entry.getKey()).append('=').append(entry.getValue());
+			}
+			while(iter.hasNext()) {
+				Map.Entry<String,String> entry = iter.next();
+				props.append('|').append(entry.getKey()).append('=').append(entry.getValue());
+			}
+			result.add(props.toString());
+		}
+		return result;
+	}
+	
 	@Override
 	public void run(final TaskMonitor taskMonitor) throws FileNotFoundException, IOException {
 		if (taskMonitor != null) {
@@ -76,7 +130,9 @@ public class CxNetworkWriter implements CyWriter {
 			taskMonitor.setTitle("Exporting to CX");
 			taskMonitor.setStatusMessage("Exporting current network as CX...");
 		}
-
+		
+		serializeAnnotations();
+		
 		if (Settings.INSTANCE.isDebug()) {
 			System.out.println("Encoding = " + _encoder.charset());
 		}

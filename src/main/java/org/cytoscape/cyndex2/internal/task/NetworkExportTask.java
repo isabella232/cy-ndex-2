@@ -32,11 +32,11 @@ import java.io.PipedOutputStream;
 import java.util.UUID;
 
 import org.cytoscape.cyndex2.internal.CyActivator;
+import org.cytoscape.cyndex2.internal.io.cxio.writer.CxNetworkWriter;
 import org.cytoscape.cyndex2.internal.rest.parameter.NdexBasicSaveParameter;
 import org.cytoscape.cyndex2.internal.singletons.CXInfoHolder;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
-import org.cytoscape.cyndex2.io.cxio.writer.CxNetworkWriter;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
@@ -88,7 +88,7 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 		final CyNetworkViewManager nvm = CyObjectManager.INSTANCE.getNetworkViewManager();
 		//final CyGroupManager gm = CyObjectManager.INSTANCE.getCyGroupManager();
 		final VisualLexicon lexicon = CyObjectManager.INSTANCE.getDefaultVisualLexicon();
-
+		
 		CxNetworkWriter writer = new CxNetworkWriter(out, cyNetwork, vmm, nvm, /*gm,*/ lexicon, isUpdateNdex);
 
 		writer.setWriteSiblings(writeCollection);
@@ -96,6 +96,10 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 		TaskIterator ti = new TaskIterator(writer);
 		DialogTaskManager tm = CyObjectManager.INSTANCE.getTaskManager();
 		tm.execute(ti);
+	}
+	
+	public CyNetwork getNetwork() {
+		return network;
 	}
 
 	@Override
@@ -190,7 +194,6 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 					e.printStackTrace();
 				}
 			}
-
 			taskMonitor.setProgress(.9);
 			taskMonitor.setStatusMessage("Saving changes to network in Cytoscape");
 			// Revert names back to original?

@@ -1,19 +1,24 @@
 package org.cytoscape.cyndex2.internal;
 
-import static org.cytoscape.work.ServiceProperties.*;
+import static org.cytoscape.work.ServiceProperties.ENABLE_FOR;
+import static org.cytoscape.work.ServiceProperties.ID;
+import static org.cytoscape.work.ServiceProperties.INSERT_SEPARATOR_BEFORE;
+import static org.cytoscape.work.ServiceProperties.IN_NETWORK_PANEL_CONTEXT_MENU;
+import static org.cytoscape.work.ServiceProperties.MENU_GRAVITY;
+import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
+import static org.cytoscape.work.ServiceProperties.TITLE;
 
-import java.awt.Dialog.ModalityType;
+import java.awt.Font;
 import java.io.File;
 import java.util.Dictionary;
 import java.util.Properties;
 
-import javax.swing.ImageIcon;
-import javax.swing.JDialog;
+import javax.swing.Icon;
 
 import org.cytoscape.app.swing.CySwingAppAdapter;
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
-import org.cytoscape.application.swing.CySwingApplication;
+import org.cytoscape.application.swing.CyAction;
 import org.cytoscape.cyndex2.internal.rest.NdexClient;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexBaseResource;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexNetworkResource;
@@ -24,12 +29,15 @@ import org.cytoscape.cyndex2.internal.rest.endpoints.impl.NdexStatusResourceImpl
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.task.OpenBrowseTaskFactory;
+import org.cytoscape.cyndex2.internal.task.OpenSaveCollectionTaskFactory;
 import org.cytoscape.cyndex2.internal.task.OpenSaveTaskFactory;
 import org.cytoscape.cyndex2.internal.ui.ImportNetworkFromNDExTaskFactory;
+import org.cytoscape.cyndex2.internal.ui.MainToolBarAction;
 import org.cytoscape.cyndex2.internal.ui.SaveNetworkToNDExTaskFactory;
 import org.cytoscape.cyndex2.internal.util.BrowserManager;
 import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
+import org.cytoscape.cyndex2.internal.util.IconUtil;
 import org.cytoscape.cyndex2.internal.util.StringResources;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.io.write.CyNetworkViewWriterFactory;
@@ -38,7 +46,12 @@ import org.cytoscape.model.CyNetworkTableManager;
 import org.cytoscape.model.events.NetworkAboutToBeDestroyedListener;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
-import org.cytoscape.task.NetworkViewCollectionTaskFactory;
+import org.cytoscape.service.util.CyServiceRegistrar;
+import org.cytoscape.task.NetworkCollectionTaskFactory;
+import org.cytoscape.task.RootNetworkCollectionTaskFactory;
+import org.cytoscape.util.swing.IconManager;
+import org.cytoscape.util.swing.TextIcon;
+import org.cytoscape.view.presentation.annotations.AnnotationManager;
 import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskManager;
 import org.osgi.framework.Bundle;
@@ -51,7 +64,7 @@ public class CyActivator extends AbstractCyActivator {
 
 	// Logger for this activator
 	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
-	public static final String WEB_APP_VERSION = "0.1.2";
+	public static final String WEB_APP_VERSION = "0.1.3";
 
 	private static CyProperty<Properties> cyProps;
 
@@ -60,9 +73,7 @@ public class CyActivator extends AbstractCyActivator {
 	private static String appName;
 	private static boolean hasCyNDEx1;
 
-	private static JDialog dialog;
 	private CIServiceManager ciServiceManager;
-	private static CySwingApplication swingApp;
 	public static TaskManager<?, ?> taskManager;
 
 	public CyActivator() {
@@ -75,15 +86,6 @@ public class CyActivator extends AbstractCyActivator {
 		return cyProps.getProperties().getProperty(prop);
 	}
 
-	public static JDialog getDialog() {
-		if (dialog == null) {
-			dialog = new JDialog(swingApp.getJFrame(), "CyNDEx2 Browser", ModalityType.APPLICATION_MODAL);
-			// ensure modality type
-			dialog.getModalityType();
-		}
-		return dialog;
-	}
-
 	public static String getCyRESTPort() {
 		String port = cyProps.getProperties().getProperty("rest.port");
 		if (port == null) {
@@ -91,11 +93,16 @@ public class CyActivator extends AbstractCyActivator {
 		}
 		return port;
 	}
+	
+	public static boolean useDefaultBrowser() {
+		String val = cyProps.getProperties().getProperty("cyndex2.defaultBrowser");
+		return Boolean.parseBoolean(val);
+	}
+	
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public void start(BundleContext bc) throws InvalidSyntaxException {
-
 		for (Bundle b : bc.getBundles()) {
 			// System.out.println(b.getSymbolicName());
 			if (b.getSymbolicName().equals("org.cytoscape.api-bundle")) {
@@ -116,26 +123,27 @@ public class CyActivator extends AbstractCyActivator {
 		Dictionary d = currentBundle.getHeaders();
 		appName = (String) d.get("Bundle-name");
 
+		
 		// Import dependencies
+		final CyServiceRegistrar serviceRegistrar = getService(bc, CyServiceRegistrar.class);
 		final CyApplicationConfiguration config = getService(bc, CyApplicationConfiguration.class);
-
 		final CyApplicationManager appManager = getService(bc, CyApplicationManager.class);
-
 		cyProps = getService(bc, CyProperty.class, "(cyPropertyName=cytoscape3.props)");
 		taskManager = getService(bc, TaskManager.class);
-
-		swingApp = getService(bc, CySwingApplication.class);
-		final CySwingAppAdapter appAdapter = getService(bc, CySwingAppAdapter.class);
-		final CyNetworkTableManager networkTableManager = getService(bc, CyNetworkTableManager.class);
-
-		// Register these with the CyObjectManager singleton.
-		CyObjectManager manager = CyObjectManager.INSTANCE;
-		File configDir = config.getAppConfigurationDirectoryLocation(CyActivator.class);
-		configDir.mkdirs();
-		manager.setConfigDir(configDir);
-		manager.setCySwingAppAdapter(appAdapter);
-		manager.setNetworkTableManager(networkTableManager);
-
+		final CySwingAppAdapter appAdapter = getService(bc, CySwingAppAdapter.class); 
+	    final CyNetworkTableManager networkTableManager = getService(bc, CyNetworkTableManager.class); 
+	    final IconManager iconManager = getService(bc, IconManager.class); 
+	    final AnnotationManager annotationManager = getService(bc, AnnotationManager.class);
+	    
+	    // Register these with the CyObjectManager singleton. 
+	    CyObjectManager manager = CyObjectManager.INSTANCE; 
+	    File configDir = config.getAppConfigurationDirectoryLocation(CyActivator.class); 
+	    configDir.mkdirs(); 
+	    manager.setConfigDir(configDir); 
+	    manager.setCySwingAppAdapter(appAdapter); 
+	    manager.setNetworkTableManager(networkTableManager);
+	    manager.setAnnotationManager(annotationManager);
+		
 		// For loading network
 		final CxTaskFactoryManager tfManager = new CxTaskFactoryManager();
 		registerServiceListener(bc, tfManager, "addReaderFactory", "removeReaderFactory", InputStreamTaskFactory.class);
@@ -150,12 +158,8 @@ public class CyActivator extends AbstractCyActivator {
 		jxBrowserDir.mkdir();
 		BrowserManager.setDataDirectory(new File(jxBrowserDir, "data"));
 		
-		// get QueryPanel icon
-		ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/ndex-logo.png"));
-
 		// TF for NDEx Save Network
-		final OpenSaveTaskFactory ndexSaveNetworkTaskFactory = new OpenSaveTaskFactory(ExternalAppManager.SAVE_NETWORK,
-				appManager);
+		final OpenSaveTaskFactory ndexSaveNetworkTaskFactory = new OpenSaveTaskFactory(appManager);
 		final Properties ndexSaveNetworkTaskFactoryProps = new Properties();
 
 		ndexSaveNetworkTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export");
@@ -164,8 +168,7 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, ndexSaveNetworkTaskFactory, TaskFactory.class, ndexSaveNetworkTaskFactoryProps);
 
 		// TF for NDEx Save Collection
-		final OpenSaveTaskFactory ndexSaveCollectionTaskFactory = new OpenSaveTaskFactory(
-				ExternalAppManager.SAVE_COLLECTION, appManager);
+		final OpenSaveCollectionTaskFactory ndexSaveCollectionTaskFactory = new OpenSaveCollectionTaskFactory(appManager);
 		final Properties ndexSaveCollectionTaskFactoryProps = new Properties();
 
 		ndexSaveCollectionTaskFactoryProps.setProperty(PREFERRED_MENU, "File.Export");
@@ -174,28 +177,14 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, ndexSaveCollectionTaskFactory, TaskFactory.class, ndexSaveCollectionTaskFactoryProps);
 		
 		ImportNetworkFromNDExTaskFactory importFromNDExTaskFactory = new ImportNetworkFromNDExTaskFactory(ExternalAppManager.APP_NAME_LOAD);
-		Properties importProps = new Properties();
-		importProps.setProperty(IN_TOOL_BAR, "true");
-		importProps.setProperty(TOOL_BAR_GRAVITY, "0.0f");
-		importProps.setProperty(TOOLTIP, StringResources.NDEX_OPEN);
-		String loadIconUrl = getClass().getResource("/images/open_from_ndex_36x36.png").toString();
-		importProps.setProperty(LARGE_ICON_URL, loadIconUrl);
-		importProps.setProperty(SMALL_ICON_URL, loadIconUrl);
-		registerService(bc, importFromNDExTaskFactory, TaskFactory.class, importProps);
-
-		
 		SaveNetworkToNDExTaskFactory saveToNDExTaskFactory = new SaveNetworkToNDExTaskFactory(appManager, ExternalAppManager.APP_NAME_SAVE);
-		Properties props = new Properties();
-		props.setProperty(IN_TOOL_BAR, "true");
-		props.setProperty(INSERT_TOOLBAR_SEPARATOR_AFTER, "true");
-		props.setProperty(TOOLTIP, StringResources.NDEX_SAVE);
-		props.setProperty(TOOL_BAR_GRAVITY, "0.1f");
-		String saveIconUrl = getClass().getResource("/images/save_to_ndex_36x36.png").toString();
-		props.setProperty(LARGE_ICON_URL, saveIconUrl);
-		props.setProperty(SMALL_ICON_URL, saveIconUrl);
-		registerService(bc, saveToNDExTaskFactory, TaskFactory.class, props);
 
+		MainToolBarAction action = new MainToolBarAction(importFromNDExTaskFactory, saveToNDExTaskFactory, serviceRegistrar);
+		registerService(bc, action, CyAction.class);
+		
 		// TF for NDEx Load
+		Icon icon = IconUtil.getNdexIcon();
+		
 		final OpenBrowseTaskFactory ndexTaskFactory = new OpenBrowseTaskFactory(icon);
 		final Properties ndexTaskFactoryProps = new Properties();
 		// ndexTaskFactoryProps.setProperty(IN_MENU_BAR, "false");
@@ -225,20 +214,25 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, new NdexNetworkAboutToBeDestroyedListener(), NetworkAboutToBeDestroyedListener.class,
 				new Properties());
 
-		OpenSaveTaskFactory saveNetworkToNDExContextMenuTaskFactory = new OpenSaveTaskFactory(
-				ExternalAppManager.SAVE_NETWORK, appManager);
+		OpenSaveTaskFactory saveNetworkToNDExContextMenuTaskFactory = new OpenSaveTaskFactory(appManager);
 		Properties saveNetworkToNDExContextMenuProps = new Properties();
 		saveNetworkToNDExContextMenuProps.setProperty(ID, "exportToNDEx");
-		saveNetworkToNDExContextMenuProps.setProperty(TITLE, "Export Network to NDEx...");
-
+		saveNetworkToNDExContextMenuProps.setProperty(TITLE, StringResources.NDEX_SAVE.concat("..."));
 		saveNetworkToNDExContextMenuProps.setProperty(IN_NETWORK_PANEL_CONTEXT_MENU, "true");
 		saveNetworkToNDExContextMenuProps.setProperty(INSERT_SEPARATOR_BEFORE, "true");
 		saveNetworkToNDExContextMenuProps.setProperty(ENABLE_FOR, "network");
 
-		registerService(bc, saveNetworkToNDExContextMenuTaskFactory, NetworkViewCollectionTaskFactory.class,
+		registerService(bc, saveNetworkToNDExContextMenuTaskFactory, NetworkCollectionTaskFactory.class,
 				saveNetworkToNDExContextMenuProps);
-		// registerService(bc, saveNetworkToNDExContextMenuTaskFactory,
-		// TestTaskFactory.class, saveNetworkToNDExContextMenuProps);
+		
+		OpenSaveCollectionTaskFactory saveCollectionToNDExContextMenuTaskFactory = new OpenSaveCollectionTaskFactory(appManager);
+		Properties saveCollectionToNDExContextMenuProps = new Properties();
+		saveNetworkToNDExContextMenuProps.setProperty(ID, "saveCollectionToNDEx");
+		saveCollectionToNDExContextMenuProps.setProperty(TITLE, StringResources.NDEX_SAVE_COLLECTION.concat("..."));
+		saveCollectionToNDExContextMenuProps.setProperty(IN_NETWORK_PANEL_CONTEXT_MENU, "true");
+		saveCollectionToNDExContextMenuProps.setProperty(MENU_GRAVITY, "1.0");
+		registerService(bc, saveCollectionToNDExContextMenuTaskFactory, RootNetworkCollectionTaskFactory.class,
+				saveCollectionToNDExContextMenuProps);
 	}
 
 	@Override

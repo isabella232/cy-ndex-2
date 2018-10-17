@@ -1,7 +1,6 @@
 package org.cytoscape.cyndex2.internal.util;
 
 import java.awt.BorderLayout;
-import java.awt.Dialog;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
@@ -16,8 +15,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import org.apache.commons.io.FileUtils;
-import org.cytoscape.cyndex2.errors.BrowserCreationError;
 import org.cytoscape.cyndex2.internal.CyActivator;
+import org.cytoscape.cyndex2.internal.errors.BrowserCreationError;
 import org.cytoscape.cyndex2.internal.util.StringResources.LoadBrowserStage;
 import org.cytoscape.work.TaskMonitor;
 
@@ -42,6 +41,7 @@ public class BrowserManager {
 	private static Browser browser;
 	private static BrowserView browserView;
 	private static File jxbrowserDataLocation;
+	public static boolean loading = false;
 
 	private static boolean supportedOSAndArchitecture() {
 		String os = System.getProperty("os.name");
@@ -58,9 +58,11 @@ public class BrowserManager {
 			throw new BrowserCreationError("JxBrowser is not supported on your system.");
 		}
 
-		if (browserView == null) {
+		if (!loading && browserView == null) {
+			loading = true;
 			Browser b = getJXBrowser(tm);
 			browserView = new BrowserView(b);
+			loading = false;
 		}
 		return browserView;
 	}
@@ -104,6 +106,8 @@ public class BrowserManager {
 		tm.setProgress(0.0f);
 		if (browser == null) {
 			LoadBrowserStage.ENABLE_LOGGING.updateTaskMonitor(tm);
+			BrowserPreferences.setChromiumSwitches("--disable-gpu");
+			
 			if (parseDebug()) {
 				BrowserPreferences.setChromiumSwitches("--remote-debugging-port=9222");
 				try {
@@ -168,7 +172,6 @@ public class BrowserManager {
 							browserViewLocal.setPreferredSize(initialBounds.getSize());
 
 							final JFrame frame = new JFrame("Popup");
-							frame.setModalExclusionType(Dialog.ModalExclusionType.APPLICATION_EXCLUDE);
 							frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 							frame.add(browserViewLocal, BorderLayout.CENTER);
 							frame.pack();

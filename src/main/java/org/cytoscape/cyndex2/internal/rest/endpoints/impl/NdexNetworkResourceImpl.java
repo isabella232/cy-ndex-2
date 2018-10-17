@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.application.CyApplicationManager;
@@ -32,7 +33,6 @@ import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
 import org.cytoscape.cyndex2.internal.task.NetworkExportTask;
 import org.cytoscape.cyndex2.internal.task.NetworkImportTask;
 import org.cytoscape.cyndex2.internal.util.CIServiceManager;
-import org.cytoscape.cyndex2.internal.util.HeadlessTaskMonitor;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
@@ -51,6 +51,8 @@ import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
@@ -80,22 +82,128 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		// this.tfManager = tfManager;
 	}
 
-	@Override
-	@CIWrapping
-	public CINdexBaseResponse createNetworkFromNdex(final NdexImportParams params) {
+	private CyNetwork getNetworkFromSUID(Long suid) throws WebApplicationException {
+		/*
+		 * Attempt to get the CyNetwork object from an SUID. If the SUID is null, get
+		 * the currently selected CySubNetwork. An SUID may specify a subnetwork or a
+		 * collection object in Cytoscape.
+		 * 
+		 * If there is not network with the given SUID, or the current network is null,
+		 * throw a WebApplicationException. This function will not return null
+		 */
+		if (suid == null) {
+			CyNetwork network = appManager.getCurrentNetwork();
+			if (network == null) {
+				final String message = "Current network does not exist. Select a network or specify an SUID.";
+				throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INVALID_PARAMETERS);
+			}
+			return network;
+		}
+		CyNetwork network = CyObjectManager.INSTANCE.getNetworkManager().getNetwork(suid.longValue());
+
+		if (network == null) {
+			// Check if the suid points to a collection
+			for (CyNetwork net : CyObjectManager.INSTANCE.getNetworkManager().getNetworkSet()) {
+				CyRootNetwork root = ((CySubNetwork) net).getRootNetwork();
+				Long rootSUID = root.getSUID();
+				if (rootSUID.compareTo(suid) == 0) {
+					network = root;
+					break;
+				}
+			}
+		}
+		if (network == null) {
+			// Network is not available
+			final String message = "Network/Collection with SUID " + String.valueOf(suid) + " does not exist.";
+			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INVALID_PARAMETERS);
+		}
+		return network;
+	}
+
+	private NetworkExportTask buildExportTask(Long suid, NdexSaveParameters params)
+			throws JsonProcessingException, IOException, NdexException {
+		/*
+		 * Verify export parameters and create the NetworkExportTask object. Default
+		 * parameters are: - isPublic -> true - metadata -> empty map
+		 * 
+		 * Metadata is saved to the network before creating the export task
+		 * 
+		 */
+		validateSaveParameters(params);
+
+		CyNetwork network = getNetworkFromSUID(suid);
+
+		for (String column : params.metadata.keySet()) {
+			saveMetadata(column, params.metadata.get(column), network);
+		}
+
+		return new NetworkExportTask(network, params, false);
+	}
+
+	private void validateImportParameters(NdexImportParams params) {
+		if (params == null) {
+			final String message = "No import parameters found.";
+			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INVALID_PARAMETERS);
+		}
 		if (params.serverUrl == null) {
 			params.serverUrl = "http://ndexbio.org/v2";
 		}
 		if (params.uuid == null) {
 			final String message = "Must provide a uuid to import a network";
-			logger.error(message);
 			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INVALID_PARAMETERS);
 		}
-		NetworkImportTask importer;
-		MyTaskObserver to = new MyTaskObserver();
-		
+	}
+
+	private void validateSaveParameters(final NdexBasicSaveParameter params) {
+		if (params == null || params.username == null || params.password == null) {
+			throw errorBuilder.buildException(Status.BAD_REQUEST,
+					"Must provide save parameters (username and password)", ErrorType.INVALID_PARAMETERS);
+		}
+		if (params.serverUrl == null) {
+			params.serverUrl = "http://ndexbio.org/v2/";
+		}
+		if (params.metadata == null) {
+			params.metadata = new HashMap<>();
+		}
+		if (params instanceof NdexSaveParameters && ((NdexSaveParameters) params).isPublic == null) {
+			((NdexSaveParameters) params).isPublic = true;
+		}
+	}
+
+	private NetworkImportTask buildImportTask(NdexImportParams params) {
+		/*
+		 * Build the NetworkImportTask from the import parameters Default parameters
+		 * are: - serverUrl -> "http://ndexbio.org/v2"
+		 * 
+		 * Attempt to create an NdexImportTask with the given network access parameters
+		 */
+		validateImportParameters(params);
+
+		try {
+			UUID uuid = UUID.fromString(params.uuid);
+			if (params.username != null && params.password != null)
+				return new NetworkImportTask(params.username, params.password, params.serverUrl, uuid,
+						params.accessKey);
+			else {
+				return new NetworkImportTask(params.serverUrl, uuid, params.accessKey, params.idToken);
+			}
+		} catch (IllegalArgumentException e) {
+			final String message = "Provided UUID is invalid";
+			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INVALID_PARAMETERS);
+		} catch (IOException | NdexException e) {
+			final String message = "Failed to connect to server and retrieve network. " + e.getMessage();
+			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
+		}
+
+	}
+
+	@Override
+	@CIWrapping
+	public CINdexBaseResponse createNetworkFromNdex(final NdexImportParams params) {
+
 		Long suid = null;
 		try {
+			NetworkImportTask importer = buildImportTask(params);
 			if (params.username != null && params.password != null)
 				importer = new NetworkImportTask(params.username, params.password, params.serverUrl,
 						UUID.fromString(params.uuid), params.accessKey);
@@ -104,6 +212,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 						params.idToken);
 
 			}
+			MyTaskObserver to = new MyTaskObserver();
 			TaskIterator ti = new TaskIterator(importer);
 			CyActivator.taskManager.execute(ti, to);
 			suid = (Long) waitForResults(importer, Long.class);
@@ -132,52 +241,16 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	@Override
 	@CIWrapping
 	public CINdexBaseResponse saveNetworkToNdex(final Long suid, final NdexSaveParameters params) {
-		if (params.isPublic == null)
-			params.isPublic = Boolean.TRUE;
-		if (params.metadata == null)
-			params.metadata = new HashMap<>();
-
-		CyNetwork network = CyObjectManager.INSTANCE.getNetworkManager().getNetwork(suid.longValue());
-
-		if (network == null) {
-			// Check if the suid points to a collection
-			for (CyNetwork net : CyObjectManager.INSTANCE.getNetworkManager().getNetworkSet()) {
-				CyRootNetwork root = ((CySubNetwork) net).getRootNetwork();
-				Long rootSUID = root.getSUID();
-				if (rootSUID.compareTo(suid) == 0) {
-					network = root;
-					break;
-				}
-			}
-		}
-		if (network == null) {
-			// Current network is not available
-			final String message = "Network/Collection with SUID " + String.valueOf(suid) + " does not exist.";
-			logger.error(message);
-			final CIError ciError = ciServiceManager.getCIErrorFactory().getCIError(Status.BAD_REQUEST.getStatusCode(),
-					"urn:cytoscape:ci:ndex:v1:errors:1", message, URI.create("file:///log"));
-			throw ciServiceManager.getCIExceptionFactory().getCIException(Status.BAD_REQUEST.getStatusCode(),
-					new CIError[] { ciError });
-		}
-
-		// Save non-null metadata to network/collection table
-		if (params.metadata != null) {
-			for (String column : params.metadata.keySet()) {
-				saveMetadata(column, params.metadata.get(column), network);
-			}
-		}
 
 		try {
-			NetworkExportTask exporter = new NetworkExportTask(network, params, false);
+			NetworkExportTask exporter = buildExportTask(suid, params);
+
 			TaskIterator ti = new TaskIterator(exporter);
 			MyTaskObserver to = new MyTaskObserver();
 			CyActivator.taskManager.execute(ti, to);
+			String newUUID = (String) waitForResults(exporter, String.class);
 
-			String newUUID = (String) waitForResults(exporter,  String.class);
-
-			if (params.isPublic == Boolean.TRUE) {
-				setVisibility(params, newUUID);
-			}
+			setVisibility(params, newUUID);
 
 			final NdexBaseResponse response = new NdexBaseResponse(suid, newUUID);
 			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
@@ -389,31 +462,14 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	@Override
 	@CIWrapping
 	public CINdexBaseResponse updateNetworkInNdex(Long suid, NdexBasicSaveParameter params) {
-
+		validateSaveParameters(params);
 		if (suid == null) {
 			logger.error("SUID is missing");
 			throw errorBuilder.buildException(Status.BAD_REQUEST, "SUID is not specified.",
 					ErrorType.INVALID_PARAMETERS);
 		}
 
-		CyNetwork network = networkManager.getNetwork(suid.longValue());
-
-		if (network == null) {
-			// Check if the suid points to a collection
-			for (CyNetwork net : CyObjectManager.INSTANCE.getNetworkManager().getNetworkSet()) {
-				CyRootNetwork root = ((CySubNetwork) net).getRootNetwork();
-				Long rootSUID = root.getSUID();
-				if (rootSUID.compareTo(suid) == 0) {
-					network = root;
-					break;
-				}
-			}
-		}
-		if (network == null) {
-			final String message = "Network with SUID " + suid + " does not exist.";
-			logger.error(message);
-			throw errorBuilder.buildException(Status.NOT_FOUND, message, ErrorType.INVALID_PARAMETERS);
-		}
+		CyNetwork network = getNetworkFromSUID(suid);
 
 		// Check UUID
 		UUID uuid;
@@ -501,12 +557,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	@Override
 	@CIWrapping
 	public CINdexBaseResponse updateCurrentNetworkInNdex(NdexBasicSaveParameter params) {
-		final CyNetwork network = appManager.getCurrentNetwork();
-		if (network == null) {
-			final String message = "Current network does not exist (No network is selected)";
-			logger.error(message);
-			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INTERNAL);
-		}
+		final CyNetwork network = getNetworkFromSUID(null);
 		return updateNetworkInNdex(network.getSUID(), params);
 	}
 
@@ -564,7 +615,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			CyActivator.taskManager.execute(ti);
 			// importer.run(new HeadlessTaskMonitor());
 		} catch (Exception e) {
-			final String message = "Unable to create CyNetwork from NDEx." + e.getMessage();
+			final String message = "Unable to create CyNetwork from NDEx. " + e.getMessage();
 			logger.error(message);
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 
@@ -594,5 +645,5 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		}
 		return o;
 	}
-	
+
 }

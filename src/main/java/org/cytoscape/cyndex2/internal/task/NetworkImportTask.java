@@ -43,12 +43,12 @@ import org.cxio.aspects.datamodels.HiddenAttributesElement;
 import org.cxio.aspects.datamodels.SubNetworkElement;
 import org.cxio.core.interfaces.AspectElement;
 import org.cytoscape.cyndex2.internal.CyActivator;
+import org.cytoscape.cyndex2.internal.io.cxio.CxImporter;
+import org.cytoscape.cyndex2.internal.io.cxio.reader.CxToCy;
+import org.cytoscape.cyndex2.internal.io.cxio.reader.ViewMaker;
 import org.cytoscape.cyndex2.internal.singletons.CXInfoHolder;
 import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
-import org.cytoscape.cyndex2.io.cxio.CxImporter;
-import org.cytoscape.cyndex2.io.cxio.reader.CxToCy;
-import org.cytoscape.cyndex2.io.cxio.reader.ViewMaker;
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkFactory;
@@ -175,8 +175,11 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 		}
 
 		CyRootNetwork rootNetwork = ((CySubNetwork) networks.get(0)).getRootNetwork();
-		suid = rootNetwork.getSUID();
-
+		if (isCollection) {
+			suid = rootNetwork.getSUID();
+		}else {
+			suid = networks.get(0).getSUID();
+		}
 		if (networkSummary != null) {
 			NetworkManager.INSTANCE.addNetworkUUID(isCollection ? rootNetwork.getSUID() : networks.get(0).getSUID(),
 					networkSummary.getExternalId());
