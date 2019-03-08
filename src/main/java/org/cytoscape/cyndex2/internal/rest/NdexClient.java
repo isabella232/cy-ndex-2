@@ -38,7 +38,6 @@ public class NdexClient {
 	private static final Logger logger = LoggerFactory.getLogger(NdexClient.class);
 
 	private static final String PUBLIC_NDEX_URL = "http://www.ndexbio.org/v2";
-	private static final String CHARSET = "UTF-8";
 
 	private final ObjectMapper mapper;
 	private final ErrorBuilder errorBuilder;
@@ -65,39 +64,6 @@ public class NdexClient {
 		headers.add(header);
 		return HttpClients.custom().setDefaultHeaders(headers).build();
 	}
-
-/*	public InputStream load(String url) throws IOException {
-		return load(url, null, null);
-	}
-
-	public InputStream load(String url, String id, String pw) {
-
-		if (url == null || url.isEmpty()) {
-			throw new IllegalArgumentException("URL is missing.");
-		}
-
-		CloseableHttpClient client = getClient(id, pw);
-		HttpGet httpget = new HttpGet(url);
-		CloseableHttpResponse response = null;
-		try {
-			response = client.execute(httpget);
-		} catch (IOException e) {
-			logger.error(e.getMessage());
-			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, "Could not fetch network from NDEx",
-					ErrorType.NDEX_API);
-		}
-
-		// Get the response
-		InputStream is = null;
-		try {
-			is = response.getEntity().getContent();
-		} catch (UnsupportedOperationException | IOException e) {
-			logger.error(e.getMessage());
-			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, "Failed to open stream from NDEx",
-					ErrorType.NDEX_API);
-		}
-		return is;
-	}  */
 
 	public Map<String, ?> getSummary(String url, String uuid) throws Exception {
 		return getSummary(url, uuid, null, null);
@@ -165,53 +131,6 @@ public class NdexClient {
 		}
 	}
 
-/*	public void updateNetwork(String baseUrl, String uuid, String networkName, InputStream cxis, String id, String pw) {
-
-		String url = baseUrl + "/network/" + uuid;
-
-		try {
-			final UploadUtil multipart = new UploadUtil(url, CHARSET, getAuth(id, pw));
-			multipart.addFormJson("filename", networkName);
-			multipart.addFilePart("CXNetworkStream", cxis);
-			List<String> response = multipart.finish();
-
-			if (response == null || response.isEmpty()) {
-				final String message = "NDEx does not return new UUID.";
-				logger.error(message);
-				throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.NDEX_API);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			final String message = "Failed to update network to NDEx.";
-			logger.error(message, e);
-			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.NDEX_API);
-		}
-	}
-
-	public String postNetwork(String url, String networkName, InputStream cxis, String id, String pw) {
-		List<String> response = null;
-
-		try {
-			final UploadUtil multipart = new UploadUtil(url, CHARSET, getAuth(id, pw));
-			multipart.addFormJson("filename", networkName);
-			multipart.addFilePart("CXNetworkStream", cxis);
-			response = multipart.finish();
-
-			if (response == null || response.isEmpty()) {
-
-				throw new IOException("Could not POST network.");
-			}
-
-			final String newUrl = response.get(0);
-			final String[] parts = newUrl.split("/");
-			return parts[parts.length - 1];
-		} catch (Exception e) {
-			final String message = "Failed to upload network to NDEx.";
-			logger.error(message, e);
-			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.NDEX_API);
-		}
-	}
-*/
 	public void setVisibility(String url, String uuid, boolean isPublic, String id, String pw) {
 		final String endpoint = url + "/network/" + uuid + "/systemproperty";
 

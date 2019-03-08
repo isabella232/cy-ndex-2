@@ -114,21 +114,21 @@ public class NativeInstaller {
 
 		// always check HTTP response code first
 		if (responseCode == HttpURLConnection.HTTP_OK) {
-			String disposition = httpConn.getHeaderField("Content-Disposition");
+//			String disposition = httpConn.getHeaderField("Content-Disposition");
 			//String contentType = httpConn.getContentType();
 			int contentLength = httpConn.getContentLength();
 
-			String fileName = null;
-			if (disposition != null) {
-				// extracts file name from header field
-				int index = disposition.indexOf("filename=");
-				if (index > 0) {
-					fileName = disposition.substring(index + 10, disposition.length() - 1);
-				}
-			} else {
-				// extracts file name from URL
-				fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1, fileURL.length());
-			}
+//			String fileName = null;
+//			if (disposition != null) {
+//				// extracts file name from header field
+//				int index = disposition.indexOf("filename=");
+//				if (index > 0) {
+//					fileName = disposition.substring(index + 10, disposition.length() - 1);
+//				}
+//			} else {
+//				// extracts file name from URL
+//				fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1, fileURL.length());
+//			}
 
 			// opens input stream from the HTTP connection
 			httpConn.disconnect();

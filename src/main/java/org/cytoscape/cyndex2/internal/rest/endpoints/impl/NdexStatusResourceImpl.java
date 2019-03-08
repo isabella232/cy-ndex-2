@@ -33,11 +33,12 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 	@CIWrapping
 	public CIAppStatusResponse getAppStatus() {
 
-		final String widget = ExternalAppManager.appName;
+		String widget = ExternalAppManager.appName;
 		if (widget == null) {
-			final String message = "Application type is not set yet.";
-			logger.error(message);
-			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
+			widget = ExternalAppManager.APP_NAME_LOAD;
+//			final String message = "Application type is not set yet.";
+//			logger.error(message);
+//			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 		}
 
 		status = new AppStatusResponse<>();
