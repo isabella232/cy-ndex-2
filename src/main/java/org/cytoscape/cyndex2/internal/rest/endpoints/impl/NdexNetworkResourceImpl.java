@@ -439,6 +439,10 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		
 		execute(iter);
 		
+		for (CyNetwork net : reader.getNetworks()) {
+			networkManager.addNetwork(net);
+		}
+		reader.buildCyNetworkView(reader.getNetworks()[0]);
 		
 		Long suid = reader.getNetworks()[0].getSUID();
 		final NdexBaseResponse response = new NdexBaseResponse(suid, "");
