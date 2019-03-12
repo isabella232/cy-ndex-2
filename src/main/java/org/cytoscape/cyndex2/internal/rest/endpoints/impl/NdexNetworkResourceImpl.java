@@ -48,6 +48,7 @@ import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskObserver;
 import org.cytoscape.work.swing.DialogTaskManager;
+import org.cytoscape.work.util.ListSingleSelection;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.Permissions;
 import org.ndexbio.model.object.network.NetworkSummary;
@@ -435,6 +436,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		
 		// Get task to get SUID
 		AbstractCyNetworkReader reader = (AbstractCyNetworkReader) iter.next();
+		reader.setRootNetworkList(new ListSingleSelection<String>());
 		iter.append(reader);
 		
 		execute(iter);

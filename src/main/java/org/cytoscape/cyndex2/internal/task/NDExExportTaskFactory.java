@@ -3,6 +3,8 @@ package org.cytoscape.cyndex2.internal.task;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -26,7 +28,6 @@ import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
-import org.cytoscape.work.TunableSetter;
 
 
 public class NDExExportTaskFactory implements NetworkViewTaskFactory, NetworkTaskFactory {
@@ -46,10 +47,33 @@ public class NDExExportTaskFactory implements NetworkViewTaskFactory, NetworkTas
 		this.isUpdate = isUpdate;
 	}
 	
+	private void setTunables(CyWriter writer, boolean collection) {
+		Class<? extends CyWriter> writerClass = writer.getClass();
+		
+		try {
+			Field field = writerClass.getField("writeSiblings");
+			field.setAccessible(true);
+			final Object fieldValue = field.get(writer);
+			final Class<? extends Object> fieldClass = fieldValue.getClass();
+			final Method setMethod = fieldClass.getDeclaredMethod("setWriteSiblings", Boolean.class);
+			setMethod.invoke(fieldValue, collection);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			Field field = writerClass.getField("useCxId");
+			field.setAccessible(true);
+			final Object fieldValue = field.get(writer);
+			final Class<? extends Object> fieldClass = fieldValue.getClass();
+			final Method setMethod = fieldClass.getDeclaredMethod("setUseCxId", Boolean.class);
+			setMethod.invoke(fieldValue, !collection);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	private AbstractTask getTaskWrapper(CyNetwork network, boolean writeCollection) {
-		HashMap<String, Object> tunables = new HashMap<String, Object>();
-		tunables.put("useCxId", !writeCollection);
-		tunables.put("writeSiblings", writeCollection);
 		
 		AbstractTask wrapper = new AbstractTask() {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -57,8 +81,8 @@ public class NDExExportTaskFactory implements NetworkViewTaskFactory, NetworkTas
 			public void run(TaskMonitor taskMonitor) throws Exception {
 				CyNetworkViewWriterFactory writerFactory = CxTaskFactoryManager.INSTANCE.getCxWriterFactory();
 				writer = writerFactory.createWriter(out, network);
+				setTunables(writer, writeCollection);
 				
-				((TunableSetter) writerFactory).applyTunables(writer, tunables);
 				writer.run(taskMonitor);
 				byte[] bytes = out.toByteArray();
 				ByteArrayInputStream in = new ByteArrayInputStream(bytes);
