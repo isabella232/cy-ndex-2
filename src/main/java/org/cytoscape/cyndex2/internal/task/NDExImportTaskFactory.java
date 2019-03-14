@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response.Status;
 
+import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorType;
 import org.cytoscape.cyndex2.internal.rest.parameter.NDExImportParameters;
@@ -19,10 +20,10 @@ public class NDExImportTaskFactory extends AbstractTaskFactory {
 	
 	private NetworkImportTask importer;
 
-	public NDExImportTaskFactory(NDExImportParameters params, ErrorBuilder errorBuilder) {
+	public NDExImportTaskFactory(NDExImportParameters params) {
 		super();
 		this.params = params;
-		this.errorBuilder = errorBuilder;
+		this.errorBuilder = CyServiceModule.INSTANCE.getErrorBuilder();
 	}
 	
 	private NetworkImportTask buildImportTask() throws IOException, NdexException {

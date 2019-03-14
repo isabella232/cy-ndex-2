@@ -1,11 +1,13 @@
 package org.cytoscape.cyndex2.internal;
 
+import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.service.util.CyServiceRegistrar;
 
 public class CyServiceModule {
 	
 	public static CyServiceModule INSTANCE = new CyServiceModule();
 	private CyServiceRegistrar registrar;
+	private ErrorBuilder errorBuilder;
 	
 	private CyServiceModule() {
 		
@@ -15,6 +17,13 @@ public class CyServiceModule {
 	}
 	public static <T> T getService(Class<T> clz) {
 		return INSTANCE.registrar.getService(clz);
+	}
+	public static void setErrorBuilder(ErrorBuilder errorBuilder) {
+		INSTANCE.errorBuilder = errorBuilder;
+	}
+	
+	public ErrorBuilder getErrorBuilder() {
+		return errorBuilder;
 	}
 	
 	

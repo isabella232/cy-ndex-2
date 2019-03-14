@@ -70,14 +70,14 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 	private final ErrorBuilder errorBuilder;
 
-	public NdexNetworkResourceImpl(final NdexClient client, final ErrorBuilder errorBuilder,
+	public NdexNetworkResourceImpl(final NdexClient client,
 			CyApplicationManager appManager, CyNetworkManager networkManager, CIServiceManager ciServiceTracker) {
 
 		this.client = client;
 		this.ciServiceManager = ciServiceTracker;
 
-		this.errorBuilder = errorBuilder;
-
+		this.errorBuilder = CyServiceModule.INSTANCE.getErrorBuilder();
+		
 		this.networkManager = networkManager;
 		this.appManager = appManager;
 
@@ -133,7 +133,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	public CINdexBaseResponse createNetworkFromNdex(final NDExImportParameters params) {
 		
 		try {
-			NDExImportTaskFactory importFactory = new NDExImportTaskFactory(params, errorBuilder);
+			NDExImportTaskFactory importFactory = new NDExImportTaskFactory(params);
 			TaskIterator iter = importFactory.createTaskIterator();
 			
 			execute(iter);
@@ -152,7 +152,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	@CIWrapping
 	public CINdexBaseResponse saveNetworkToNdex(final Long suid, final NDExSaveParameters params) {
 		try {
-			NDExExportTaskFactory exportFactory = new NDExExportTaskFactory(params, errorBuilder, false);
+			NDExExportTaskFactory exportFactory = new NDExExportTaskFactory(params, false);
 			CyNetwork network = getNetworkFromSUID(suid);
 			
 			TaskIterator iter = exportFactory.createTaskIterator(network);
@@ -352,7 +352,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			final CyNetwork network,
 			final NDExBasicSaveParameters params) {
 
-		NDExExportTaskFactory exportFactory = new NDExExportTaskFactory(params, errorBuilder, true);
+		NDExExportTaskFactory exportFactory = new NDExExportTaskFactory(params, true);
 		TaskIterator iter = exportFactory.createTaskIterator(network);
 		CyActivator.taskManager.execute(iter);
 		return true;

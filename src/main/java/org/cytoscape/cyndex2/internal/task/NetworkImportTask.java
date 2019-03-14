@@ -60,6 +60,9 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 	public NetworkImportTask(String userId, String password, String serverUrl, UUID uuid, String accessKey)
 			throws IOException, NdexException {
 		super();
+		if (serverUrl == null) {
+			serverUrl = "http://ndexbio.org/v2/";
+		}
 		NdexRestClient client = new NdexRestClient(userId, password, serverUrl,
 				CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
 		mal = new NdexRestClientModelAccessLayer(client);

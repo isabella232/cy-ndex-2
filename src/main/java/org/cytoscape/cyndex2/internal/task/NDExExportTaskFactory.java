@@ -11,6 +11,7 @@ import java.util.UUID;
 import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.cyndex2.internal.CxTaskFactoryManager;
+import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorType;
 import org.cytoscape.cyndex2.internal.rest.parameter.NDExBasicSaveParameters;
@@ -33,17 +34,15 @@ import org.cytoscape.work.TaskMonitor;
 public class NDExExportTaskFactory implements NetworkViewTaskFactory, NetworkTaskFactory {
 
 	private final NDExBasicSaveParameters params;
-	private final ErrorBuilder errorBuilder;
 	private final boolean isUpdate;
 		
 	private CyWriter writer;
 	private NetworkExportTask exporter;
 	
 
-	public NDExExportTaskFactory(NDExBasicSaveParameters params, ErrorBuilder errorBuilder, boolean isUpdate)  {
+	public NDExExportTaskFactory(NDExBasicSaveParameters params, boolean isUpdate)  {
 		super();
 		this.params = params;
-		this.errorBuilder = errorBuilder;
 		this.isUpdate = isUpdate;
 	}
 	
@@ -130,6 +129,7 @@ public class NDExExportTaskFactory implements NetworkViewTaskFactory, NetworkTas
 	}
 	
 	private void validateSaveParameters(final NDExBasicSaveParameters params) {
+		ErrorBuilder errorBuilder = CyServiceModule.INSTANCE.getErrorBuilder();
 		if (params == null || params.username == null || params.password == null) {
 			throw errorBuilder.buildException(Status.BAD_REQUEST,
 					"Must provide save parameters (username and password)", ErrorType.INVALID_PARAMETERS);

@@ -4,6 +4,7 @@ import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.ci.CIWrapping;
 import org.cytoscape.cyndex2.external.SaveParameters;
+import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexStatusResource;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorType;
@@ -24,9 +25,9 @@ public class NdexStatusResourceImpl implements NdexStatusResource {
 	private AppStatusResponse<AppStatusParameters> status;
 
 
-	public NdexStatusResourceImpl(final ErrorBuilder errorBuilder, final CIServiceManager ciServiceManager) {
-		this.errorBuilder = errorBuilder;
+	public NdexStatusResourceImpl(final CIServiceManager ciServiceManager) {
 		this.ciServiceManager = ciServiceManager;
+		this.errorBuilder = CyServiceModule.INSTANCE.getErrorBuilder();
 	}
 
 	@Override

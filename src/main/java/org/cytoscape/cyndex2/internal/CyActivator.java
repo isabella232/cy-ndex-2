@@ -181,18 +181,19 @@ public class CyActivator extends AbstractCyActivator {
 		// Expose CyREST endpoints
 		final ErrorBuilder errorBuilder = new ErrorBuilder(ciServiceManager, config);
 		final NdexClient ndexClient = new NdexClient(errorBuilder);
-
+		CyServiceModule.setErrorBuilder(errorBuilder);
+		
 		// Base
 		registerService(bc,
-				new NdexBaseResourceImpl(bc.getBundle().getVersion().toString(), errorBuilder, ciServiceManager),
+				new NdexBaseResourceImpl(bc.getBundle().getVersion().toString(), ciServiceManager),
 				NdexBaseResource.class, new Properties());
 
 		// Status
-		registerService(bc, new NdexStatusResourceImpl(errorBuilder, ciServiceManager), NdexStatusResource.class,
+		registerService(bc, new NdexStatusResourceImpl(ciServiceManager), NdexStatusResource.class,
 				new Properties());
 
 		// Network IO
-		registerService(bc, new NdexNetworkResourceImpl(ndexClient, errorBuilder, appManager, netmgr, ciServiceManager),
+		registerService(bc, new NdexNetworkResourceImpl(ndexClient, appManager, netmgr, ciServiceManager),
 				NdexNetworkResource.class, new Properties());
 
 		OpenSaveTaskFactory saveNetworkToNDExContextMenuTaskFactory = new OpenSaveTaskFactory(appManager);
