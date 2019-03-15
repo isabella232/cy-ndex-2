@@ -9,6 +9,7 @@ import javax.swing.SwingUtilities;
 
 import org.cytoscape.cyndex2.external.SaveParameters;
 import org.cytoscape.cyndex2.internal.CyActivator;
+import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
@@ -51,7 +52,6 @@ public class OpenExternalAppTask extends AbstractTask {
 		}
 		Browser browser = browserView.getBrowser();
 		browser.addScriptContextListener(new ScriptContextAdapter() {
-
 			@Override
 			public void onScriptContextCreated(ScriptContextEvent arg0) {
 				JSValue window = browser.executeJavaScriptAndReturnValue("window");
@@ -70,13 +70,19 @@ public class OpenExternalAppTask extends AbstractTask {
 			return;
 		
 		StringBuilder urlStr = new StringBuilder();
-		urlStr.append("http://cyndex.ndexbio.org/");
-		urlStr.append(CyActivator.WEB_APP_VERSION);
-		urlStr.append("/index.html?cyrestport=");
+		urlStr.append("http://cyndex-staging.ndexbio.org/cloud-demo");
+		urlStr.append("/?cyrestport=");
+		//urlStr.append(CyActivator.WEB_APP_VERSION);
+		//urlStr.append("/index.html?cyrestport=");
 		urlStr.append(port);
 
 		if (ExternalAppManager.appName.equals(ExternalAppManager.APP_NAME_SAVE)) {
 			urlStr.append("&suid=" + String.valueOf(SaveParameters.INSTANCE.suid));
+		}
+		if (ExternalAppManager.appName.equals(ExternalAppManager.APP_NAME_LOAD)) {
+			if (LoadParameters.INSTANCE.searchTerm != null && LoadParameters.INSTANCE.searchTerm.length() > 0) {
+				urlStr.append("&genes=" + String.valueOf(LoadParameters.INSTANCE.searchTerm)); 
+			}
 		}
 		
 		final String url = urlStr.toString();
