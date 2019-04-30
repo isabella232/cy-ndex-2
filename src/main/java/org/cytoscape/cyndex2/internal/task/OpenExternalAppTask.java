@@ -70,7 +70,7 @@ public class OpenExternalAppTask extends AbstractTask {
 			return;
 		
 		StringBuilder urlStr = new StringBuilder();
-		urlStr.append("http://cyndex-staging.ndexbio.org/cloud-demo");
+		urlStr.append(CyActivator.getCyNDExBaseURL());
 		urlStr.append("/?cyrestport=");
 		//urlStr.append(CyActivator.WEB_APP_VERSION);
 		//urlStr.append("/index.html?cyrestport=");
