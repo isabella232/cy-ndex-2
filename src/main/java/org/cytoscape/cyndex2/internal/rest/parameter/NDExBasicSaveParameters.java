@@ -6,7 +6,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel(description = "Required parameters for updading network(s) to NDEx.")
-public class NdexBasicSaveParameter {
+public class NDExBasicSaveParameters {
 
 	@ApiModelProperty(value = "NDEx username", example = "username", required = true)
 	public String username;
@@ -17,7 +17,7 @@ public class NdexBasicSaveParameter {
 	@ApiModelProperty(value = "Network metadata", required = true)
 	public Map<String, String> metadata;
 
-	public NdexBasicSaveParameter() {
+	public NDExBasicSaveParameters() {
 		super();
 	}
 

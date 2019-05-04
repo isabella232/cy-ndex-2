@@ -6,11 +6,11 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel(description = "Required parameters for saving network(s) to NDEx.")
-public class NdexSaveParameters extends NdexBasicSaveParameter {
+public class NDExSaveParameters extends NDExBasicSaveParameters {
 	@ApiModelProperty(value = "Visibility of network", example="true", required=true)
 	public Boolean isPublic;
 
-	private NdexSaveParameters(String username, String password, String serverUrl, Map<String, String> metadata, boolean writeCollection) {
+	private NDExSaveParameters(String username, String password, String serverUrl, Map<String, String> metadata, boolean writeCollection) {
 		
 		this.serverUrl = serverUrl;
 		this.password = password;
