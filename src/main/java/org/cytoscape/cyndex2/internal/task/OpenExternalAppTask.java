@@ -1,7 +1,9 @@
 package org.cytoscape.cyndex2.internal.task;
 
 import java.awt.Desktop;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -71,19 +73,30 @@ public class OpenExternalAppTask extends AbstractTask {
 		
 		StringBuilder urlStr = new StringBuilder();
 		urlStr.append(CyActivator.getCyNDExBaseURL());
-		urlStr.append("/?cyrestport=");
+		
+		StringBuilder paramStr = new StringBuilder();
+		
+		paramStr.append("?cyrestport=");
 		//urlStr.append(CyActivator.WEB_APP_VERSION);
 		//urlStr.append("/index.html?cyrestport=");
-		urlStr.append(port);
+		paramStr.append(port);
 
 		if (ExternalAppManager.appName.equals(ExternalAppManager.APP_NAME_SAVE)) {
-			urlStr.append("&suid=" + String.valueOf(SaveParameters.INSTANCE.suid));
+			paramStr.append("&suid=" + String.valueOf(SaveParameters.INSTANCE.suid));
 		}
 		if (ExternalAppManager.appName.equals(ExternalAppManager.APP_NAME_LOAD)) {
 			if (LoadParameters.INSTANCE.searchTerm != null && LoadParameters.INSTANCE.searchTerm.length() > 0) {
-				urlStr.append("&genes=" + String.valueOf(LoadParameters.INSTANCE.searchTerm)); 
+				try {
+					paramStr.append("&genes=" + String.valueOf(URLEncoder.encode(LoadParameters.INSTANCE.searchTerm, java.nio.charset.StandardCharsets.UTF_8.toString())));
+				} catch (UnsupportedEncodingException e) {
+					JOptionPane.showMessageDialog(null,
+							"Unable encode search string: " + LoadParameters.INSTANCE.searchTerm, "CyNDEx-2 Error",
+							JOptionPane.ERROR_MESSAGE);
+				} 
 			}
 		}
+		
+		urlStr.append(paramStr.toString());
 		
 		final String url = urlStr.toString();
 		

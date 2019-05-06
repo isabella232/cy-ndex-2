@@ -65,7 +65,7 @@ public class CyActivator extends AbstractCyActivator {
 	// Logger for this activator
 	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
 	public static final String WEB_APP_VERSION = "0.1.3";
-	public static final String WEB_APP_BASE_URL = "http://cyndex-staging.ndexbio.org/cloud-demo";
+	public static final String WEB_APP_BASE_URL = "http://cyndex-staging.ndexbio.org/cloud-demo/";
 	
 	private static CyProperty<Properties> cyProps;
 
