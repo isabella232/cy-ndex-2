@@ -47,7 +47,7 @@ public class OpenExternalAppTask extends AbstractTask {
 		this.dialog = null;
 		this.browserView = null;
 	}
-	
+
 	private Browser initBrowser() throws Exception {
 		if (dialog.getComponentCount() == 0) {
 			throw new Exception("BrowserView was not added to the dialog");
@@ -66,19 +66,26 @@ public class OpenExternalAppTask extends AbstractTask {
 		return browser;
 	}
 
+	private String getSearchPortalGeneString(String input) {
+		String noCommas = input.replaceAll(",", " ");
+		String[] splitByWhiteSpace = noCommas.split("\\s+");
+		return String.join(",", splitByWhiteSpace);
+
+	}
+
 	@Override
 	public void run(TaskMonitor taskMonitor) {
 		if (this.cancelled)
 			return;
-		
+
 		StringBuilder urlStr = new StringBuilder();
 		urlStr.append(CyActivator.getCyNDExBaseURL());
-		
+
 		StringBuilder paramStr = new StringBuilder();
-		
+
 		paramStr.append("?cyrestport=");
-		//urlStr.append(CyActivator.WEB_APP_VERSION);
-		//urlStr.append("/index.html?cyrestport=");
+		// urlStr.append(CyActivator.WEB_APP_VERSION);
+		// urlStr.append("/index.html?cyrestport=");
 		paramStr.append(port);
 
 		if (ExternalAppManager.appName.equals(ExternalAppManager.APP_NAME_SAVE)) {
@@ -86,20 +93,16 @@ public class OpenExternalAppTask extends AbstractTask {
 		}
 		if (ExternalAppManager.appName.equals(ExternalAppManager.APP_NAME_LOAD)) {
 			if (LoadParameters.INSTANCE.searchTerm != null && LoadParameters.INSTANCE.searchTerm.length() > 0) {
-				try {
-					paramStr.append("&genes=" + String.valueOf(URLEncoder.encode(LoadParameters.INSTANCE.searchTerm, java.nio.charset.StandardCharsets.UTF_8.toString())));
-				} catch (UnsupportedEncodingException e) {
-					JOptionPane.showMessageDialog(null,
-							"Unable encode search string: " + LoadParameters.INSTANCE.searchTerm, "CyNDEx-2 Error",
-							JOptionPane.ERROR_MESSAGE);
-				} 
+
+				paramStr.append(
+						"&genes=" + String.valueOf(getSearchPortalGeneString(LoadParameters.INSTANCE.searchTerm)));
 			}
 		}
-		
+
 		urlStr.append(paramStr.toString());
-		
+
 		final String url = urlStr.toString();
-		
+
 		// Open the CyNDEx-2 browser
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
@@ -107,8 +110,8 @@ public class OpenExternalAppTask extends AbstractTask {
 				try {
 					if (dialog == null) {
 						if (Desktop.isDesktopSupported()) {
-						    Desktop.getDesktop().browse(new URI(url));
-						}else {
+							Desktop.getDesktop().browse(new URI(url));
+						} else {
 							throw new Exception("Unable to open the default browser from a Java application.");
 						}
 					} else {
@@ -123,10 +126,10 @@ public class OpenExternalAppTask extends AbstractTask {
 						dialog.setVisible(false);
 					}
 
-					JOptionPane.showMessageDialog(null,
-							"Unable to load the CyNDEx2 browser: " + e.getMessage(), "JxBrowser Error",
-							JOptionPane.ERROR_MESSAGE);
-//					ExternalAppManager.setLoadFailed("Failed to load browser instance.\n" + e.getMessage());
+					JOptionPane.showMessageDialog(null, "Unable to load the CyNDEx2 browser: " + e.getMessage(),
+							"JxBrowser Error", JOptionPane.ERROR_MESSAGE);
+					// ExternalAppManager.setLoadFailed("Failed to load browser instance.\n" +
+					// e.getMessage());
 				}
 
 			}
