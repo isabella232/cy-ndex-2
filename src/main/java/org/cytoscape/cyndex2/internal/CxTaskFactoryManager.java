@@ -12,12 +12,12 @@ public class CxTaskFactoryManager {
 	private static final String CX_WRITER_ID = "cxNetworkWriterFactory";
 	private static final String ID_TAG = "id";
 
-
 	private CyNetworkViewWriterFactory writerFactory;
 	private InputStreamTaskFactory readerFactory;
 	
+	public static CxTaskFactoryManager INSTANCE = new CxTaskFactoryManager();
 	
-	public CxTaskFactoryManager() {
+	private CxTaskFactoryManager() {
 	}
 
 	public InputStreamTaskFactory getCxReaderFactory() {

@@ -3,6 +3,7 @@ package org.cytoscape.cyndex2.internal.rest.endpoints.impl;
 import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.ci.CIWrapping;
+import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexBaseResource;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorType;
@@ -24,10 +25,10 @@ public class NdexBaseResourceImpl implements NdexBaseResource {
 	private final ErrorBuilder errorBuilder;
 	private final CIServiceManager ciServiceManager;
 
-	public NdexBaseResourceImpl(final String bundleVersion, final ErrorBuilder errorBuilder, final CIServiceManager ciServiceManager) {
+	public NdexBaseResourceImpl(final String bundleVersion, final CIServiceManager ciServiceManager) {
 		SUMMARY.appVersion = bundleVersion;
-		this.errorBuilder = errorBuilder;
 		this.ciServiceManager = ciServiceManager;
+		this.errorBuilder = CyServiceModule.INSTANCE.getErrorBuilder();
 	}
 
 	@Override

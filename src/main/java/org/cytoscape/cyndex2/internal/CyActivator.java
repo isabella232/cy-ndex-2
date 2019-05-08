@@ -8,14 +8,12 @@ import static org.cytoscape.work.ServiceProperties.MENU_GRAVITY;
 import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
 import static org.cytoscape.work.ServiceProperties.TITLE;
 
-import java.awt.Font;
 import java.io.File;
 import java.util.Dictionary;
 import java.util.Properties;
 
 import javax.swing.Icon;
 
-import org.cytoscape.app.swing.CySwingAppAdapter;
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CyAction;
@@ -27,7 +25,6 @@ import org.cytoscape.cyndex2.internal.rest.endpoints.impl.NdexBaseResourceImpl;
 import org.cytoscape.cyndex2.internal.rest.endpoints.impl.NdexNetworkResourceImpl;
 import org.cytoscape.cyndex2.internal.rest.endpoints.impl.NdexStatusResourceImpl;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
-import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
 import org.cytoscape.cyndex2.internal.task.OpenBrowseTaskFactory;
 import org.cytoscape.cyndex2.internal.task.OpenSaveCollectionTaskFactory;
 import org.cytoscape.cyndex2.internal.task.OpenSaveTaskFactory;
@@ -42,16 +39,11 @@ import org.cytoscape.cyndex2.internal.util.StringResources;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.io.write.CyNetworkViewWriterFactory;
 import org.cytoscape.model.CyNetworkManager;
-import org.cytoscape.model.CyNetworkTableManager;
-import org.cytoscape.model.events.NetworkAboutToBeDestroyedListener;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.task.NetworkCollectionTaskFactory;
 import org.cytoscape.task.RootNetworkCollectionTaskFactory;
-import org.cytoscape.util.swing.IconManager;
-import org.cytoscape.util.swing.TextIcon;
-import org.cytoscape.view.presentation.annotations.AnnotationManager;
 import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskManager;
 import org.osgi.framework.Bundle;
@@ -109,6 +101,7 @@ public class CyActivator extends AbstractCyActivator {
 	@Override
 	@SuppressWarnings("unchecked")
 	public void start(BundleContext bc) throws InvalidSyntaxException {
+		
 		for (Bundle b : bc.getBundles()) {
 			// System.out.println(b.getSymbolicName());
 			if (b.getSymbolicName().equals("org.cytoscape.api-bundle")) {
@@ -126,32 +119,24 @@ public class CyActivator extends AbstractCyActivator {
 
 		appVersion = currentBundle.getVersion().toString();
 
-		Dictionary d = currentBundle.getHeaders();
+		Dictionary<?, ?> d = currentBundle.getHeaders();
 		appName = (String) d.get("Bundle-name");
 
 		
 		// Import dependencies
 		final CyServiceRegistrar serviceRegistrar = getService(bc, CyServiceRegistrar.class);
+		CyServiceModule.setServiceRegistrar(serviceRegistrar);
 		final CyApplicationConfiguration config = getService(bc, CyApplicationConfiguration.class);
 		final CyApplicationManager appManager = getService(bc, CyApplicationManager.class);
 		cyProps = getService(bc, CyProperty.class, "(cyPropertyName=cytoscape3.props)");
 		taskManager = getService(bc, TaskManager.class);
-		final CySwingAppAdapter appAdapter = getService(bc, CySwingAppAdapter.class); 
-	    final CyNetworkTableManager networkTableManager = getService(bc, CyNetworkTableManager.class); 
-	    final IconManager iconManager = getService(bc, IconManager.class); 
-	    final AnnotationManager annotationManager = getService(bc, AnnotationManager.class);
-	    
-	    // Register these with the CyObjectManager singleton. 
-	    CyObjectManager manager = CyObjectManager.INSTANCE; 
+		
+		
 	    File configDir = config.getAppConfigurationDirectoryLocation(CyActivator.class); 
 	    configDir.mkdirs(); 
-	    manager.setConfigDir(configDir); 
-	    manager.setCySwingAppAdapter(appAdapter); 
-	    manager.setNetworkTableManager(networkTableManager);
-	    manager.setAnnotationManager(annotationManager);
 		
 		// For loading network
-		final CxTaskFactoryManager tfManager = new CxTaskFactoryManager();
+	    CxTaskFactoryManager tfManager = CxTaskFactoryManager.INSTANCE;
 		registerServiceListener(bc, tfManager, "addReaderFactory", "removeReaderFactory", InputStreamTaskFactory.class);
 		registerServiceListener(bc, tfManager, "addWriterFactory", "removeWriterFactory",
 				CyNetworkViewWriterFactory.class);
@@ -202,23 +187,20 @@ public class CyActivator extends AbstractCyActivator {
 		// Expose CyREST endpoints
 		final ErrorBuilder errorBuilder = new ErrorBuilder(ciServiceManager, config);
 		final NdexClient ndexClient = new NdexClient(errorBuilder);
-
+		CyServiceModule.setErrorBuilder(errorBuilder);
+		
 		// Base
 		registerService(bc,
-				new NdexBaseResourceImpl(bc.getBundle().getVersion().toString(), errorBuilder, ciServiceManager),
+				new NdexBaseResourceImpl(bc.getBundle().getVersion().toString(), ciServiceManager),
 				NdexBaseResource.class, new Properties());
 
 		// Status
-		registerService(bc, new NdexStatusResourceImpl(errorBuilder, ciServiceManager), NdexStatusResource.class,
+		registerService(bc, new NdexStatusResourceImpl(ciServiceManager), NdexStatusResource.class,
 				new Properties());
 
 		// Network IO
-		registerService(bc, new NdexNetworkResourceImpl(ndexClient, errorBuilder, appManager, netmgr, ciServiceManager),
+		registerService(bc, new NdexNetworkResourceImpl(ndexClient, appManager, netmgr, ciServiceManager),
 				NdexNetworkResource.class, new Properties());
-
-		// add Handler to remove networks from NetworkManager when deleted
-		registerService(bc, new NdexNetworkAboutToBeDestroyedListener(), NetworkAboutToBeDestroyedListener.class,
-				new Properties());
 
 		OpenSaveTaskFactory saveNetworkToNDExContextMenuTaskFactory = new OpenSaveTaskFactory(appManager);
 		Properties saveNetworkToNDExContextMenuProps = new Properties();

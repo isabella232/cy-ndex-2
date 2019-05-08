@@ -10,29 +10,32 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.swing.SwingUtilities;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.ci.CIWrapping;
 import org.cytoscape.ci.model.CIError;
+import org.cytoscape.cyndex2.internal.CxTaskFactoryManager;
 import org.cytoscape.cyndex2.internal.CyActivator;
+import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.rest.NdexClient;
 import org.cytoscape.cyndex2.internal.rest.SimpleNetworkSummary;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexNetworkResource;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorType;
-import org.cytoscape.cyndex2.internal.rest.parameter.NdexBasicSaveParameter;
-import org.cytoscape.cyndex2.internal.rest.parameter.NdexImportParams;
-import org.cytoscape.cyndex2.internal.rest.parameter.NdexSaveParameters;
+import org.cytoscape.cyndex2.internal.rest.parameter.NDExBasicSaveParameters;
+import org.cytoscape.cyndex2.internal.rest.parameter.NDExImportParameters;
+import org.cytoscape.cyndex2.internal.rest.parameter.NDExSaveParameters;
 import org.cytoscape.cyndex2.internal.rest.response.NdexBaseResponse;
 import org.cytoscape.cyndex2.internal.rest.response.SummaryResponse;
-import org.cytoscape.cyndex2.internal.singletons.CXInfoHolder;
-import org.cytoscape.cyndex2.internal.singletons.CyObjectManager;
-import org.cytoscape.cyndex2.internal.singletons.NetworkManager;
-import org.cytoscape.cyndex2.internal.task.NetworkExportTask;
-import org.cytoscape.cyndex2.internal.task.NetworkImportTask;
+import org.cytoscape.cyndex2.internal.task.NDExExportTaskFactory;
+import org.cytoscape.cyndex2.internal.task.NDExImportTaskFactory;
 import org.cytoscape.cyndex2.internal.util.CIServiceManager;
+import org.cytoscape.cyndex2.internal.util.NetworkUUIDManager;
+import org.cytoscape.io.read.AbstractCyNetworkReader;
+import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
@@ -44,6 +47,8 @@ import org.cytoscape.work.FinishStatus;
 import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskObserver;
+import org.cytoscape.work.swing.DialogTaskManager;
+import org.cytoscape.work.util.ListSingleSelection;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.Permissions;
 import org.ndexbio.model.object.network.NetworkSummary;
@@ -52,7 +57,6 @@ import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
@@ -60,28 +64,35 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 	private final NdexClient client;
 
-	// private CxTaskFactoryManager tfManager;
-
 	private final CyNetworkManager networkManager;
 	private final CyApplicationManager appManager;
 	private final CIServiceManager ciServiceManager;
 
 	private final ErrorBuilder errorBuilder;
 
-	public NdexNetworkResourceImpl(final NdexClient client, final ErrorBuilder errorBuilder,
+	public NdexNetworkResourceImpl(final NdexClient client,
 			CyApplicationManager appManager, CyNetworkManager networkManager, CIServiceManager ciServiceTracker) {
 
 		this.client = client;
 		this.ciServiceManager = ciServiceTracker;
 
-		this.errorBuilder = errorBuilder;
-
+		this.errorBuilder = CyServiceModule.INSTANCE.getErrorBuilder();
+		
 		this.networkManager = networkManager;
 		this.appManager = appManager;
 
 		// this.tfManager = tfManager;
 	}
 
+	private CyNetwork getCurrentNetwork() {
+		CyNetwork network = appManager.getCurrentNetwork();
+		if (network == null) {
+			final String message = "Current network does not exist. Select a network or specify an SUID.";
+			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INVALID_PARAMETERS);
+		}
+		return network;
+	}
+	
 	private CyNetwork getNetworkFromSUID(Long suid) throws WebApplicationException {
 		/*
 		 * Attempt to get the CyNetwork object from an SUID. If the SUID is null, get
@@ -92,18 +103,15 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		 * throw a WebApplicationException. This function will not return null
 		 */
 		if (suid == null) {
-			CyNetwork network = appManager.getCurrentNetwork();
-			if (network == null) {
-				final String message = "Current network does not exist. Select a network or specify an SUID.";
-				throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INVALID_PARAMETERS);
-			}
-			return network;
+			logger.error("SUID is missing");
+			throw errorBuilder.buildException(Status.BAD_REQUEST, "SUID is not specified.",
+					ErrorType.INVALID_PARAMETERS);
 		}
-		CyNetwork network = CyObjectManager.INSTANCE.getNetworkManager().getNetwork(suid.longValue());
+		CyNetwork network = networkManager.getNetwork(suid.longValue());
 
 		if (network == null) {
 			// Check if the suid points to a collection
-			for (CyNetwork net : CyObjectManager.INSTANCE.getNetworkManager().getNetworkSet()) {
+			for (CyNetwork net : networkManager.getNetworkSet()) {
 				CyRootNetwork root = ((CySubNetwork) net).getRootNetwork();
 				Long rootSUID = root.getSUID();
 				if (rootSUID.compareTo(suid) == 0) {
@@ -120,116 +128,18 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		return network;
 	}
 
-	private NetworkExportTask buildExportTask(Long suid, NdexSaveParameters params)
-			throws JsonProcessingException, IOException, NdexException {
-		/*
-		 * Verify export parameters and create the NetworkExportTask object. Default
-		 * parameters are: - isPublic -> true - metadata -> empty map
-		 * 
-		 * Metadata is saved to the network before creating the export task
-		 * 
-		 */
-		validateSaveParameters(params);
-
-		CyNetwork network = getNetworkFromSUID(suid);
-
-		for (String column : params.metadata.keySet()) {
-			saveMetadata(column, params.metadata.get(column), network);
-		}
-
-		return new NetworkExportTask(network, params, false);
-	}
-
-	private void validateImportParameters(NdexImportParams params) {
-		if (params == null) {
-			final String message = "No import parameters found.";
-			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INVALID_PARAMETERS);
-		}
-		if (params.serverUrl == null) {
-			params.serverUrl = "http://ndexbio.org/v2";
-		}
-		if (params.uuid == null) {
-			final String message = "Must provide a uuid to import a network";
-			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INVALID_PARAMETERS);
-		}
-	}
-
-	private void validateSaveParameters(final NdexBasicSaveParameter params) {
-		if (params == null || params.username == null || params.password == null) {
-			throw errorBuilder.buildException(Status.BAD_REQUEST,
-					"Must provide save parameters (username and password)", ErrorType.INVALID_PARAMETERS);
-		}
-		if (params.serverUrl == null) {
-			params.serverUrl = "http://ndexbio.org/v2/";
-		}
-		if (params.metadata == null) {
-			params.metadata = new HashMap<>();
-		}
-		if (params instanceof NdexSaveParameters && ((NdexSaveParameters) params).isPublic == null) {
-			((NdexSaveParameters) params).isPublic = true;
-		}
-	}
-
-	private NetworkImportTask buildImportTask(NdexImportParams params) {
-		/*
-		 * Build the NetworkImportTask from the import parameters Default parameters
-		 * are: - serverUrl -> "http://ndexbio.org/v2"
-		 * 
-		 * Attempt to create an NdexImportTask with the given network access parameters
-		 */
-		validateImportParameters(params);
-
-		try {
-			UUID uuid = UUID.fromString(params.uuid);
-			if (params.username != null && params.password != null)
-				return new NetworkImportTask(params.username, params.password, params.serverUrl, uuid,
-						params.accessKey);
-			else {
-				return new NetworkImportTask(params.serverUrl, uuid, params.accessKey, params.idToken);
-			}
-		} catch (IllegalArgumentException e) {
-			final String message = "Provided UUID is invalid";
-			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INVALID_PARAMETERS);
-		} catch (IOException | NdexException e) {
-			final String message = "Failed to connect to server and retrieve network. " + e.getMessage();
-			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
-		}
-
-	}
-
 	@Override
 	@CIWrapping
-	public CINdexBaseResponse createNetworkFromNdex(final NdexImportParams params) {
-
-		Long suid = null;
+	public CINdexBaseResponse createNetworkFromNdex(final NDExImportParameters params) {
+		
 		try {
-			NetworkImportTask importer = buildImportTask(params);
-			if (params.username != null && params.password != null)
-				importer = new NetworkImportTask(params.username, params.password, params.serverUrl,
-						UUID.fromString(params.uuid), params.accessKey);
-			else {
-				importer = new NetworkImportTask(params.serverUrl, UUID.fromString(params.uuid), params.accessKey,
-						params.idToken);
-
-			}
-			MyTaskObserver to = new MyTaskObserver();
-			TaskIterator ti = new TaskIterator(importer);
-			CyActivator.taskManager.execute(ti, to);
-			suid = (Long) waitForResults(importer, Long.class);
-
-		} catch (IOException | NdexException e2) {
-			final String message = "Failed to connect to server and retrieve network. " + e2.getMessage();
-			logger.error(message);
-			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
-
-		} catch (Exception e) {
-			final String message = "Unable to create CyNetwork from NDEx." + e.getMessage();
-			logger.error(message);
-			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
-
-		}
-		final NdexBaseResponse response = new NdexBaseResponse(suid, params.uuid);
-		try {
+			NDExImportTaskFactory importFactory = new NDExImportTaskFactory(params);
+			TaskIterator iter = importFactory.createTaskIterator();
+			
+			execute(iter);
+			
+			final NdexBaseResponse response = new NdexBaseResponse(importFactory.getSUID(), params.uuid);
+		
 			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
 		} catch (InstantiationException | IllegalAccessException e) {
 			final String message = "Could not create wrapped CI JSON. Error: " + e.getMessage();
@@ -240,75 +150,42 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 	@Override
 	@CIWrapping
-	public CINdexBaseResponse saveNetworkToNdex(final Long suid, final NdexSaveParameters params) {
-
+	public CINdexBaseResponse saveNetworkToNdex(final Long suid, final NDExSaveParameters params) {
 		try {
-			NetworkExportTask exporter = buildExportTask(suid, params);
-
-			TaskIterator ti = new TaskIterator(exporter);
-			MyTaskObserver to = new MyTaskObserver();
-			CyActivator.taskManager.execute(ti, to);
-			String newUUID = (String) waitForResults(exporter, String.class);
-
-			setVisibility(params, newUUID);
-
-			final NdexBaseResponse response = new NdexBaseResponse(suid, newUUID);
+			NDExExportTaskFactory exportFactory = new NDExExportTaskFactory(params, false);
+			CyNetwork network = getNetworkFromSUID(suid);
+			
+			TaskIterator iter = exportFactory.createTaskIterator(network);
+			
+			execute(iter);
+			
+			UUID newUUID = exportFactory.getUUID();
+			if (newUUID == null) {
+				final String message = "No UUID returned from NDEx API.";
+				logger.error(message);
+				throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
+			}
+			setVisibility(params, newUUID.toString());
+			
+			final NdexBaseResponse response = new NdexBaseResponse(suid, newUUID.toString());
 			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
-
+		
 		} catch (InstantiationException | IllegalAccessException e2) {
 			final String message = "Could not create wrapped CI JSON response. Error: " + e2.getMessage();
 			logger.error(message);
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
-		} catch (NullPointerException e) {
-			logger.error(e.getMessage());
-			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, "NULL EXCEPTION: " + e.getMessage(),
-					ErrorType.INTERNAL);
-		} catch (IOException | NdexException e) {
-			logger.error(e.getMessage());
-			final String message = "Unable to connect to the NDEx Java Client.";
-			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 		}
-
-	}
-
-	public class MyTaskObserver implements TaskObserver {
-		private boolean finished = false;
-
-		@Override
-		public void taskFinished(ObservableTask task) {
-			finished = true;
-		}
-
-		public boolean isFinished() {
-			return finished;
-		}
-
-		@Override
-		public void allFinished(FinishStatus finishStatus) {
-			finished = true;
-		}
-
+		
 	}
 
 	@Override
 	@CIWrapping
-	public CINdexBaseResponse saveCurrentNetworkToNdex(NdexSaveParameters params) {
-
-		final CyNetwork network = appManager.getCurrentNetwork();
-		if (network == null) {
-			// Current network is not available
-			final String message = "Current network does not exist.  You need to choose a network first.";
-			logger.error(message);
-			final CIError ciError = ciServiceManager.getCIErrorFactory().getCIError(Status.BAD_REQUEST.getStatusCode(),
-					"urn:cytoscape:ci:ndex:v1:errors:1", message, URI.create("file:///log"));
-			throw ciServiceManager.getCIExceptionFactory().getCIException(Status.BAD_REQUEST.getStatusCode(),
-					new CIError[] { ciError });
-		}
-
+	public CINdexBaseResponse saveCurrentNetworkToNdex(NDExSaveParameters params) {
+		final CyNetwork network = getCurrentNetwork();
 		return saveNetworkToNdex(network.getSUID(), params);
 	}
 
-	private final void setVisibility(final NdexSaveParameters params, final String uuid) {
+	private final void setVisibility(final NDExSaveParameters params, final String uuid) {
 		int retries = 0;
 		for (; retries < 5; retries++) {
 			try {
@@ -341,36 +218,11 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 	}
 
-	private final static void saveMetadata(String columnName, String value, CyNetwork network) {
-
-		final CyTable localTable = network.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS);
-		final CyRow row = localTable.getRow(network.getSUID());
-
-		// Create new column if it does not exist
-		final CyColumn col = localTable.getColumn(columnName);
-		if (col == null) {
-			if (value == null || value.isEmpty())
-				return;
-			localTable.createColumn(columnName, String.class, false);
-		}
-
-		// Set the value to local table
-		row.set(columnName, value);
-	}
-
 	@CIWrapping
 	@Override
 	public CISummaryResponse getCurrentNetworkSummary() {
-		final CyNetwork network = appManager.getCurrentNetwork();
-
-		if (network == null) {
-			final String message = "Current network does not exist (No network is selected)";
-			logger.error(message);
-			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INTERNAL);
-		}
-
+		final CyNetwork network = getCurrentNetwork();
 		final CyRootNetwork root = ((CySubNetwork) network).getRootNetwork();
-
 		final SummaryResponse response = buildSummary(root, (CySubNetwork) network);
 		try {
 			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CISummaryResponse.class);
@@ -384,11 +236,11 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	@CIWrapping
 	@Override
 	public CISummaryResponse getNetworkSummary(Long suid) {
-		CyNetwork network = CyObjectManager.INSTANCE.getNetworkManager().getNetwork(suid.longValue());
+		CyNetwork network = networkManager.getNetwork(suid.longValue());
 		CyRootNetwork rootNetwork = null;
 		if (network == null) {
 			// Check if the suid points to a collection
-			for (CyNetwork net : CyObjectManager.INSTANCE.getNetworkManager().getNetworkSet()) {
+			for (CyNetwork net : networkManager.getNetworkSet()) {
 				CyRootNetwork root = ((CySubNetwork) net).getRootNetwork();
 				Long rootSUID = root.getSUID();
 				if (rootSUID.compareTo(suid) == 0) {
@@ -446,7 +298,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		summary.name = network.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS).getRow(network.getSUID())
 				.get(CyNetwork.NAME, String.class);
 
-		UUID uuid = NetworkManager.INSTANCE.getNdexNetworkId(summary.suid);
+		UUID uuid = NetworkUUIDManager.getUUID(network);
 		if (uuid != null)
 			summary.uuid = uuid.toString();
 
@@ -461,16 +313,9 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 	@Override
 	@CIWrapping
-	public CINdexBaseResponse updateNetworkInNdex(Long suid, NdexBasicSaveParameter params) {
-		validateSaveParameters(params);
-		if (suid == null) {
-			logger.error("SUID is missing");
-			throw errorBuilder.buildException(Status.BAD_REQUEST, "SUID is not specified.",
-					ErrorType.INVALID_PARAMETERS);
-		}
-
+	public CINdexBaseResponse updateNetworkInNdex(Long suid, NDExBasicSaveParameters params) {
+		
 		CyNetwork network = getNetworkFromSUID(suid);
-
 		// Check UUID
 		UUID uuid;
 		try {
@@ -482,23 +327,46 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INVALID_PARAMETERS);
 
 		}
+		
+		boolean success = updateLoop(network, params);
 
-		if (params.metadata != null) {
-			for (String key : params.metadata.keySet()) {
-				saveMetadata(key, params.metadata.get(key), network);
-			}
+		if (!success) {
+			final String message = "Could not update existing NDEx entry.  NDEx server did not accept your request.";
+			logger.error(message);
+			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 		}
-		// final CyNetworkViewWriterFactory writerFactory =
-		// tfManager.getCxWriterFactory();
 
+		final String uuidStr = uuid.toString();
+
+		final NdexBaseResponse response = new NdexBaseResponse(suid, uuidStr);
+		try {
+			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
+		} catch (InstantiationException | IllegalAccessException e) {
+			final String message = "Could not create wrapped CI JSON. Error: " + e.getMessage();
+			logger.error(message);
+			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
+		}
+	}
+
+	private final boolean updateExistingNetwork(
+			final CyNetwork network,
+			final NDExBasicSaveParameters params) {
+
+		NDExExportTaskFactory exportFactory = new NDExExportTaskFactory(params, true);
+		TaskIterator iter = exportFactory.createTaskIterator(network);
+		CyActivator.taskManager.execute(iter);
+		return true;
+	}
+	
+	private boolean updateLoop(CyNetwork network, NDExBasicSaveParameters params) {
 		int retryCount = 0;
 		boolean success = false;
 		while (retryCount <= 3) {
 			try {
 				// takes a subnetwork
-				success = updateExistingNetwork(/* writerFactory, */ network, params/* , uuid */);
+				success = updateExistingNetwork(network, params);
 				if (success) {
-					break;
+					return true;
 				}
 			} catch (Exception e) {
 				try {
@@ -512,64 +380,22 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 				retryCount++;
 			}
 		}
-
-		if (!success) {
-			final String message = "Could not update existing NDEx entry.  NDEx server did not accept your request.";
-			logger.error(message);
-			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
-		}
-
-		final String uuidStr = uuid.toString();
-		// Visibility
-		// setVisibility(params, uuidStr); don't set visibility when updates
-
-		final NdexBaseResponse response = new NdexBaseResponse(suid, uuidStr);
-		try {
-			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
-		} catch (InstantiationException | IllegalAccessException e) {
-			final String message = "Could not create wrapped CI JSON. Error: " + e.getMessage();
-			logger.error(message);
-			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
-		}
-	}
-
-	private final boolean updateExistingNetwork(
-			/* final CyNetworkViewWriterFactory writerFactory, */ final CyNetwork network,
-			final NdexBasicSaveParameter params /* , final UUID uuid */) {
-
-		MyTaskObserver to = new MyTaskObserver();
-		try {
-			NetworkExportTask updater = new NetworkExportTask(network, params, true);
-			TaskIterator ti = new TaskIterator(updater);
-			CyActivator.taskManager.execute(ti, to);
-			// } catch (NetworkExportException e) {
-			// logger.error(e.getMessage());
-			// throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR,
-			// e.getMessage(), ErrorType.INTERNAL);
-		} catch (IOException | NdexException e) {
-			logger.error(e.getMessage());
-			final String message = "Unable to connect to the NDEx Java Client.";
-			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
-		}
-		return true;
+		return false;
 	}
 
 	@Override
 	@CIWrapping
-	public CINdexBaseResponse updateCurrentNetworkInNdex(NdexBasicSaveParameter params) {
-		final CyNetwork network = getNetworkFromSUID(null);
+	public CINdexBaseResponse updateCurrentNetworkInNdex(NDExBasicSaveParameters params) {
+		final CyNetwork network = getCurrentNetwork();
 		return updateNetworkInNdex(network.getSUID(), params);
 	}
 
-	private static UUID updateIsPossibleHelper(final Long suid, final NdexBasicSaveParameter params) throws Exception {
+	private static UUID updateIsPossibleHelper(final Long suid, final NDExBasicSaveParameters params) throws Exception {
 
-		UUID ndexNetworkId = null;
-		CXInfoHolder cxInfo = NetworkManager.INSTANCE.getCXInfoHolder(suid);
-		if (cxInfo != null)
-			ndexNetworkId = cxInfo.getNetworkId();
-		if (ndexNetworkId == null)
-			ndexNetworkId = NetworkManager.INSTANCE.getNdexNetworkId(suid);
-
+		CyNetworkManager network_manager = CyServiceModule.getService(CyNetworkManager.class);
+		CyNetwork network = network_manager.getNetwork(suid);
+		UUID ndexNetworkId = NetworkUUIDManager.getUUID(network);
+		
 		if (ndexNetworkId == null) {
 			throw new Exception(
 					"NDEx network UUID not found. You can only update networks that were imported with CyNDEx2");
@@ -603,26 +429,25 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 	@Override
 	@CIWrapping
-	public CINdexBaseResponse createNetworkFromCx(/* @Context HttpServletRequest request /*, byte[] input */
-			final InputStream in
-	/* NdexImportParams params */
-	) {
+	public CINdexBaseResponse createNetworkFromCx(final InputStream in) {
 
-		NetworkImportTask importer;
-		try {
-			importer = new NetworkImportTask(in);
-			TaskIterator ti = new TaskIterator(importer);
-			CyActivator.taskManager.execute(ti);
-			// importer.run(new HeadlessTaskMonitor());
-		} catch (Exception e) {
-			final String message = "Unable to create CyNetwork from NDEx. " + e.getMessage();
-			logger.error(message);
-			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
-
+		InputStreamTaskFactory taskFactory = CxTaskFactoryManager.INSTANCE.getCxReaderFactory();
+		TaskIterator iter = taskFactory.createTaskIterator(in, null);
+		
+		// Get task to get SUID
+		AbstractCyNetworkReader reader = (AbstractCyNetworkReader) iter.next();
+		reader.setRootNetworkList(new ListSingleSelection<String>());
+		iter.append(reader);
+		
+		execute(iter);
+		
+		for (CyNetwork net : reader.getNetworks()) {
+			networkManager.addNetwork(net);
 		}
-		Long suid = (Long) waitForResults(importer, Long.class);
+		reader.buildCyNetworkView(reader.getNetworks()[0]);
+		
+		Long suid = reader.getNetworks()[0].getSUID();
 		final NdexBaseResponse response = new NdexBaseResponse(suid, "");
-		// final NdexBaseResponse response = new NdexBaseResponse(22L, "21");
 		try {
 			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
 		} catch (InstantiationException | IllegalAccessException e) {
@@ -631,19 +456,41 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 		}
 	}
-
-	public Object waitForResults(ObservableTask ot, Class<?> resultType) {
-		Object o = ot.getResults(resultType);
-		while (o == null) {
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+	
+	private void execute(TaskIterator iter) {
+		DialogTaskManager tm = CyServiceModule.getService(DialogTaskManager.class);
+//		SynchronousTaskManager<?> tm = CyServiceModule.getService(SynchronousTaskManager.class);
+		
+		Object lock = new Object();
+		Runnable runner = new Runnable() {
+			@Override
+			public void run() {
+				tm.execute(iter, new TaskObserver() {
+					
+					@Override
+					public void taskFinished(ObservableTask task) {
+						
+					}
+					
+					@Override
+					public void allFinished(FinishStatus finishStatus) {
+						synchronized(lock) {
+							lock.notify();
+						}
+					}
+				});
 			}
-			o = ot.getResults(resultType);
-		}
-		return o;
+		};
+
+		try {
+            SwingUtilities.invokeAndWait(runner);
+            synchronized (lock) {
+	            lock.wait();	
+			}
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
 	}
 
 }
