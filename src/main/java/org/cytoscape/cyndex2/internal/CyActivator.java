@@ -57,7 +57,8 @@ public class CyActivator extends AbstractCyActivator {
 	// Logger for this activator
 	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
 	public static final String WEB_APP_VERSION = "0.1.3";
-
+	public static final String WEB_APP_BASE_URL = "http://cyndex-staging.ndexbio.org/cloud-demo/";
+	
 	private static CyProperty<Properties> cyProps;
 
 	private static String appVersion;
@@ -91,6 +92,11 @@ public class CyActivator extends AbstractCyActivator {
 		return Boolean.parseBoolean(val);
 	}
 	
+	public static String getCyNDExBaseURL() {
+		final String val = cyProps.getProperties().getProperty("cyndex2.baseUrl");
+		return val == null ?
+			 WEB_APP_BASE_URL : val;
+	}
 
 	@Override
 	@SuppressWarnings("unchecked")
