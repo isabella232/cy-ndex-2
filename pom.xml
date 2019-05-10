@@ -12,7 +12,7 @@
 
 		<junit.version>4.12</junit.version>
 		<jetty.version>9.3.9.v20160517</jetty.version>
-		<jxbrowser.version>6.20</jxbrowser.version>
+		<jxbrowser.version>6.23.1</jxbrowser.version>
 		<cytoscape.api.version>3.7.0</cytoscape.api.version>
 		<osgi.api.version>4.2.0</osgi.api.version>
 

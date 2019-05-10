@@ -21,7 +21,7 @@ public class NativeInstaller {
 
 	private static final int BUFFER_SIZE = 2048;
 
-	public static final String JXBROWSER_VERSION = "6.20";
+	public static final String JXBROWSER_VERSION = "6.23.1";
 	public static final String JXBROWSER_LOCATION = "jxbrowser";
 
 	private static final String PLATFORM_WIN = "win";
