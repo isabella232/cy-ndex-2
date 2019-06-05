@@ -1,12 +1,17 @@
 package org.cytoscape.cyndex2.internal.util;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
 import java.util.jar.JarEntry;
 
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
@@ -21,7 +26,7 @@ public class NativeInstaller {
 
 	private static final int BUFFER_SIZE = 2048;
 
-	public static final String JXBROWSER_VERSION = "6.20";
+	public static final String JXBROWSER_VERSION = "6.23.1";
 	public static final String JXBROWSER_LOCATION = "jxbrowser";
 
 	private static final String PLATFORM_WIN = "win";
@@ -32,7 +37,7 @@ public class NativeInstaller {
 	private final String platform;
 	private final File installLocation;
 
-	private final String cdnURL = "http://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/";
+	private final String cdnURL = "https://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/";
 
 	private NativeInstaller(File installLocation) {
 		platform = detectPlatform();
@@ -77,8 +82,9 @@ public class NativeInstaller {
 		try {
 			if (!jarFile.exists()) {
 				LoadBrowserStage.DOWNLOAD_JAR.updateTaskMonitor(tm);
-				logger.info("Downloading JxBrowser JAR file...");
 				String url = getURL();
+				logger.info("Downloading JxBrowser JAR file from " + url);
+				
 				final URL sourceUrl = new URL(url);
 				int fileSize = checkSize(url);
 				downloadJarFile(sourceUrl, jarFile, fileSize);
@@ -111,7 +117,7 @@ public class NativeInstaller {
 		URL url = new URL(fileURL);
 		HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
 		int responseCode = httpConn.getResponseCode();
-
+		
 		// always check HTTP response code first
 		if (responseCode == HttpURLConnection.HTTP_OK) {
 			String disposition = httpConn.getHeaderField("Content-Disposition");
@@ -135,7 +141,20 @@ public class NativeInstaller {
 			return contentLength;
 
 		} else {
-			throw new IOException("No file to download. Server replied HTTP code: " + responseCode);
+			Map<String, List<String>> fields = httpConn.getHeaderFields();
+			for (Map.Entry<String, List<String>> field : fields.entrySet()) {
+				System.err.println(field.getKey());
+				for (String value : field.getValue()) {
+					System.err.println("\t" + value);
+				}
+			}
+			BufferedReader in = new BufferedReader(new InputStreamReader(httpConn.getInputStream()));
+			for (String line = in.readLine(); line != null; line = in.readLine()) {
+				System.err.println(line);
+			}
+			in.close();
+			
+			throw new IOException("No file to download at: " + url + " Server replied HTTP code: " + responseCode);
 		}
 	}
 
@@ -240,7 +259,7 @@ public class NativeInstaller {
 	}
 
 	private String getURL() {
-		String url = String.format("%s/jxbrowser-%s/%s/%s", cdnURL, platform, JXBROWSER_VERSION, getJarName());
+		String url = String.format("%sjxbrowser-%s/%s/%s", cdnURL, platform, JXBROWSER_VERSION, getJarName());
 		return url;
 	}
 
