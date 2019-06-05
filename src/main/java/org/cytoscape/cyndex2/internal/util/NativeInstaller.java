@@ -9,6 +9,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
@@ -73,7 +76,23 @@ public class NativeInstaller {
 	private final void install(TaskMonitor tm) throws InstallException {
 		tm.setTitle("Installing JXBrowser binaries. This should only occur on first run.");
 		// Create the directory if it doesn't exist
-		if (!installLocation.exists()) {
+		if (installLocation.exists()) {
+			File jarFile = new File(installLocation, getJarName());
+			
+			if (!jarFile.exists()) {
+				//Could be corrupt install or previous version
+				logger.info("jxbrowser installation was incomplete or version is out of date. Deleting directory " + installLocation);
+				try {
+					Files.walk(installLocation.toPath())
+					.sorted(Comparator.reverseOrder())
+					.map(Path::toFile)
+					.forEach(File::delete);
+				} catch (IOException e) {
+					throw new InstallException("Unable to delete jxbrowser directory");
+				}
+				installLocation.mkdir();
+			}
+		} else {
 			installLocation.mkdir();
 		}
 		
