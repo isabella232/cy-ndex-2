@@ -108,13 +108,21 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 					ErrorType.INVALID_PARAMETERS);
 		}
 		CyNetwork network = networkManager.getNetwork(suid.longValue());
-
+		if (network != null) {
+		logger.info("got network from network manager: " + network.getSUID() + " original SUID: " + suid);
+		}
+		else
+		{
+			logger.info("got no network from network manager for SUID: " + suid);
+		}
 		if (network == null) {
 			// Check if the suid points to a collection
 			for (CyNetwork net : networkManager.getNetworkSet()) {
 				CyRootNetwork root = ((CySubNetwork) net).getRootNetwork();
 				Long rootSUID = root.getSUID();
+				logger.info("checking root suid:" + rootSUID);
 				if (rootSUID.compareTo(suid) == 0) {
+					logger.info("matched root network :" + rootSUID);
 					network = root;
 					break;
 				}
@@ -154,7 +162,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		try {
 			NDExExportTaskFactory exportFactory = new NDExExportTaskFactory(params, false);
 			CyNetwork network = getNetworkFromSUID(suid);
-			
+			logger.info("saving network to ndex with SUID:" + network.getSUID() + " original SUID:" + suid);
 			TaskIterator iter = exportFactory.createTaskIterator(network);
 			
 			execute(iter);
