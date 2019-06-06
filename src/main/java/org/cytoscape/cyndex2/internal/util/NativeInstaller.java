@@ -1,6 +1,5 @@
 package org.cytoscape.cyndex2.internal.util;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,15 +31,14 @@ public class NativeInstaller {
 	public static final String JXBROWSER_VERSION = "6.23.1";
 	public static final String JXBROWSER_LOCATION = "jxbrowser";
 
-	private static final String PLATFORM_WIN = "win";
-	private static final String PLATFORM_MAC = "mac";
-	private static final String PLATFORM_LINUX_32 = "linux32";
-	private static final String PLATFORM_LINUX_64 = "linux64";
+	public static final String PLATFORM_WIN = "win64";
+	public static final String PLATFORM_MAC = "mac";
+	public static final String PLATFORM_LINUX = "linux64";
 
 	private final String platform;
 	private final File installLocation;
 
-	private final String cdnURL = "https://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/";
+	private static final String cdnURL = "https://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/";
 
 	private NativeInstaller(File installLocation) {
 		platform = detectPlatform();
@@ -58,18 +56,10 @@ public class NativeInstaller {
 			// Universal binary.
 			return PLATFORM_MAC;
 		} else if (os.contains(PLATFORM_WIN)) {
-
-			if (arch.equals("x86")) {
-				return PLATFORM_WIN;
-			} else {
-				return PLATFORM_WIN;
-			}
+			// Win64
+			return PLATFORM_WIN;
 		} else {
-			if (arch.equals("amd64")) {
-				return PLATFORM_LINUX_64;
-			} else {
-				return PLATFORM_LINUX_32;
-			}
+			return PLATFORM_LINUX;
 		}
 	}
 
@@ -77,7 +67,7 @@ public class NativeInstaller {
 		tm.setTitle("Installing JXBrowser binaries. This should only occur on first run.");
 		// Create the directory if it doesn't exist
 		if (installLocation.exists()) {
-			File jarFile = new File(installLocation, getJarName());
+			File jarFile = new File(installLocation, getJarName(this.platform));
 			
 			if (!jarFile.exists()) {
 				//Could be corrupt install or previous version
@@ -96,7 +86,7 @@ public class NativeInstaller {
 			installLocation.mkdir();
 		}
 		
-		File jarFile = new File(installLocation, getJarName());
+		File jarFile = new File(installLocation, getJarName(this.platform));
 		
 		try {
 			if (!jarFile.exists()) {
@@ -273,15 +263,19 @@ public class NativeInstaller {
 		return true;
 	}
 
-	private String getJarName() {
+	public static String getJarName(String platform) {
 		return String.format("jxbrowser-%s-%s.jar", platform, JXBROWSER_VERSION);
 	}
 
 	private String getURL() {
-		String url = String.format("%sjxbrowser-%s/%s/%s", cdnURL, platform, JXBROWSER_VERSION, getJarName());
-		return url;
+		return getURL(this.platform);
 	}
 
+	public static String getURL(String platform) {
+		final String url = String.format("%sjxbrowser-%s/%s/%s", cdnURL, platform, JXBROWSER_VERSION, getJarName(platform));
+		return url;
+	}
+	
 	public static void installJXBrowser(File config, TaskMonitor tm) throws InstallException {
 		NativeInstaller ni = new NativeInstaller(config);
 		ni.install(tm);
