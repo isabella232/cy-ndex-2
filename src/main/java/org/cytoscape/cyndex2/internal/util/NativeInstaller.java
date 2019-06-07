@@ -52,10 +52,10 @@ public class NativeInstaller {
 		logger.info("Target OS = " + os);
 		logger.info("Architecture = " + arch);
 
-		if (os.contains(PLATFORM_MAC)) {
+		if (os.indexOf("mac") >= 0) {
 			// Universal binary.
 			return PLATFORM_MAC;
-		} else if (os.contains(PLATFORM_WIN)) {
+		} else if (os.indexOf("win") >= 0) {
 			// Win64
 			return PLATFORM_WIN;
 		} else {
