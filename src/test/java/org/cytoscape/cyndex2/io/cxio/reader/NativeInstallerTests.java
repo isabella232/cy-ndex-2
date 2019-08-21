@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import org.cytoscape.cyndex2.internal.io.cxio.reader.StringParser;
 import org.cytoscape.cyndex2.internal.util.NativeInstaller;
 import org.junit.Test;
 
@@ -21,7 +20,7 @@ public class NativeInstallerTests {
 	@Test
 	public void getURLTest() throws IOException {
 		final String url = NativeInstaller.getURL("MYOS");
-		assertEquals (url, "https://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/jxbrowser-MYOS/6.23.1/jxbrowser-MYOS-6.23.1.jar");
+		assertEquals (url, "http://cyndex.ndexbio.org/jxb/MYOS-6.23.1.jar");
 	}
 	
 	@Test

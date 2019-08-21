@@ -38,7 +38,7 @@ public class NativeInstaller {
 	private final String platform;
 	private final File installLocation;
 
-	private static final String cdnURL = "https://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/";
+	private static final String cdnURL = "http://cyndex.ndexbio.org/jxb/";
 
 	private NativeInstaller(File installLocation) {
 		platform = detectPlatform();
@@ -272,7 +272,7 @@ public class NativeInstaller {
 	}
 
 	public static String getURL(String platform) {
-		final String url = String.format("%sjxbrowser-%s/%s/%s", cdnURL, platform, JXBROWSER_VERSION, getJarName(platform));
+		final String url = String.format("%s%s-%s.jar", cdnURL, platform, JXBROWSER_VERSION);
 		return url;
 	}
 	
