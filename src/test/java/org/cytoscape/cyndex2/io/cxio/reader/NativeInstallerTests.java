@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import org.cytoscape.cyndex2.internal.io.cxio.reader.StringParser;
 import org.cytoscape.cyndex2.internal.util.NativeInstaller;
 import org.junit.Test;
 
