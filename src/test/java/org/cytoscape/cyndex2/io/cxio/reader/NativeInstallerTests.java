@@ -20,7 +20,7 @@ public class NativeInstallerTests {
 	@Test
 	public void getURLTest() throws IOException {
 		final String url = NativeInstaller.getURL("MYOS");
-		assertEquals (url, "https://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/jxbrowser-MYOS/6.23.1/jxbrowser-MYOS-6.23.1.jar");
+		assertEquals (url, "http://cyndex.ndexbio.org/jxb/MYOS-6.23.1.jar");
 	}
 	
 	@Test
