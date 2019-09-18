@@ -9,7 +9,7 @@ public class StringResources {
 	
 	public enum LoadBrowserStage {
 		ENABLE_LOGGING(0.0f, "Enabling logging for JXBrowser"),
-		DOWNLOAD_JAR(0.1f, "Downloading JxBrowser JAR from TeamDev"),
+		DOWNLOAD_JAR(0.1f, "Downloading JxBrowser JAR"),
 		EXTRACT_ZIP(0.3f, "Extracting zip file from JxBrowser JAR file"),
 		EXTRACT_BINARY(0.4f, "Extracting JxBrowser binary from zip file"),
 		CREATING_BROWSER(0.5f, "Creating browser instance"),
