@@ -1,12 +1,19 @@
 package org.cytoscape.cyndex2.internal.util;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
 import java.util.jar.JarEntry;
 
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
@@ -24,15 +31,14 @@ public class NativeInstaller {
 	public static final String JXBROWSER_VERSION = "6.23.1";
 	public static final String JXBROWSER_LOCATION = "jxbrowser";
 
-	private static final String PLATFORM_WIN = "win";
-	private static final String PLATFORM_MAC = "mac";
-	private static final String PLATFORM_LINUX_32 = "linux32";
-	private static final String PLATFORM_LINUX_64 = "linux64";
+	public static final String PLATFORM_WIN = "win64";
+	public static final String PLATFORM_MAC = "mac";
+	public static final String PLATFORM_LINUX = "linux64";
 
 	private final String platform;
 	private final File installLocation;
 
-	private final String cdnURL = "http://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/";
+	private static final String cdnURL = "http://cyndex.ndexbio.org/jxb/";
 
 	private NativeInstaller(File installLocation) {
 		platform = detectPlatform();
@@ -46,39 +52,48 @@ public class NativeInstaller {
 		logger.info("Target OS = " + os);
 		logger.info("Architecture = " + arch);
 
-		if (os.contains(PLATFORM_MAC)) {
+		if (os.indexOf("mac") >= 0) {
 			// Universal binary.
 			return PLATFORM_MAC;
-		} else if (os.contains(PLATFORM_WIN)) {
-
-			if (arch.equals("x86")) {
-				return PLATFORM_WIN;
-			} else {
-				return PLATFORM_WIN;
-			}
+		} else if (os.indexOf("win") >= 0) {
+			// Win64
+			return PLATFORM_WIN;
 		} else {
-			if (arch.equals("amd64")) {
-				return PLATFORM_LINUX_64;
-			} else {
-				return PLATFORM_LINUX_32;
-			}
+			return PLATFORM_LINUX;
 		}
 	}
 
 	private final void install(TaskMonitor tm) throws InstallException {
 		tm.setTitle("Installing JXBrowser binaries. This should only occur on first run.");
 		// Create the directory if it doesn't exist
-		if (!installLocation.exists()) {
+		if (installLocation.exists()) {
+			File jarFile = new File(installLocation, getJarName(this.platform));
+			
+			if (!jarFile.exists()) {
+				//Could be corrupt install or previous version
+				logger.info("jxbrowser installation was incomplete or version is out of date. Deleting directory " + installLocation);
+				try {
+					Files.walk(installLocation.toPath())
+					.sorted(Comparator.reverseOrder())
+					.map(Path::toFile)
+					.forEach(File::delete);
+				} catch (IOException e) {
+					throw new InstallException("Unable to delete jxbrowser directory");
+				}
+				installLocation.mkdir();
+			}
+		} else {
 			installLocation.mkdir();
 		}
 		
-		File jarFile = new File(installLocation, getJarName());
+		File jarFile = new File(installLocation, getJarName(this.platform));
 		
 		try {
 			if (!jarFile.exists()) {
 				LoadBrowserStage.DOWNLOAD_JAR.updateTaskMonitor(tm);
-				logger.info("Downloading JxBrowser JAR file...");
 				String url = getURL();
+				logger.info("Downloading JxBrowser JAR file from " + url);
+				
 				final URL sourceUrl = new URL(url);
 				int fileSize = checkSize(url);
 				downloadJarFile(sourceUrl, jarFile, fileSize);
@@ -111,7 +126,7 @@ public class NativeInstaller {
 		URL url = new URL(fileURL);
 		HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
 		int responseCode = httpConn.getResponseCode();
-
+		
 		// always check HTTP response code first
 		if (responseCode == HttpURLConnection.HTTP_OK) {
 //			String disposition = httpConn.getHeaderField("Content-Disposition");
@@ -135,7 +150,20 @@ public class NativeInstaller {
 			return contentLength;
 
 		} else {
-			throw new IOException("No file to download. Server replied HTTP code: " + responseCode);
+			Map<String, List<String>> fields = httpConn.getHeaderFields();
+			for (Map.Entry<String, List<String>> field : fields.entrySet()) {
+				System.err.println(field.getKey());
+				for (String value : field.getValue()) {
+					System.err.println("\t" + value);
+				}
+			}
+			BufferedReader in = new BufferedReader(new InputStreamReader(httpConn.getInputStream()));
+			for (String line = in.readLine(); line != null; line = in.readLine()) {
+				System.err.println(line);
+			}
+			in.close();
+			
+			throw new IOException("No file to download at: " + url + " Server replied HTTP code: " + responseCode);
 		}
 	}
 
@@ -235,20 +263,23 @@ public class NativeInstaller {
 		return true;
 	}
 
-	private String getJarName() {
+	public static String getJarName(String platform) {
 		return String.format("jxbrowser-%s-%s.jar", platform, JXBROWSER_VERSION);
 	}
 
 	private String getURL() {
-		String url = String.format("%s/jxbrowser-%s/%s/%s", cdnURL, platform, JXBROWSER_VERSION, getJarName());
-		return url;
+		return getURL(this.platform);
 	}
 
+	public static String getURL(String platform) {
+		final String url = String.format("%s%s-%s.jar", cdnURL, platform, JXBROWSER_VERSION);
+		return url;
+	}
+	
 	public static void installJXBrowser(File config, TaskMonitor tm) throws InstallException {
 		NativeInstaller ni = new NativeInstaller(config);
 		ni.install(tm);
 	}
-	
 	class InstallException extends Exception {
 
 		public InstallException(String string) {
