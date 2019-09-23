@@ -12,6 +12,8 @@ import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.JSValue;
@@ -28,6 +30,7 @@ import com.teamdev.jxbrowser.chromium.swing.BrowserView;
 
 public class OpenExternalAppTask extends AbstractTask {
 
+	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
 	// Name of the application
 	private BrowserView browserView;
 	private final String port;
@@ -44,7 +47,7 @@ public class OpenExternalAppTask extends AbstractTask {
 		this.dialog = null;
 		this.browserView = null;
 	}
-	
+
 	private Browser initBrowser() throws Exception {
 		if (dialog.getComponentCount() == 0) {
 			throw new Exception("BrowserView was not added to the dialog");
@@ -68,7 +71,7 @@ public class OpenExternalAppTask extends AbstractTask {
 	public void run(TaskMonitor taskMonitor) {
 		if (this.cancelled)
 			return;
-		
+
 		StringBuilder urlStr = new StringBuilder();
 		urlStr.append("http://cyndex.ndexbio.org/");
 		urlStr.append(CyActivator.WEB_APP_VERSION);
@@ -78,9 +81,9 @@ public class OpenExternalAppTask extends AbstractTask {
 		if (ExternalAppManager.appName.equals(ExternalAppManager.APP_NAME_SAVE)) {
 			urlStr.append("&suid=" + String.valueOf(SaveParameters.INSTANCE.suid));
 		}
-		
+
 		final String url = urlStr.toString();
-		
+
 		// Open the CyNDEx-2 browser
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
@@ -88,8 +91,8 @@ public class OpenExternalAppTask extends AbstractTask {
 				try {
 					if (dialog == null) {
 						if (Desktop.isDesktopSupported()) {
-						    Desktop.getDesktop().browse(new URI(url));
-						}else {
+							Desktop.getDesktop().browse(new URI(url));
+						} else {
 							throw new Exception("Unable to open the default browser from a Java application.");
 						}
 					} else {
@@ -100,13 +103,24 @@ public class OpenExternalAppTask extends AbstractTask {
 					}
 					// Re-enable the search bar/toolbar components
 				} catch (Exception e) {
-					if (dialog != null) {
-						dialog.setVisible(false);
+
+					final boolean isGetPeerError = e.getMessage().equals(
+							"java.lang.NoSuchMethodException: com.teamdev.jxbrowser.chromium.swing.internal.LightWeightWidget.getPeer()")
+							|| e.getMessage().equals("java.lang.NoSuchMethodException: javax.swing.JDialog.getPeer()");
+					if (isGetPeerError) {
+						logger.warn("Ignored getPeer() error.");
+						dialog.setVisible(true);
+						dialog.toFront();
+					} else {
+						if (dialog != null) {
+							dialog.setVisible(false);
+						}
+
+						JOptionPane.showMessageDialog(null, "Unable to load the CyNDEx2 browser: " + e.getMessage(),
+								"JxBrowser Error", JOptionPane.ERROR_MESSAGE);
+						logger.error("Unable to load the CyNDEx2 browser.", e);
 					}
 
-					JOptionPane.showMessageDialog(null,
-							"Unable to load the CyNDEx2 browser: " + e.getMessage(), "JxBrowser Error",
-							JOptionPane.ERROR_MESSAGE);
 //					ExternalAppManager.setLoadFailed("Failed to load browser instance.\n" + e.getMessage());
 				}
 
