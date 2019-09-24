@@ -98,6 +98,7 @@ public class OpenExternalAppTask extends AbstractTask {
 					} else {
 						Browser browser = initBrowser();
 						browser.loadURL(url);
+
 						dialog.setVisible(true);
 						dialog.toFront();
 					}
@@ -109,8 +110,19 @@ public class OpenExternalAppTask extends AbstractTask {
 							|| e.getMessage().equals("java.lang.NoSuchMethodException: javax.swing.JDialog.getPeer()");
 					if (isGetPeerError) {
 						logger.warn("Ignored getPeer() error.");
-						dialog.setVisible(true);
-						dialog.toFront();
+						try {
+							dialog.setVisible(true);
+							dialog.toFront();
+						} catch (Exception e2) {
+							if (dialog != null) {
+								dialog.setVisible(false);
+							}
+
+							JOptionPane.showMessageDialog(null, "Unable to load the CyNDEx2 browser: " + e.getMessage(),
+									"JxBrowser Error", JOptionPane.ERROR_MESSAGE);
+							logger.error("Unable to load the CyNDEx2 browser.", e2);
+
+						}
 					} else {
 						if (dialog != null) {
 							dialog.setVisible(false);
