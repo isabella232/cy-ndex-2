@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.UUID;
@@ -30,32 +31,77 @@ import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
 
-
 public class NDExExportTaskFactory implements NetworkViewTaskFactory, NetworkTaskFactory {
 
 	private final NDExBasicSaveParameters params;
 	private final boolean isUpdate;
-		
+
 	private CyWriter writer;
 	private NetworkExportTask exporter;
-	
 
-	public NDExExportTaskFactory(NDExBasicSaveParameters params, boolean isUpdate)  {
+	public NDExExportTaskFactory(NDExBasicSaveParameters params, boolean isUpdate) {
 		super();
 		this.params = params;
 		this.isUpdate = isUpdate;
 	}
-	
+
 	private void setTunables(CyWriter writer, boolean collection) {
-		Class<? extends CyWriter> writerClass = writer.getClass();
-		
+		final Class<? extends CyWriter> writerClass = writer.getClass();
+
+		final Method[] writerMethods = writerClass.getMethods();
+
+		Method setWriteSiblingsMethod = null;
+		Method setUseCxIdMethod = null;
+
+		for (Method method : writerMethods) {
+			if (method.getName().equals("setWriteSiblings")) {
+				System.out.println("setWriteSiblings parameters: " + method.getParameterTypes().length);
+				System.out.println("setWriteSiblings return type: " + method.getReturnType());
+				if (method.getParameterTypes().length == 1 && method.getReturnType() == Void.TYPE) {
+					if (method.getParameterTypes()[0].equals(Boolean.class)) {
+						setWriteSiblingsMethod = method;
+					}
+				}
+			} else if (method.getName().equals("setUseCxId")) {
+				if (method.getParameterTypes().length == 1 && method.getReturnType() == Void.TYPE) {
+					if (method.getParameterTypes()[0].equals(Boolean.class)) {
+						setUseCxIdMethod = method;
+					}
+				}
+			}
+		}
+
+		if (setWriteSiblingsMethod != null) {
+			try {
+				setWriteSiblingsMethod.invoke(writer, collection);
+				System.out.println("setWriteSiblingsMethod(" + collection + ")");
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				e.printStackTrace();
+			}
+		} else {
+			
+		}
+
+		if (setWriteSiblingsMethod != null) {
+			try {
+				setUseCxIdMethod.invoke(writer, !collection);
+				System.out.println("setUseCxIdMethod(" + !collection + ")");
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				e.printStackTrace();
+			}
+		} else {
+			
+		}
+/*
 		try {
 			Field field = writerClass.getField("writeSiblings");
 			field.setAccessible(true);
 			final Object fieldValue = field.get(writer);
 			final Class<? extends Object> fieldClass = fieldValue.getClass();
 			final Method setMethod = fieldClass.getDeclaredMethod("setWriteSiblings", Boolean.class);
+			System.out.println("Setting tunable writeSiblings to " + collection);
 			setMethod.invoke(fieldValue, collection);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -66,10 +112,13 @@ public class NDExExportTaskFactory implements NetworkViewTaskFactory, NetworkTas
 			final Object fieldValue = field.get(writer);
 			final Class<? extends Object> fieldClass = fieldValue.getClass();
 			final Method setMethod = fieldClass.getDeclaredMethod("setUseCxId", Boolean.class);
+			System.out.println("Setting tunable useCxId to " + !collection);
 			setMethod.invoke(fieldValue, !collection);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		*/
 	}
 	
 	private AbstractTask getTaskWrapper(CyNetwork network, boolean writeCollection) {

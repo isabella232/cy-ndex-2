@@ -280,7 +280,6 @@ public class NativeInstaller {
 		NativeInstaller ni = new NativeInstaller(config);
 		ni.install(tm);
 	}
-	
 	class InstallException extends Exception {
 
 		public InstallException(String string) {
