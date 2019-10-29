@@ -47,7 +47,7 @@ public class OpenExternalAppTask extends AbstractTask {
 		this.dialog = null;
 		this.browserView = null;
 	}
-
+	
 	private Browser initBrowser() throws Exception {
 		if (dialog.getComponentCount() == 0) {
 			throw new Exception("BrowserView was not added to the dialog");
@@ -71,7 +71,7 @@ public class OpenExternalAppTask extends AbstractTask {
 	public void run(TaskMonitor taskMonitor) {
 		if (this.cancelled)
 			return;
-
+		
 		StringBuilder urlStr = new StringBuilder();
 		urlStr.append("http://cyndex.ndexbio.org/");
 		urlStr.append(CyActivator.WEB_APP_VERSION);
@@ -83,7 +83,7 @@ public class OpenExternalAppTask extends AbstractTask {
 		}
 
 		final String url = urlStr.toString();
-
+		
 		// Open the CyNDEx-2 browser
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
@@ -91,8 +91,8 @@ public class OpenExternalAppTask extends AbstractTask {
 				try {
 					if (dialog == null) {
 						if (Desktop.isDesktopSupported()) {
-							Desktop.getDesktop().browse(new URI(url));
-						} else {
+						    Desktop.getDesktop().browse(new URI(url));
+						}else {
 							throw new Exception("Unable to open the default browser from a Java application.");
 						}
 					} else {
