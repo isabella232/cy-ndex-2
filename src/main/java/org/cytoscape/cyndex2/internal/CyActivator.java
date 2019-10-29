@@ -31,7 +31,6 @@ import org.cytoscape.cyndex2.internal.task.OpenSaveTaskFactory;
 import org.cytoscape.cyndex2.internal.ui.ImportNetworkFromNDExTaskFactory;
 import org.cytoscape.cyndex2.internal.ui.MainToolBarAction;
 import org.cytoscape.cyndex2.internal.ui.SaveNetworkToNDExTaskFactory;
-import org.cytoscape.cyndex2.internal.util.BrowserManager;
 import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.cyndex2.internal.util.IconUtil;
@@ -141,7 +140,7 @@ public class CyActivator extends AbstractCyActivator {
 		final CyNetworkManager netmgr = getService(bc, CyNetworkManager.class);
 		File jxBrowserDir = new File(config.getConfigurationDirectoryLocation(), "jxbrowser");
 		jxBrowserDir.mkdir();
-		BrowserManager.setDataDirectory(new File(jxBrowserDir, "data"));
+		//BrowserManager.setDataDirectory(new File(jxBrowserDir, "data"));
 		
 		// TF for NDEx Save Network
 		final OpenSaveTaskFactory ndexSaveNetworkTaskFactory = new OpenSaveTaskFactory(appManager);
@@ -221,11 +220,9 @@ public class CyActivator extends AbstractCyActivator {
 	public void shutDown() {
 		logger.info("Shutting down CyNDEx-2...");
 
-		BrowserManager.clearCache();
 		if (ciServiceManager != null) {
 			ciServiceManager.close();
 		}
-		BrowserManager.shutdown();
 		
 		super.shutDown();
 	}

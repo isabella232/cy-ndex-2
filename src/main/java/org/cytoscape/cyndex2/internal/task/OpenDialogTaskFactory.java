@@ -1,16 +1,28 @@
 package org.cytoscape.cyndex2.internal.task;
 
 import java.awt.Dialog.ModalityType;
+import java.io.IOException;
+import java.net.URI;
 
 import javax.swing.JDialog;
-
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
+import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.AbstractTaskFactory;
 import org.cytoscape.work.TaskIterator;
+import org.cytoscape.work.TaskMonitor;
 
 public class OpenDialogTaskFactory extends AbstractTaskFactory {
-
+	
 	protected final String appName;
 	private static JDialog dialog;
 
@@ -43,8 +55,46 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 		// Store query info
 		ExternalAppManager.appName = appName;
 
-		LoadBrowserTask loader = new LoadBrowserTask(getDialog());
-		ti.append(loader);
+		System.out.println("open dialog for: " + appName);
+		
+		ti.append(new AbstractTask() {
+
+			@Override
+			public void run(TaskMonitor taskMonitorParameter) throws Exception {
+				SwingUtilities.invokeLater(new Runnable() {
+
+					
+					@Override
+					public void run() {
+						String REST_URI = "http://localhost:1234/cyndex2/v1/status";
+						HttpClient httpClient = HttpClients.createDefault();
+						final URI uri = URI.create(REST_URI);
+						final HttpGet post = new HttpGet(uri.toString());
+						post.setHeader("Content-type", "application/json");
+						HttpResponse response;
+						try {
+							response = httpClient.execute(post);
+						
+							final HttpEntity entity = response.getEntity();
+						
+							final String result = EntityUtils.toString(entity);
+							JOptionPane.showMessageDialog(null, result);
+						} catch (ClientProtocolException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
+						
+						
+					}
+
+				});
+			}
+
+		});
 
 		return ti;
 	}
