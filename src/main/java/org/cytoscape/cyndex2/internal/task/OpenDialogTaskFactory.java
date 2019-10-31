@@ -3,7 +3,6 @@ package org.cytoscape.cyndex2.internal.task;
 import java.awt.Dialog.ModalityType;
 import java.io.IOException;
 import java.net.URI;
-
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -15,11 +14,16 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.cytoscape.cyndex2.internal.CyActivator;
+import org.cytoscape.cyndex2.internal.rest.endpoints.NdexStatusResource.CIAppStatusResponse;
+import org.cytoscape.cyndex2.internal.ui.swing.FindNetworksDialog;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.AbstractTaskFactory;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class OpenDialogTaskFactory extends AbstractTaskFactory {
 	
@@ -62,8 +66,6 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 			@Override
 			public void run(TaskMonitor taskMonitorParameter) throws Exception {
 				SwingUtilities.invokeLater(new Runnable() {
-
-					
 					@Override
 					public void run() {
 						String REST_URI = "http://localhost:1234/cyndex2/v1/status";
@@ -76,24 +78,26 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 							response = httpClient.execute(post);
 						
 							final HttpEntity entity = response.getEntity();
-						
 							final String result = EntityUtils.toString(entity);
-							JOptionPane.showMessageDialog(null, result);
+							
+							ObjectMapper objectMapper = new ObjectMapper();
+							JsonNode jsonNode = objectMapper.readValue(result, JsonNode.class);
+							
+							final String widget = jsonNode.get("data").get("widget").asText();
+								
+							switch(widget) {
+								case "choose": final FindNetworksDialog dialog = new FindNetworksDialog(null);
+								dialog.setVisible(true);
+								default : break;
+							}	
 						} catch (ClientProtocolException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						} catch (IOException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-						
-						
-						
 					}
-
 				});
 			}
-
 		});
 
 		return ti;
