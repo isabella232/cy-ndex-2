@@ -30,6 +30,7 @@ import java.awt.Component;
 import java.awt.Frame;
 import java.awt.HeadlessException;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -39,7 +40,13 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClients;
 import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
+import org.cytoscape.cyndex2.internal.rest.parameter.NDExImportParameters;
 import org.cytoscape.cyndex2.internal.util.ErrorMessage;
 import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
@@ -47,6 +54,9 @@ import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout;
 import javax.swing.LayoutStyle.ComponentPlacement;
@@ -70,8 +80,6 @@ public class FindNetworksDialog extends javax.swing.JDialog {
      */
     public FindNetworksDialog(Frame parent, LoadParameters loadParameters) {
         super(parent, true);
-        System.out.println("searchTerm: " + loadParameters.searchTerm);
-        
         initComponents();
         prepComponents(loadParameters.searchTerm);
     }
@@ -194,13 +202,29 @@ public class FindNetworksDialog extends javax.swing.JDialog {
                     {
                         //The network to copy from.
 //                        NetworkSummary networkSummary = NetworkManager.INSTANCE.getSelectedNetworkSummary();
-                        UUID id = networkSummary.getExternalId();
+                        UUID uuid = networkSummary.getExternalId();
                         try
                         {
                      //       ProvenanceEntity provenance = mal.getNetworkProvenance(id.toString());
-                          //TODO trigger import via CyREST
-                       
-                     }
+  
+                       	String REST_URI = "http://localhost:1234/cyndex2/v1/networks";
+            						HttpClient httpClient = HttpClients.createDefault();
+            						final URI uri = URI.create(REST_URI);
+            						final HttpPost post = new HttpPost(uri.toString());
+            						post.setHeader("Content-type", "application/json");
+            					
+            						
+            						NDExImportParameters importParameters = new NDExImportParameters
+            								(uuid.toString(), null, null, selectedServer.getUrl(), null, null);
+            						ObjectMapper objectMapper = new ObjectMapper();
+            						
+            						
+            						post.setEntity(new StringEntity(objectMapper.writeValueAsString(importParameters)));
+            						
+            						httpClient.execute(post);
+            						
+                        }
+                        
                         /*catch (IOException ex)
                         {
                             JOptionPane.showMessageDialog(me, ErrorMessage.failedToParseJson, "Error", JOptionPane.ERROR_MESSAGE);
@@ -294,6 +318,7 @@ public class FindNetworksDialog extends javax.swing.JDialog {
             @Override
 			public void actionPerformed(java.awt.event.ActionEvent evt)
             {
+            
                 int selectedIndex = resultsTable.getSelectedRow();
                 if( selectedIndex == -1 )
                 {
