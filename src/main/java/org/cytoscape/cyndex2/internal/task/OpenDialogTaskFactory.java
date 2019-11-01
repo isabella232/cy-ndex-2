@@ -72,11 +72,11 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 						String REST_URI = "http://localhost:1234/cyndex2/v1/status";
 						HttpClient httpClient = HttpClients.createDefault();
 						final URI uri = URI.create(REST_URI);
-						final HttpGet post = new HttpGet(uri.toString());
-						post.setHeader("Content-type", "application/json");
+						final HttpGet get = new HttpGet(uri.toString());
+						get.setHeader("Content-type", "application/json");
 						HttpResponse response;
 						try {
-							response = httpClient.execute(post);
+							response = httpClient.execute(get);
 						
 							final HttpEntity entity = response.getEntity();
 							final String result = EntityUtils.toString(entity);
