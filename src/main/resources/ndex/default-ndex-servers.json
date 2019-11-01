@@ -1,6 +1,6 @@
 [
   {
-    "name": "PUBLIC",
+    "name": "My NDEx Server",
     "url": "http://public.ndexbio.org/v2",
     "type": "DEFAULT"
   }

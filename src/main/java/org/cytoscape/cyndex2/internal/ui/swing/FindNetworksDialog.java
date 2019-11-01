@@ -39,6 +39,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
+import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
 import org.cytoscape.cyndex2.internal.util.ErrorMessage;
 import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
@@ -62,14 +63,17 @@ public class FindNetworksDialog extends javax.swing.JDialog {
 	 */
 	private static final long serialVersionUID = 1L;
 	private List<NetworkSummary> networkSummaries;
-    
+  
+	
     /**
      * Creates new form SimpleSearch
      */
-    public FindNetworksDialog(Frame parent) {
+    public FindNetworksDialog(Frame parent, LoadParameters loadParameters) {
         super(parent, true);
+        System.out.println("searchTerm: " + loadParameters.searchTerm);
+        
         initComponents();
-        prepComponents();
+        prepComponents(loadParameters.searchTerm);
     }
     
     public void setFocusOnDone()
@@ -78,18 +82,15 @@ public class FindNetworksDialog extends javax.swing.JDialog {
         done.requestFocus();
     }
     
-    private void prepComponents()
+    private void prepComponents(String searchTerm)
     {
         this.setModal(true);
         this.getRootPane().setDefaultButton(search);
         
         Server selectedServer = ServerManager.INSTANCE.getSelectedServer();
-        selectedServer.setUrl("http://public.ndexbio.org/v2");
-        selectedServer.setName("NDEx");
-        selectedServer.setDescription("NDEx Server");
-        selectedServer.setType(Server.Type.DEFAULT);
-        selectedServer.setAuthenticated(false);
         serverName.setText( selectedServer.display() );
+        
+        searchField.setText(searchTerm);
         
         if( selectedServer.isAuthenticated() )
         {
@@ -123,7 +124,7 @@ public class FindNetworksDialog extends javax.swing.JDialog {
 			{
 			    try
 			    {
-			        networkSummaries = mal.findNetworks("*", null, null, true, 0, 400).getNetworks();
+			        networkSummaries = mal.findNetworks(searchTerm, null, null, true, 0, 400).getNetworks();
 			    }
 			    catch (IOException | NdexException ex)
 			    {         
@@ -614,7 +615,7 @@ public class FindNetworksDialog extends javax.swing.JDialog {
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
 			public void run() {
-                FindNetworksDialog dialog = new FindNetworksDialog(new javax.swing.JFrame());
+                FindNetworksDialog dialog = new FindNetworksDialog(new javax.swing.JFrame(), null);
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {
@@ -642,6 +643,4 @@ public class FindNetworksDialog extends javax.swing.JDialog {
     private javax.swing.JLabel serverName;
     private javax.swing.JLabel username;
     // End of variables declaration//GEN-END:variables
-
-    
 }
