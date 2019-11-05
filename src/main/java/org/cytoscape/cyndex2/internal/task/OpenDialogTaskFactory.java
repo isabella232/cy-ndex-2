@@ -1,10 +1,9 @@
 package org.cytoscape.cyndex2.internal.task;
 
-import java.awt.Dialog.ModalityType;
+import java.awt.Frame;
 import java.io.IOException;
 import java.net.URI;
 import javax.swing.JDialog;
-import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -14,7 +13,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.cytoscape.cyndex2.internal.CyActivator;
-import org.cytoscape.cyndex2.internal.rest.endpoints.NdexStatusResource.CIAppStatusResponse;
 import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
 import org.cytoscape.cyndex2.internal.ui.swing.FindNetworksDialog;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
@@ -43,8 +41,8 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 		}
 		
 		if (dialog == null) {
-			dialog = new JDialog(null, "CyNDEx2 Browser", ModalityType.MODELESS);
-			dialog.setAlwaysOnTop(true);
+			dialog = new JDialog((Frame)null, "CyNDEx2 Browser", false);
+			//dialog.setAlwaysOnTop(true);
 			if (!dialog.isVisible()) {
 				dialog.setSize(1000, 700);
 				dialog.setLocationRelativeTo(null);

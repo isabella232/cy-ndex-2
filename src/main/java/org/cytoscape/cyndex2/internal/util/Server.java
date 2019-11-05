@@ -31,11 +31,8 @@ import java.util.UUID;
 
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.NdexStatus;
-import org.ndexbio.model.object.User;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  *
