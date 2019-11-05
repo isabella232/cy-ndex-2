@@ -37,7 +37,6 @@ import java.net.URL;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -67,8 +66,6 @@ public class ServerList extends AbstractListModel<Server>
     private List<Server> serverList = new ArrayList<>();
     //A list of default servers with CREDENTIALS.
     private List<Server> defaultServerCredentials = new ArrayList<>();
-    //Efficiently tracks server names already used to prevent duplicates.
-    private HashSet<String> namesUsed = new HashSet<>();
     //A list of DEFAULT servers
     private List<Server> defaultServerList = new ArrayList<>();
     
@@ -76,6 +73,7 @@ public class ServerList extends AbstractListModel<Server>
     {
         super();
         readServers();
+        readDefaultServers();
     }
 
     public Server getDefaultServer()
@@ -85,56 +83,21 @@ public class ServerList extends AbstractListModel<Server>
     
     private void readServers()
     {
-        readDefaultServers();
         readAddedServers();
-        readDefaultServerCredentials();
-        mergeDefaultServerCredentials();
     }
    
     private void readDefaultServers()
     {
         Collection<Server> defaultServers = readServerCollection(ResourcePath.DEFAULT_NDEX_SERVERS); 
-        serverList.addAll(defaultServers);
         defaultServerList.addAll(defaultServers);
-        for( Server server : defaultServers )
-            namesUsed.add( server.getName() );
     }
     
-    private void readDefaultServerCredentials()
-    {
-        File configDir = CyServiceModule.INSTANCE.getConfigDir();
-        File defaultServersJsonFile = new File(configDir, FilePath.DEFAULT_SERVER_CREDENTIALS);
-        Collection<Server> credentials = readServerCollection(defaultServersJsonFile);
-        defaultServerCredentials.addAll(credentials);
-        for( Server server : credentials )
-            namesUsed.add( server.getName() );
-    }
-    
-    private void mergeDefaultServerCredentials()
-    {
-        for( Server credentials : defaultServerCredentials )
-            mergeDefaultServerCredentials(credentials);
-    }
-    
-    private void mergeDefaultServerCredentials(Server credentials )
-    {   
-        for( Server server : getDefaultServers() )
-        {
-            if( server.hasSameName( credentials ) )
-            {
-                server.useCredentialsOf( credentials );
-            }
-        }      
-    }
-       
     private void readAddedServers()
     {
     	File configDir = CyServiceModule.INSTANCE.getConfigDir();
         File addedServersJsonFile = new File(configDir, FilePath.ADDED_SERVERS);
         Collection<Server> addedServers = readServerCollection(addedServersJsonFile);     
         serverList.addAll(addedServers);
-        for( Server server : addedServers )
-            namesUsed.add( server.getName() );
     }
     
     private Collection<Server> readServerCollection(String resourcePath)
@@ -176,51 +139,16 @@ public class ServerList extends AbstractListModel<Server>
         }
     }
     
-    private List<Server> getAddedServers()
-    {
-        List<Server> result = new ArrayList<>();
-        for( Server s : serverList )
-        {
-            if( s.getType() == Server.Type.ADDED )
-                result.add(s);
-        }
-        return result;
-    }
-    
-    private List<Server> getDefaultServers()
-    {
-        List<Server> result = new ArrayList<>();
-        for( Server s : serverList )
-        {
-            if( s.getType() == Server.Type.DEFAULT )
-                result.add(s);
-        }
-        return result;
-    }
     
     public void save()
     {
-        saveAddedServers();
-        saveDefaultServerCredentials();
-    }
-    
-    private void saveAddedServers()
-    {
         File configDir = CyServiceModule.INSTANCE.getConfigDir();
         File addedServersFile = new File(configDir, FilePath.ADDED_SERVERS);
-        saveServerList( getAddedServers(), addedServersFile.getAbsolutePath() );
-    }
-    
-    private void saveDefaultServerCredentials()
-    {
-        File configDir = CyServiceModule.INSTANCE.getConfigDir();
-        File defaultServerCredentialsFile = new File(configDir, FilePath.DEFAULT_SERVER_CREDENTIALS );
-        saveServerList( defaultServerCredentials, defaultServerCredentialsFile.getAbsolutePath() );
+        saveServerList( serverList, addedServersFile.getAbsolutePath() );
     }
     
     private void saveServerList( List<Server> serverList2, String filePath )
     {
-    	
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String json = gson.toJson( serverList2 );
         File serverFile = new File( filePath );
@@ -236,17 +164,6 @@ public class ServerList extends AbstractListModel<Server>
     }
     
     /**
-     * Checks whether a proposed name for a server has already been used.
-     * This is currently used when editing an existing server.
-     * @param name The name to be checked.
-     * @return Whether the name is used or not.
-     */
-    public boolean isNameUsed(String name)
-    {
-        return namesUsed.contains(name);
-    }
-    
-    /**
      * This method is used to inform the server list that one of the servers
      * already in the list has been edited so that it can fire the appropriate
      * events to notify and update the GUI.
@@ -257,11 +174,6 @@ public class ServerList extends AbstractListModel<Server>
         int indexOfEditedServer = serverList.indexOf(editedServer);
         fireContentsChanged(this, indexOfEditedServer, indexOfEditedServer);
     }
-    
- /*   public void rename(Server server)
-    {
-        //TODO Implement this
-    } */
     
     public void delete(Server server)
     {
@@ -274,63 +186,11 @@ public class ServerList extends AbstractListModel<Server>
     
     public void add(Server server) throws Exception
     {
-        if( namesUsed.contains(server.getName()) )
+        if( serverList.contains(server) )
             throw new Exception( ErrorMessage.serverNameAlreadyUsed );
-        namesUsed.add(server.getName());
         serverList.add(server);
         int indexOfAddedServer = serverList.indexOf(server);
         fireContentsChanged(this, indexOfAddedServer, indexOfAddedServer);
-    }
-    
-    /**
-     * This method registers the credentials for a default server so they may be saved and retrieved later.
-     * @param defaultServer The default server for which credentials are being saved.
-     */
-    public void registerDefaultServerCredentials(Server defaultServer)
-    {
-        if( defaultServer.getType() != Server.Type.DEFAULT )
-            throw new IllegalArgumentException("Only DEFAULT server credentials may be be seperately registered.");
-        Server credentials = new Server(defaultServer);
-        //Change the type to CREDENTIALS.
-        credentials.setType(Server.Type.CREDENTIALS);
-        //Search for an existing credentials to replace, if any.
-        Server existingCredentialsToReplace = null;
-        for( Server s : defaultServerCredentials )
-        {
-            if( credentials.hasSameName(s) )
-                existingCredentialsToReplace = s;
-        }
-        //If credentials for the server do not already exist, add them. Otherwise, replace them.
-        if( existingCredentialsToReplace == null )
-            defaultServerCredentials.add(credentials);
-        else
-        {
-            int index = defaultServerCredentials.indexOf(existingCredentialsToReplace);
-            defaultServerCredentials.set( index, credentials);
-        }
-    }
-    
-    public void serverDescriptionChanged(Server changedServer)
-    {
-        if( !serverList.contains(changedServer) )
-            return;
-        if( changedServer.getType() == Server.Type.DEFAULT )
-        {
-            registerDefaultServerCredentials(changedServer);
-        }
-        int indexOfChangedServer = serverList.indexOf(changedServer);
-        fireContentsChanged(this, indexOfChangedServer, indexOfChangedServer);
-    }
-    
-    public String findNextAvailableName(String startName)
-    {
-        int count = 0;
-        while( true )
-        {
-            String candidate = startName + "-" + ++count;
-            if( !namesUsed.contains( candidate ) )
-                return candidate;           
-        }
     }
     
     public Server get(int index)

@@ -47,7 +47,7 @@ public class Server
     private String url;
     private String username;
     private String password;
-    private String description;
+
     private Type type;
     private UUID userId;
     
@@ -71,7 +71,7 @@ public class Server
         username = s.username;
         password = s.password;
         type = s.type;
-        description = s.description;
+      
         authenticated = s.authenticated;
         userId = s.getUserId();
     }
@@ -98,25 +98,19 @@ public class Server
         }
         else
         {
-        	 /*
-            try
-            {
-                 	mal.getUser(null).get
-            	User user = mal.authenticateUser(mal.getUserName(),mal.getPassword());
-                authenticated = user !=null;
-                if (user!=null) 
-                	userId = user.getExternalId();
-            
-            }
-            catch (NdexException e)
-            {
-                authenticated = false;
-                e.printStackTrace();
-            
-            }
-            */
-            return authenticated;
+            return true;
         }
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+    	if (o instanceof Server) {
+    		final Server b = (Server) o;
+    		final boolean sameUrl = this.url == null ? b.url == null : this.url.equals(b.url);
+    		final boolean sameUser = this.username == null ? b.username == null : this.username.equals(b.username);
+    		return sameUrl && sameUser; 
+    	}
+    	return false;
     }
     
     public boolean hasSameName(Server s)
@@ -128,7 +122,7 @@ public class Server
     {
         username = s.username;
         password = s.password;
-        description = s.description;
+      
     }
     
  /*   public String show()
@@ -143,24 +137,6 @@ public class Server
         result += "UUID: " + userId +"\n";
         return result;
     } */
-    
-    public String getHeader()
-    {
-    	String userNameStr = 
-         username == null ? "None" : username;
-        
-        String header = "NDEx Source Information\n===============\n";
-        header += "Name: " + name + "\n";
-        header += "URL: " + url + "\n";
-        header += "Username: " + userNameStr + "\n";
-        if( description != null )
-        {
-            header += "\n";
-            header += "Description\n=======\n";
-            header += description + "\n";
-        }
-        return header;
-    }
     
     public NdexRestClientModelAccessLayer getModelAccessLayer()
     {
@@ -226,11 +202,6 @@ public class Server
         return type;
     }
     
-    public String getDescription()
-    {
-        return description;
-    }
-    
     //Setters
     public void setName(String name)
     {
@@ -261,11 +232,6 @@ public class Server
     public void setType(Type type)
     {
         this.type = type;
-    }
-    
-    public void setDescription(String description)
-    {
-        this.description = description;
     }
     
     public boolean isAuthenticated() 

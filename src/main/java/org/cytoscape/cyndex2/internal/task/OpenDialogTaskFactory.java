@@ -84,7 +84,6 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 							System.out.println(jsonNode);
 							final String widget = jsonNode.get("data").get("widget").asText();
 							
-							
 							switch(widget) {
 								case "choose": 
 									final LoadParameters loadParameters = objectMapper.treeToValue(jsonNode.get("data").get("parameters"), LoadParameters.class);

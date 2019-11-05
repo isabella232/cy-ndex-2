@@ -5,6 +5,31 @@
  */
 package org.cytoscape.cyndex2.internal.ui.swing;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.Base64;
+
+import javax.swing.JOptionPane;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
+import org.cytoscape.cyndex2.internal.util.Server;
+import org.cytoscape.cyndex2.internal.util.ServerList;
+import org.cytoscape.cyndex2.internal.util.ServerManager;
+import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
+
 /**
  *
  * @author cytoscape
@@ -128,12 +153,77 @@ public class SignInDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_url1ActionPerformed
 
     private void saveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveActionPerformed
-        // TODO add your handling code here:
+        signInToServer();
     }//GEN-LAST:event_saveActionPerformed
 
     private void cancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelActionPerformed
-        // TODO add your handling code here:
+    	 setVisible(false);
     }//GEN-LAST:event_cancelActionPerformed
+    
+    private void signInToServer() {
+        final String username = this.username.getText();
+        final String password = new String(this.password.getPassword());
+        final String serverUrl = this.url1.getText().trim().length() > 0 ? this.url1.getText() : "";
+        
+        final String url = serverUrl.concat("/v2/user?valid=true");
+      
+        CredentialsProvider provider = new BasicCredentialsProvider();
+        UsernamePasswordCredentials credentials
+         = new UsernamePasswordCredentials(username, password);
+         
+        provider.setCredentials(AuthScope.ANY, credentials);
+          
+        HttpClient httpClient = HttpClientBuilder.create()
+          .setDefaultCredentialsProvider(provider)
+          .build();
+        
+        final HttpGet get = new HttpGet(url);
+       // final String authString = "Basic ".concat(username).concat(":").concat(password);
+       // System.out.println("authstring: " + authString);
+       // get.setHeader("Authorization", new String(Base64.getEncoder().encode(authString.getBytes())));
+        
+        HttpResponse response;
+        try {
+            response = httpClient.execute(get);
+            
+            final HttpEntity entity = response.getEntity();
+            final String result = EntityUtils.toString(entity);
+            
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readValue(result, JsonNode.class);
+            System.out.println(jsonNode);
+            
+            ServerList servers = ServerManager.INSTANCE.getAvailableServers();
+            
+            Server server = new Server();
+           
+            server.setUrl(serverUrl );
+            server.setUsername( username );
+            server.setPassword( password );
+            server.setType(Server.Type.ADDED);  
+            
+            try
+            {
+                servers.add(server);
+                servers.save();
+                ServerManager.INSTANCE.setSelectedServer(server);
+                //parent.setSelectedServer(server);
+                setVisible(false);
+            }
+            catch (Exception ex)
+            {
+                JOptionPane.showMessageDialog(this,
+                    ex.getMessage(),
+                    "Error Adding Server",
+                    JOptionPane.ERROR_MESSAGE);
+            } 
+                      
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * @param args the command line arguments

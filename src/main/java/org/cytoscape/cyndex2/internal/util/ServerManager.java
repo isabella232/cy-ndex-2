@@ -43,8 +43,8 @@ public enum ServerManager
     }
 
     public Server getSelectedServer()
-    {
-        return selectedServer;
+    {  
+    	return selectedServer != null ? selectedServer : availableServers.getDefaultServer();
     }
 
     public void setSelectedServer(Server selectedServer)
