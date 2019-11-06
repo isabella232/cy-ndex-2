@@ -12,8 +12,10 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.cytoscape.cyndex2.external.SaveParameters;
 import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
+import org.cytoscape.cyndex2.internal.ui.swing.ExportNetworkDialog;
 import org.cytoscape.cyndex2.internal.ui.swing.FindNetworksDialog;
 import org.cytoscape.cyndex2.internal.util.ExternalAppManager;
 import org.cytoscape.work.AbstractTask;
@@ -87,8 +89,14 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 							switch(widget) {
 								case "choose": 
 									final LoadParameters loadParameters = objectMapper.treeToValue(jsonNode.get("data").get("parameters"), LoadParameters.class);
-									final FindNetworksDialog dialog = new FindNetworksDialog(null, loadParameters);
-									dialog.setVisible(true);
+									final FindNetworksDialog loadDialog = new FindNetworksDialog(null, loadParameters);
+									loadDialog.setVisible(true);
+									break;
+								case "save" :
+									final SaveParameters saveParameters = objectMapper.treeToValue(jsonNode.get("data").get("parameters"), SaveParameters.class);
+									final ExportNetworkDialog saveDialog = new ExportNetworkDialog(null, saveParameters);
+									saveDialog.setVisible(true);
+									break;
 								default : break;
 							}	
 						} catch (ClientProtocolException e) {
