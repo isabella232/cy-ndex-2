@@ -232,21 +232,21 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
         jButton2 = SignInButtonHelper.createSignInButton();
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
-        nameField1 = new javax.swing.JTextField();
-        nameField2 = new javax.swing.JTextField();
+        authorField = new javax.swing.JTextField();
+        organismField = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
-        nameField3 = new javax.swing.JTextField();
+        diseaseField = new javax.swing.JTextField();
         jLabel9 = new javax.swing.JLabel();
-        nameField4 = new javax.swing.JTextField();
+        tissueField = new javax.swing.JTextField();
         jLabel10 = new javax.swing.JLabel();
-        nameField5 = new javax.swing.JTextField();
+        rightsHolderField = new javax.swing.JTextField();
         jLabel11 = new javax.swing.JLabel();
-        nameField6 = new javax.swing.JTextField();
+        versionField = new javax.swing.JTextField();
         jLabel12 = new javax.swing.JLabel();
-        nameField7 = new javax.swing.JTextField();
+        referenceField = new javax.swing.JTextField();
         jLabel13 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
+        descriptionTextArea = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Upload Network to NDEx");
@@ -259,7 +259,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
             }
         });
 
-        upload.setText("Upload Network To NDEx");
+        upload.setText("Export Network To NDEx");
         upload.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 uploadActionPerformed(evt);
@@ -286,9 +286,9 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
 
         jLabel7.setText("Organism");
 
-        nameField2.addActionListener(new java.awt.event.ActionListener() {
+        organismField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                nameField2ActionPerformed(evt);
+                organismFieldActionPerformed(evt);
             }
         });
 
@@ -302,17 +302,17 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
 
         jLabel12.setText("Reference");
 
-        nameField7.addActionListener(new java.awt.event.ActionListener() {
+        referenceField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                nameField7ActionPerformed(evt);
+                referenceFieldActionPerformed(evt);
             }
         });
 
         jLabel13.setText("Description");
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane1.setViewportView(jTextArea1);
+        descriptionTextArea.setColumns(20);
+        descriptionTextArea.setRows(5);
+        jScrollPane1.setViewportView(descriptionTextArea);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -334,15 +334,15 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
                             .addComponent(jLabel13))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(nameField2)
-                            .addComponent(nameField3)
-                            .addComponent(nameField4)
-                            .addComponent(nameField5)
-                            .addComponent(nameField6)
+                            .addComponent(organismField)
+                            .addComponent(diseaseField)
+                            .addComponent(tissueField)
+                            .addComponent(rightsHolderField)
+                            .addComponent(versionField)
                             .addComponent(jScrollPane1)
-                            .addComponent(nameField7, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(referenceField, javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(nameField)
-                            .addComponent(nameField1)))
+                            .addComponent(authorField)))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(cancel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -368,31 +368,31 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel6)
-                    .addComponent(nameField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(authorField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
-                    .addComponent(nameField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(organismField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel8)
-                    .addComponent(nameField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(diseaseField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel9)
-                    .addComponent(nameField4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(tissueField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel10)
-                    .addComponent(nameField5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(rightsHolderField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel11)
-                    .addComponent(nameField6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(versionField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel12)
-                    .addComponent(nameField7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(referenceField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel13)
@@ -413,13 +413,13 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
         // TODO add your handling code here:
     }//GEN-LAST:event_nameFieldActionPerformed
 
-    private void nameField2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameField2ActionPerformed
+    private void organismFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_organismFieldActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_nameField2ActionPerformed
+    }//GEN-LAST:event_organismFieldActionPerformed
 
-    private void nameField7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameField7ActionPerformed
+    private void referenceFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_referenceFieldActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_nameField7ActionPerformed
+    }//GEN-LAST:event_referenceFieldActionPerformed
 
 	private void prepareToWriteNetworkToCXStream(CyNetwork cyNetwork, PipedOutputStream out, boolean isUpdate) {
 	/*
@@ -651,7 +651,10 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
 	 */
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextField authorField;
     private javax.swing.JButton cancel;
+    private javax.swing.JTextArea descriptionTextArea;
+    private javax.swing.JTextField diseaseField;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel10;
@@ -664,17 +667,14 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextField nameField;
-    private javax.swing.JTextField nameField1;
-    private javax.swing.JTextField nameField2;
-    private javax.swing.JTextField nameField3;
-    private javax.swing.JTextField nameField4;
-    private javax.swing.JTextField nameField5;
-    private javax.swing.JTextField nameField6;
-    private javax.swing.JTextField nameField7;
+    private javax.swing.JTextField organismField;
+    private javax.swing.JTextField referenceField;
+    private javax.swing.JTextField rightsHolderField;
+    private javax.swing.JTextField tissueField;
     private javax.swing.JCheckBox updateCheckbox;
     private javax.swing.JButton upload;
+    private javax.swing.JTextField versionField;
     // End of variables declaration//GEN-END:variables
 
 }

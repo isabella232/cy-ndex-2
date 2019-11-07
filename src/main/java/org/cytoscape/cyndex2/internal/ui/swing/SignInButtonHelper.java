@@ -6,6 +6,8 @@ import java.awt.event.MouseEvent;
 import javax.swing.JButton;
 import javax.swing.JPopupMenu;
 
+import org.cytoscape.cyndex2.internal.util.Server;
+
 public class SignInButtonHelper {
 
     public static JButton createSignInButton() {
@@ -21,4 +23,7 @@ public class SignInButtonHelper {
         return signInButton;
     }
 
+    public static void updateSignInButton(JButton button, Server server) {
+        
+    }
 }
