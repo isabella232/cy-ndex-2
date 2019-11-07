@@ -83,7 +83,7 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 							
 							ObjectMapper objectMapper = new ObjectMapper();
 							JsonNode jsonNode = objectMapper.readValue(result, JsonNode.class);
-							System.out.println(jsonNode);
+						
 							final String widget = jsonNode.get("data").get("widget").asText();
 							
 							switch(widget) {

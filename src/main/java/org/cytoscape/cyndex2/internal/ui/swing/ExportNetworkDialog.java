@@ -30,24 +30,31 @@ import java.awt.Frame;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import javax.swing.SwingWorker;
+import javax.ws.rs.core.Response;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.cytoscape.cyndex2.external.SaveParameters;
 import org.cytoscape.cyndex2.internal.rest.SimpleNetworkSummary;
 import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
+import org.cytoscape.cyndex2.internal.rest.parameter.NDExImportParameters;
+import org.cytoscape.cyndex2.internal.rest.parameter.NDExSaveParameters;
 import org.cytoscape.cyndex2.internal.rest.response.SummaryResponse;
 import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
@@ -68,6 +75,7 @@ import org.ndexbio.model.object.Permissions;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -82,13 +90,16 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
 	*/
 	private static final long serialVersionUID = 1L;
 
+	final SaveParameters saveParameters;
+	
 	/**
 	 * Creates new form UploadNetwork
 	 */
 	public ExportNetworkDialog(Frame parent, SaveParameters saveParameters) {
-		super(parent, true);
+		super(parent, false);
+		this.saveParameters = saveParameters;
 		initComponents();
-		prepComponents(saveParameters);
+		prepComponents();
 	}
 
 	private String getCurrentNetworkName(SummaryResponse summaryResponse) {
@@ -100,9 +111,9 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
 		return null;
 	}
 
-	private void prepComponents(SaveParameters saveParameters)
+	private void prepComponents()
     {
-        setModal(true);
+        //setModal(true);
         rootPane.setDefaultButton(upload);
        
     		String REST_URI = "http://localhost:1234/cyndex2/v1/networks/current";
@@ -209,73 +220,206 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
 	 */
 	@SuppressWarnings("unchecked")
 	// <editor-fold defaultstate="collapsed" desc="Generated
-	// Code">//GEN-BEGIN:initComponents
-	private void initComponents() {
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
 
-		jButton1 = new javax.swing.JButton();
-		jLabel5 = new javax.swing.JLabel();
-		nameField = new javax.swing.JTextField();
-		upload = new javax.swing.JButton();
-		cancel = new javax.swing.JButton();
-		updateCheckbox = new javax.swing.JCheckBox();
+        jButton1 = new javax.swing.JButton();
+        jLabel5 = new javax.swing.JLabel();
+        nameField = new javax.swing.JTextField();
+        upload = new javax.swing.JButton();
+        cancel = new javax.swing.JButton();
+        updateCheckbox = new javax.swing.JCheckBox();
+        jButton2 = SignInButtonHelper.createSignInButton();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        nameField1 = new javax.swing.JTextField();
+        nameField2 = new javax.swing.JTextField();
+        jLabel8 = new javax.swing.JLabel();
+        nameField3 = new javax.swing.JTextField();
+        jLabel9 = new javax.swing.JLabel();
+        nameField4 = new javax.swing.JTextField();
+        jLabel10 = new javax.swing.JLabel();
+        nameField5 = new javax.swing.JTextField();
+        jLabel11 = new javax.swing.JLabel();
+        nameField6 = new javax.swing.JTextField();
+        jLabel12 = new javax.swing.JLabel();
+        nameField7 = new javax.swing.JTextField();
+        jLabel13 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextArea1 = new javax.swing.JTextArea();
 
-		setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-		setTitle("Upload Network to NDEx");
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Upload Network to NDEx");
 
-		jLabel5.setText("With name:");
+        jLabel5.setText("Name:");
 
-		nameField.setText("Default Network Name");
+        nameField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nameFieldActionPerformed(evt);
+            }
+        });
 
-		upload.setText("Upload Network To NDEx");
-		upload.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				uploadActionPerformed(evt);
-			}
-		});
+        upload.setText("Upload Network To NDEx");
+        upload.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                uploadActionPerformed(evt);
+            }
+        });
 
-		cancel.setText("Cancel");
-		cancel.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				cancelActionPerformed(evt);
-			}
-		});
+        cancel.setText("Cancel");
+        cancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cancelActionPerformed(evt);
+            }
+        });
 
-		updateCheckbox.setText("Update");
-		updateCheckbox.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				updateCheckboxActionPerformed(evt);
-			}
-		});
+        updateCheckbox.setText("Update Existing Network");
+        updateCheckbox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                updateCheckboxActionPerformed(evt);
+            }
+        });
 
-		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-		getContentPane().setLayout(layout);
-		layout.setHorizontalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGroup(layout
-				.createSequentialGroup()
-				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
-								layout.createSequentialGroup().addComponent(cancel)
-										.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 245, Short.MAX_VALUE)
-										.addComponent(upload))
-						.addGroup(layout.createSequentialGroup().addContainerGap()
-								.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-										.addGroup(layout.createSequentialGroup().addComponent(jLabel5)
-												.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED).addComponent(nameField))
-										.addGroup(layout.createSequentialGroup().addGap(198, 198, 198).addComponent(updateCheckbox)
-												.addGap(0, 0, Short.MAX_VALUE)))))
-				.addContainerGap()));
-		layout.setVerticalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup().addContainerGap(95, Short.MAX_VALUE)
-						.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE).addComponent(jLabel5)
-								.addComponent(nameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
-										javax.swing.GroupLayout.PREFERRED_SIZE))
-						.addGap(35, 35, 35).addComponent(updateCheckbox)
-						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-						.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE).addComponent(upload)
-								.addComponent(cancel))
-						.addContainerGap()));
+        jButton2.setText("profile");
 
-		pack();
-	}// </editor-fold>//GEN-END:initComponents
+        jLabel6.setText("Author");
+
+        jLabel7.setText("Organism");
+
+        nameField2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nameField2ActionPerformed(evt);
+            }
+        });
+
+        jLabel8.setText("Disease");
+
+        jLabel9.setText("Tissue");
+
+        jLabel10.setText("Rights Holder");
+
+        jLabel11.setText("Version");
+
+        jLabel12.setText("Reference");
+
+        nameField7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nameField7ActionPerformed(evt);
+            }
+        });
+
+        jLabel13.setText("Description");
+
+        jTextArea1.setColumns(20);
+        jTextArea1.setRows(5);
+        jScrollPane1.setViewportView(jTextArea1);
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel7)
+                            .addComponent(jLabel6)
+                            .addComponent(jLabel5)
+                            .addComponent(jLabel8)
+                            .addComponent(jLabel9)
+                            .addComponent(jLabel10)
+                            .addComponent(jLabel11)
+                            .addComponent(jLabel12)
+                            .addComponent(jLabel13))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(nameField2)
+                            .addComponent(nameField3)
+                            .addComponent(nameField4)
+                            .addComponent(nameField5)
+                            .addComponent(nameField6)
+                            .addComponent(jScrollPane1)
+                            .addComponent(nameField7, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(nameField)
+                            .addComponent(nameField1)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(cancel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(upload))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(jButton2)))
+                .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                .addGap(218, 218, 218)
+                .addComponent(updateCheckbox)
+                .addContainerGap(223, Short.MAX_VALUE))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jButton2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel5)
+                    .addComponent(nameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel6)
+                    .addComponent(nameField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel7)
+                    .addComponent(nameField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel8)
+                    .addComponent(nameField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel9)
+                    .addComponent(nameField4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel10)
+                    .addComponent(nameField5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel11)
+                    .addComponent(nameField6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel12)
+                    .addComponent(nameField7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel13)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(updateCheckbox)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cancel)
+                    .addComponent(upload))
+                .addContainerGap())
+        );
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void nameFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameFieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_nameFieldActionPerformed
+
+    private void nameField2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameField2ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_nameField2ActionPerformed
+
+    private void nameField7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameField7ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_nameField7ActionPerformed
 
 	private void prepareToWriteNetworkToCXStream(CyNetwork cyNetwork, PipedOutputStream out, boolean isUpdate) {
 	/*
@@ -293,6 +437,60 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
 	}
 
 	private void uploadActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_uploadActionPerformed
+		final JTextField nameField = this.nameField;
+		
+		SwingWorker<Integer, Integer> worker = new SwingWorker<Integer, Integer>() {
+			
+			@Override
+			protected Integer doInBackground() throws Exception {
+
+	
+		
+		final Server selectedServer = ServerManager.INSTANCE.getSelectedServer();
+		
+		final String REST_URI = "http://localhost:1234/cyndex2/v1/networks/" + saveParameters.suid;
+
+		HttpClient httpClient = HttpClients.createDefault();
+		final URI uri = URI.create(REST_URI);
+		final HttpPost post = new HttpPost(uri.toString());
+		post.setHeader("Content-type", "application/json");
+
+		Map<String, String> metadata = Map.of(
+				"name",nameField.getText());
+		System.out.println("REST_URI: " + REST_URI);
+		System.out.println("url " + selectedServer.getUrl());
+		
+		NDExSaveParameters saveParameters = new NDExSaveParameters(
+				selectedServer.getUsername(), 
+				selectedServer.getPassword(), 
+				selectedServer.getUrl(), 
+				metadata, 
+				false);
+		ObjectMapper objectMapper = new ObjectMapper();
+
+		try {
+			post.setEntity(new StringEntity(objectMapper.writeValueAsString(saveParameters)));
+			HttpResponse response = httpClient.execute(post);
+			
+			System.out.println("Response: " + response.toString());
+			
+			
+		}
+		catch (UnsupportedEncodingException | JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		catch (ClientProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+				return 1;
+			}
+			};
+			worker.execute();
 		/*
 		CyNetwork cyNetwork = CyObjectManager.INSTANCE.getCurrentNetwork(); // get the current subNetwork
 
@@ -452,13 +650,31 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
 	 * System.exit(0); } }); dialog.setVisible(true); } }); }
 	 */
 
-	// Variables declaration - do not modify//GEN-BEGIN:variables
-	private javax.swing.JButton cancel;
-	private javax.swing.JButton jButton1;
-	private javax.swing.JLabel jLabel5;
-	private javax.swing.JTextField nameField;
-	private javax.swing.JCheckBox updateCheckbox;
-	private javax.swing.JButton upload;
-	// End of variables declaration//GEN-END:variables
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton cancel;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTextArea jTextArea1;
+    private javax.swing.JTextField nameField;
+    private javax.swing.JTextField nameField1;
+    private javax.swing.JTextField nameField2;
+    private javax.swing.JTextField nameField3;
+    private javax.swing.JTextField nameField4;
+    private javax.swing.JTextField nameField5;
+    private javax.swing.JTextField nameField6;
+    private javax.swing.JTextField nameField7;
+    private javax.swing.JCheckBox updateCheckbox;
+    private javax.swing.JButton upload;
+    // End of variables declaration//GEN-END:variables
 
 }

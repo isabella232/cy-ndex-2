@@ -245,7 +245,6 @@ public class FindNetworksDialog extends javax.swing.JDialog {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Find Networks");
-        setPreferredSize(new java.awt.Dimension(600, 525));
 
         resultsTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -276,7 +275,7 @@ public class FindNetworksDialog extends javax.swing.JDialog {
         done.setText("Done Loading Networks");
         done.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                doneActionPerformed();
+                doneActionPerformed(evt);
             }
         });
 
@@ -290,7 +289,7 @@ public class FindNetworksDialog extends javax.swing.JDialog {
         administeredByMe.setText("My Networks");
         administeredByMe.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                administeredByMeActionPerformed();
+                administeredByMeActionPerformed(evt);
             }
         });
 
@@ -398,7 +397,7 @@ public class FindNetworksDialog extends javax.swing.JDialog {
 		}
 	}
 
-	private void doneActionPerformed() {
+	private void doneActionPerformed(java.awt.event.ActionEvent evt) {
 		
 	}
 	
@@ -446,7 +445,7 @@ public class FindNetworksDialog extends javax.swing.JDialog {
 	}
                                       
 
-	private void administeredByMeActionPerformed()// GEN-FIRST:event_administeredByMeActionPerformed
+	private void administeredByMeActionPerformed(java.awt.event.ActionEvent evt)// GEN-FIRST:event_administeredByMeActionPerformed
 	{// GEN-HEADEREND:event_administeredByMeActionPerformed
 		getMyNetworks();
 	}// GEN-LAST:event_administeredByMeActionPerformed
