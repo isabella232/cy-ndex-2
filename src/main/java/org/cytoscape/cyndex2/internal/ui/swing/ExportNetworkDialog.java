@@ -102,6 +102,10 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
 		prepComponents();
 	}
 
+	private String getCurrentCollectionName(SummaryResponse summaryResponse) {
+					return summaryResponse.currentRootNetwork.name;
+	}
+	
 	private String getCurrentNetworkName(SummaryResponse summaryResponse) {
 		for (SimpleNetworkSummary networkSummary : summaryResponse.members) {
 				if (networkSummary.suid == summaryResponse.currentNetworkSuid) {
@@ -113,10 +117,11 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
 
 	private void prepComponents()
     {
-        //setModal(true);
+				final boolean isCollection = "collection".equals(saveParameters.saveType);
+				//setModal(true);
         rootPane.setDefaultButton(upload);
        
-    		String REST_URI = "http://localhost:1234/cyndex2/v1/networks/current";
+    		String REST_URI = "http://localhost:1234/cyndex2/v1/networks/" + saveParameters.suid;
 				HttpClient httpClient = HttpClients.createDefault();
 				final URI uri = URI.create(REST_URI);
 				final HttpGet get = new HttpGet(uri.toString());
@@ -138,11 +143,13 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
        // CyNetwork cyNetwork = CyObjectManager.INSTANCE.getCurrentNetwork();
         boolean updatePossible = false; //updateIsPossible();
         updateCheckbox.setSelected(false);
-        if( !updatePossible )
-            updateCheckbox.setEnabled(false);
+        updateCheckbox.setEnabled(updatePossible);
+				
+        final String name = isCollection 
+      			? getCurrentCollectionName(summaryResponse) 
+      					: getCurrentNetworkName(summaryResponse);
+      	nameField.setText(name);
         
-        //String networkName = cyNetwork.getRow(cyNetwork).get(CyNetwork.NAME, String.class);
-        nameField.setText(getCurrentNetworkName(summaryResponse));
 				} catch (ClientProtocolException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
