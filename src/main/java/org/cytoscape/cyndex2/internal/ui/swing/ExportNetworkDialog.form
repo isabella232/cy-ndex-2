@@ -150,7 +150,9 @@
     </Component>
     <Component class="javax.swing.JButton" name="upload">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Export Network To NDEx"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="&quot;Export &quot; + (isCollection() ? &quot;Collection&quot; : &quot;Network&quot;) +  &quot; to NDEx&quot;" type="code"/>
+        </Property>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="uploadActionPerformed"/>

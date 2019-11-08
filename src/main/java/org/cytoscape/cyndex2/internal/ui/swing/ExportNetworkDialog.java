@@ -115,9 +115,13 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
 		return null;
 	}
 
+	private boolean isCollection() {
+		return "collection".equals(saveParameters.saveType);
+	}
+	
 	private void prepComponents()
     {
-				final boolean isCollection = "collection".equals(saveParameters.saveType);
+				final boolean isCollection = isCollection();
 				//setModal(true);
         rootPane.setDefaultButton(upload);
        
@@ -145,6 +149,15 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
         updateCheckbox.setSelected(false);
         updateCheckbox.setEnabled(updatePossible);
 				
+        authorField.setEnabled(!isCollection);
+        organismField.setEnabled(!isCollection);
+        diseaseField.setEnabled(!isCollection);
+        tissueField.setEnabled(!isCollection);
+        rightsHolderField.setEnabled(!isCollection);
+        versionField.setEnabled(!isCollection);
+        referenceField.setEnabled(!isCollection);
+        descriptionTextArea.setEnabled(!isCollection);
+        
         final String name = isCollection 
       			? getCurrentCollectionName(summaryResponse) 
       					: getCurrentNetworkName(summaryResponse);
@@ -266,7 +279,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
             }
         });
 
-        upload.setText("Export Network To NDEx");
+        upload.setText("Export " + (isCollection() ? "Collection" : "Network") +  " to NDEx");
         upload.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 uploadActionPerformed(evt);
