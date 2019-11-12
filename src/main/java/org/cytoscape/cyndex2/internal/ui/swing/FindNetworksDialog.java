@@ -184,8 +184,8 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 						final URI uri = URI.create(REST_URI);
 						final HttpPost post = new HttpPost(uri.toString());
 						post.setHeader("Content-type", "application/json");
-
-						NDExImportParameters importParameters = new NDExImportParameters(uuid.toString(), null, null,
+						
+						NDExImportParameters importParameters = new NDExImportParameters(uuid.toString(), selectedServer.getUsername(), selectedServer.getPassword(),
 								selectedServer.getUrl(), null, null);
 						ObjectMapper objectMapper = new ObjectMapper();
 
@@ -357,13 +357,16 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		NdexRestClientModelAccessLayer mal = selectedServer.getModelAccessLayer();
 		try {
 			if (selectedServer.check(mal)) {
-				/*
-				 * try { networkSummaries = mal.getMyNetworks(selectedServer.getUserId()); }
-				 * catch (IOException ex) { ex.printStackTrace();
-				 * JOptionPane.showMessageDialog(this, ex.getMessage(), "Error",
-				 * JOptionPane.ERROR_MESSAGE); return; }
-				 */
-				showSearchResults();
+				
+				  try { 
+				  	networkSummaries = mal.getMyNetworks();
+				  	showSearchResults();
+				  }
+				  catch (IOException | NdexException ex) { ex.printStackTrace();
+				  JOptionPane.showMessageDialog(this, ex.getMessage(), "Error",
+				  JOptionPane.ERROR_MESSAGE); return; }
+				 
+				
 			} else {
 				JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication, "ErrorY",
 						JOptionPane.ERROR_MESSAGE);
@@ -397,7 +400,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 			if (selectedServer.check(mal)) {
 				try {
 					if (administeredByMe.isSelected()) {
-						// networkSummaries = mal.getMyNetworks(selectedServer.getUserId());
+					 networkSummaries = mal.getMyNetworks();
 					} else
 						networkSummaries = mal.findNetworks(searchText, null, null, true, 0, 10000).getNetworks();
 				} catch (IOException | NdexException ex) {
@@ -426,7 +429,12 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 
 	private void administeredByMeActionPerformed(java.awt.event.ActionEvent evt)// GEN-FIRST:event_administeredByMeActionPerformed
 	{// GEN-HEADEREND:event_administeredByMeActionPerformed
-		getMyNetworks();
+		if (administeredByMe.isSelected()) {
+			getMyNetworks(); 
+		}
+		else {
+			search();
+		}
 	}// GEN-LAST:event_administeredByMeActionPerformed
 
 	private List<NetworkSummary> displayedNetworkSummaries = new ArrayList<>();
