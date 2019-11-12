@@ -101,6 +101,8 @@ public class ExportNetworkDialog  extends javax.swing.JDialog implements Propert
     {
 				final boolean isCollection = isCollection();
 				//setModal(true);
+				
+				updateUploadButton();
         rootPane.setDefaultButton(upload);
        
     		String REST_URI = "http://localhost:1234/cyndex2/v1/networks/" + saveParameters.suid;
@@ -610,6 +612,24 @@ public class ExportNetworkDialog  extends javax.swing.JDialog implements Propert
 		System.out.println("update checked.");
 	}// GEN-LAST:event_updateCheckboxActionPerformed
 
+	@Override
+	public void propertyChange(PropertyChangeEvent arg0) {
+		jButton2.setText(SignInButtonHelper.getSignInText());
+		updateUploadButton();
+	}
+	
+	public void updateUploadButton() {
+		final Server selectedServer = ServerManager.INSTANCE.getServer();
+		if (selectedServer.getUsername() == null) {
+				upload.setEnabled(false);
+				upload.setToolTipText("Please sign in an NDEx profile to upload networks.");
+		} else 
+		{
+				upload.setEnabled(true);
+				upload.setToolTipText(null);
+		}
+	}
+	
 	/**
 	 * @param args the command line arguments
 	 */
@@ -648,6 +668,8 @@ public class ExportNetworkDialog  extends javax.swing.JDialog implements Propert
 	 * System.exit(0); } }); dialog.setVisible(true); } }); }
 	 */
 
+	
+	
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField authorField;
     private javax.swing.JButton cancel;
@@ -674,10 +696,7 @@ public class ExportNetworkDialog  extends javax.swing.JDialog implements Propert
     private javax.swing.JButton upload;
     private javax.swing.JTextField versionField;
 
-		@Override
-		public void propertyChange(PropertyChangeEvent arg0) {
-			jButton1.setText(SignInButtonHelper.getSignInText());
-		}
+		
     // End of variables declaration//GEN-END:variables
 
 }

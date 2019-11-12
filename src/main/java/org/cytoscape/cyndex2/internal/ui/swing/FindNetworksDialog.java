@@ -382,7 +382,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 	}
 
 	private void search() {
-		Server selectedServer = ServerManager.INSTANCE.getSelectedServer();
+		Server selectedServer = ServerManager.INSTANCE.getServer();
 
 		/*
 		 * if( administeredByMe.isSelected() ) permissions = Permissions.READ;
