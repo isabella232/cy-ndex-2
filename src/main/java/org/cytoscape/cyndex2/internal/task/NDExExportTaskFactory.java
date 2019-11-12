@@ -184,7 +184,7 @@ public class NDExExportTaskFactory implements NetworkViewTaskFactory, NetworkTas
 					"Must provide save parameters (username and password)", ErrorType.INVALID_PARAMETERS);
 		}
 		if (params.serverUrl == null) {
-			params.serverUrl = "http://ndexbio.org/v2/";
+			params.serverUrl = "http://ndexbio.org/v2";
 		}
 		if (params.metadata == null) {
 			params.metadata = new HashMap<>();

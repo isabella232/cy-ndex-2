@@ -167,6 +167,7 @@ public class SignInDialog extends javax.swing.JDialog {
         
         try {
         	ServerManager.INSTANCE.addServer(username, password, serverUrl);
+        	setVisible(false);
         } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this,
                     ex.getMessage(),

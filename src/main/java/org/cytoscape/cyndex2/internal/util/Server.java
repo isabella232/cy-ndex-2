@@ -54,8 +54,6 @@ public class Server
     private String password;
     private UUID userId;
     
-   
-    
     /**
      * Default constructor,
      */
@@ -129,8 +127,9 @@ public class Server
     public NdexRestClientModelAccessLayer getModelAccessLayer()
     {
         NdexRestClient client;
-				try {
-					client = new NdexRestClient(username,password,url);
+				String apiUrl = url;//url.concat("/v2");
+        try {
+					client = new NdexRestClient(username,password,apiUrl);
 				  return new NdexRestClientModelAccessLayer(client);
 				} catch (IOException | NdexException e) {
 					// TODO Auto-generated catch block
@@ -161,8 +160,6 @@ public class Server
         return password;
     }
 
-
-    
     public void setUrl(String url)
     {
         this.url = url;

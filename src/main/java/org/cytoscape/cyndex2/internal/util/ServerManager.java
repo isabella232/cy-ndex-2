@@ -86,7 +86,7 @@ public class ServerManager {
 	private void selectNextAvailableServer() {
 		{
 			if (availableServers.getSize() > 0) {
-				setSelectedServer(new ServerKey(availableServers.get(0)));
+				selectedServer = new ServerKey(availableServers.get(0));
 			}
 		}
 	}
@@ -103,6 +103,15 @@ public class ServerManager {
 		return selectedServer != null ? availableServers.getServer(selectedServer) : Server.DEFAULT_SERVER;
 	}
 
+	private String getBaseRoute(String url) {
+		final String baseroute;
+		if ( url.toLowerCase().startsWith("http://") || url.toLowerCase().startsWith("https://"))
+			baseroute = url;
+		else
+			baseroute = "http://"+ url + "/v2";
+		return baseroute;
+	}
+	
 	/**
 	 * Adds a new server to the server list and automatically selects it.
 	 * 
@@ -110,7 +119,10 @@ public class ServerManager {
 	 * @throws Exception
 	 */
 	public void addServer(String username, String password, String serverUrl) throws Exception {
-		final String url = serverUrl.concat("/v2/user?valid=true");
+	
+		final String baseroute = this.getBaseRoute(serverUrl);
+		
+		final String url = baseroute.concat("/user?valid=true");
 
 		if (availableServers.getServer(new ServerKey(username, url)) != null) {
 			throw new Exception("Server already exists.");
@@ -140,7 +152,9 @@ public class ServerManager {
 
 		Server server = new Server();
 
+		
 		server.setUrl(serverUrl);
+		
 		server.setUsername(username);
 		server.setPassword(password);
 
@@ -154,10 +168,12 @@ public class ServerManager {
 	public void removeServer(Server server) {
 		availableServers.delete(server);
 		availableServers.save();
-
+		ServerKey oldValue = selectedServer;
 		selectedServer = null;
 		selectNextAvailableServer();
 		saveSelectedServer();
+		PropertyChangeEvent event = new PropertyChangeEvent(this, "selectedServer", oldValue, selectedServer);
+    mPcs.firePropertyChange(event);
 	}
 
 	public void saveSelectedServer() {
