@@ -41,17 +41,20 @@ import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
  */
 public class Server
 {
-    public enum Type {DEFAULT, CREDENTIALS, ADDED}
+  	public static final Server DEFAULT_SERVER = Server.getDefaultServer();
     
-    private String name;  // unique in the ServerList
+  	private static final Server getDefaultServer() {
+  		final Server server = new Server();
+  		server.url = "http://public.ndexbio.org/v2";
+  		return server;
+  	}
+  			
     private String url;
     private String username;
     private String password;
-
-    private Type type;
     private UUID userId;
     
-    private boolean authenticated;
+   
     
     /**
      * Default constructor,
@@ -66,13 +69,9 @@ public class Server
      */
     public Server(Server s)
     {
-        name = s.name;
         url = s.url;
         username = s.username;
         password = s.password;
-        type = s.type;
-      
-        authenticated = s.authenticated;
         userId = s.getUserId();
     }
 
@@ -90,10 +89,10 @@ public class Server
     public boolean check(NdexRestClientModelAccessLayer mal) throws IOException
     {
         boolean usernamePresent = username != null && !username.isEmpty();
-        boolean passwordPresent = password != null && !username.isEmpty();
+        boolean passwordPresent = password != null && !password.isEmpty();
         if( !usernamePresent && !passwordPresent )
         {
-            authenticated = false;
+           
             return true;
         }
         else
@@ -113,18 +112,7 @@ public class Server
     	return false;
     }
     
-    public boolean hasSameName(Server s)
-    {
-        return name.equals(s.name);
-    }
-    
-    public void useCredentialsOf(Server s)
-    {
-        username = s.username;
-        password = s.password;
-      
-    }
-    
+  
  /*   public String show()
     {
         String result = "";
@@ -140,7 +128,6 @@ public class Server
     
     public NdexRestClientModelAccessLayer getModelAccessLayer()
     {
-    	
         NdexRestClient client;
 				try {
 					client = new NdexRestClient(username,password,url);
@@ -153,33 +140,10 @@ public class Server
       
     }
    
- /*   public NdexRestClientModelAccessLayer getModelAccessLayer(String userName, String password)
-    {
-        NdexRestClient client = new NdexRestClient(username,password,url);
-        return new NdexRestClientModelAccessLayer(client);
-    } */
-
-    public boolean isDefault()
-    {
-        return type == Type.DEFAULT;
-    }
-    
     @Override
     public String toString()
     {
-        return name;
-    }
-    
-    public String display()
-    {
-        return name + " ("+url+")";
-    }
-       
-    // <editor-fold defaultstate="collapsed" desc="Getters and Setters">
-    //Getters
-    public String getName()
-    {
-        return name;
+        return username + "@" + url;
     }
 
     public String getUrl()
@@ -197,17 +161,8 @@ public class Server
         return password;
     }
 
-    public Type getType()
-    {
-        return type;
-    }
-    
-    //Setters
-    public void setName(String name)
-    {
-        this.name = name;
-    }
 
+    
     public void setUrl(String url)
     {
         this.url = url;
@@ -229,21 +184,7 @@ public class Server
             this.password = password;
     }
 
-    public void setType(Type type)
-    {
-        this.type = type;
-    }
-    
-    public boolean isAuthenticated() 
-    {
-        return authenticated;
-    }
-
-    public void setAuthenticated(boolean authenticated) 
-    {
-        this.authenticated = authenticated;
-    }
-    // </editor-fold>
+  
 
 	public UUID getUserId() {
 		return userId;
@@ -252,14 +193,5 @@ public class Server
 	public void setUserId(UUID userId) {
 		this.userId = userId;
 	}
-	
-	
-	// give each server an unique ID 
-	/* static final AtomicLong NEXT_ID = new AtomicLong(0);
-	 final long id = NEXT_ID.getAndIncrement();
-
-	 public long getId() {
-	         return id;
-	 } */
     
 }

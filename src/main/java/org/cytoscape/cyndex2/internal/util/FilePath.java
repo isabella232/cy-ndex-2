@@ -33,5 +33,7 @@ package org.cytoscape.cyndex2.internal.util;
 public class FilePath
 {
     public static final String ADDED_SERVERS = "added-servers.json";
+    public static final String SELECTED_SERVER = "selected-server.json";
+    
     public static String DEFAULT_SERVER_CREDENTIALS = "default-server-credentials.json";
 }

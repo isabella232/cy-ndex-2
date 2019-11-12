@@ -29,6 +29,8 @@ package org.cytoscape.cyndex2.internal.ui.swing;
 import java.awt.Component;
 import java.awt.Frame;
 import java.awt.HeadlessException;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -60,7 +62,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author David
  * @author David Otasek
  */
-public class FindNetworksDialog extends javax.swing.JDialog {
+public class FindNetworksDialog extends javax.swing.JDialog implements PropertyChangeListener {
 	
 	/**
 	* 
@@ -73,6 +75,7 @@ public class FindNetworksDialog extends javax.swing.JDialog {
 	 */
 	public FindNetworksDialog(Frame parent, LoadParameters loadParameters) {
 		super(parent, false);
+		ServerManager.INSTANCE.addPropertyChangeListener(this);
 		initComponents();
 		prepComponents(loadParameters.searchTerm);
 	}
@@ -86,11 +89,10 @@ public class FindNetworksDialog extends javax.swing.JDialog {
 		this.setModal(false);
 		this.getRootPane().setDefaultButton(search);
 
-		Server selectedServer = ServerManager.INSTANCE.getSelectedServer();
-	
+		Server selectedServer = ServerManager.INSTANCE.getServer();
 		searchField.setText(searchTerm);
 
-		if (selectedServer.isAuthenticated()) {
+		if (selectedServer.getUsername() != null && !selectedServer.getUsername().isEmpty()) {
 			administeredByMe.setVisible(true);
 		} else {
 			if (selectedServer.getUsername() != null) {
@@ -170,7 +172,7 @@ public class FindNetworksDialog extends javax.swing.JDialog {
 
 				{
 					// For entire network, we will query again, hence will check credential
-					final Server selectedServer = ServerManager.INSTANCE.getSelectedServer();
+					final Server selectedServer = ServerManager.INSTANCE.getServer();
 					final NdexRestClientModelAccessLayer mal = selectedServer.getModelAccessLayer();
 					boolean success = selectedServer.check(mal);
 					if (success) {
@@ -297,7 +299,7 @@ public class FindNetworksDialog extends javax.swing.JDialog {
 
         jLabel4.setText("WARNING: In some cases, not all network information stored in NDEx will be available within Cytoscape after loading.");
 
-        jButton1.setText("profile");
+        jButton1.setText(SignInButtonHelper.getSignInText());
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -559,4 +561,9 @@ public class FindNetworksDialog extends javax.swing.JDialog {
     private javax.swing.JTextField searchField;
     private javax.swing.JButton selectNetwork;
     // End of variables declaration//GEN-END:variables
+
+		@Override
+		public void propertyChange(PropertyChangeEvent arg0) {
+			jButton1.setText(SignInButtonHelper.getSignInText());
+		}
 }

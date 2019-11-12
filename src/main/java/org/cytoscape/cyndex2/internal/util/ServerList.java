@@ -40,6 +40,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.swing.AbstractListModel;
 
@@ -64,8 +66,6 @@ public class ServerList extends AbstractListModel<Server>
 	private static final long serialVersionUID = 1L;
 	//A list of servers, both DEFAULT and ADDED, displayed to the user.
     private List<Server> serverList = new ArrayList<>();
-    //A list of default servers with CREDENTIALS.
-    private List<Server> defaultServerCredentials = new ArrayList<>();
     //A list of DEFAULT servers
     private List<Server> defaultServerList = new ArrayList<>();
     
@@ -73,31 +73,14 @@ public class ServerList extends AbstractListModel<Server>
     {
         super();
         readServers();
-        readDefaultServers();
-    }
-
-    public Server getDefaultServer()
-    {
-        return defaultServerList.get(0);
     }
     
     private void readServers()
     {
-        readAddedServers();
-    }
-   
-    private void readDefaultServers()
-    {
-        Collection<Server> defaultServers = readServerCollection(ResourcePath.DEFAULT_NDEX_SERVERS); 
-        defaultServerList.addAll(defaultServers);
-    }
-    
-    private void readAddedServers()
-    {
     	File configDir = CyServiceModule.INSTANCE.getConfigDir();
-        File addedServersJsonFile = new File(configDir, FilePath.ADDED_SERVERS);
-        Collection<Server> addedServers = readServerCollection(addedServersJsonFile);     
-        serverList.addAll(addedServers);
+      File addedServersJsonFile = new File(configDir, FilePath.ADDED_SERVERS);
+      Collection<Server> addedServers = readServerCollection(addedServersJsonFile);     
+      serverList.addAll(addedServers);
     }
     
     private Collection<Server> readServerCollection(String resourcePath)
@@ -114,6 +97,8 @@ public class ServerList extends AbstractListModel<Server>
             return null;
         }
     }
+    
+   
     
     private Collection<Server> readServerCollection(File jsonFile)
     {
@@ -147,6 +132,8 @@ public class ServerList extends AbstractListModel<Server>
         saveServerList( serverList, addedServersFile.getAbsolutePath() );
     }
     
+    public Stream<Server> stream() { return serverList.stream(); }
+    
     private void saveServerList( List<Server> serverList2, String filePath )
     {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -161,18 +148,6 @@ public class ServerList extends AbstractListModel<Server>
             ex.printStackTrace();
         }    
         
-    }
-    
-    /**
-     * This method is used to inform the server list that one of the servers
-     * already in the list has been edited so that it can fire the appropriate
-     * events to notify and update the GUI.
-     * @param editedServer The server that was just edited.
-     */
-    public void edited(Server editedServer)
-    {
-        int indexOfEditedServer = serverList.indexOf(editedServer);
-        fireContentsChanged(this, indexOfEditedServer, indexOfEditedServer);
     }
     
     public void delete(Server server)
@@ -196,6 +171,11 @@ public class ServerList extends AbstractListModel<Server>
     public Server get(int index)
     {
         return serverList.get(index);
+    }
+    
+    public Server getServer(ServerKey serverKey) {
+    	List<Server> result = serverList.stream().filter(server -> serverKey.username.equals(server.getUsername()) && serverKey.url.equals(server.getUrl())).collect(Collectors.toList());
+    	return result.size() == 1 ? result.get(0) : null;	
     }
     
     @Override

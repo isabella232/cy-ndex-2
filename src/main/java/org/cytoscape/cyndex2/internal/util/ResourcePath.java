@@ -32,5 +32,5 @@ package org.cytoscape.cyndex2.internal.util;
  */
 public class ResourcePath
 {
-    public static final String DEFAULT_NDEX_SERVERS = "ndex/default-ndex-servers.json";
+    public static final String DEFAULT_NDEX_SERVER = "ndex/default-ndex-server.json";
 }

@@ -165,64 +165,14 @@ public class SignInDialog extends javax.swing.JDialog {
         final String password = new String(this.password.getPassword());
         final String serverUrl = this.url1.getText().trim().length() > 0 ? this.url1.getText() : "";
         
-        final String url = serverUrl.concat("/v2/user?valid=true");
-      
-        CredentialsProvider provider = new BasicCredentialsProvider();
-        UsernamePasswordCredentials credentials
-         = new UsernamePasswordCredentials(username, password);
-         
-        provider.setCredentials(AuthScope.ANY, credentials);
-          
-        HttpClient httpClient = HttpClientBuilder.create()
-          .setDefaultCredentialsProvider(provider)
-          .build();
-        
-        final HttpGet get = new HttpGet(url);
-       // final String authString = "Basic ".concat(username).concat(":").concat(password);
-       // System.out.println("authstring: " + authString);
-       // get.setHeader("Authorization", new String(Base64.getEncoder().encode(authString.getBytes())));
-        
-        HttpResponse response;
         try {
-            response = httpClient.execute(get);
-            
-            final HttpEntity entity = response.getEntity();
-            final String result = EntityUtils.toString(entity);
-            
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNode = objectMapper.readValue(result, JsonNode.class);
-            System.out.println(jsonNode);
-            
-            ServerList servers = ServerManager.INSTANCE.getAvailableServers();
-            
-            Server server = new Server();
-           
-            server.setUrl(serverUrl );
-            server.setUsername( username );
-            server.setPassword( password );
-            server.setType(Server.Type.ADDED);  
-            
-            try
-            {
-                servers.add(server);
-                servers.save();
-                ServerManager.INSTANCE.setSelectedServer(server);
-                //parent.setSelectedServer(server);
-                setVisible(false);
-            }
-            catch (Exception ex)
-            {
+        	ServerManager.INSTANCE.addServer(username, password, serverUrl);
+        } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this,
                     ex.getMessage(),
                     "Error Adding Server",
                     JOptionPane.ERROR_MESSAGE);
-            } 
-                      
-        } catch (ClientProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        }   
     }
 
     /**

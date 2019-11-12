@@ -27,20 +27,15 @@
 package org.cytoscape.cyndex2.internal.ui.swing;
 
 import java.awt.Frame;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.Map;
-import java.util.UUID;
-
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.SwingWorker;
-import javax.ws.rs.core.Response;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -52,29 +47,11 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.cytoscape.cyndex2.external.SaveParameters;
 import org.cytoscape.cyndex2.internal.rest.SimpleNetworkSummary;
-import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
-import org.cytoscape.cyndex2.internal.rest.parameter.NDExImportParameters;
 import org.cytoscape.cyndex2.internal.rest.parameter.NDExSaveParameters;
 import org.cytoscape.cyndex2.internal.rest.response.SummaryResponse;
 import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
-import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.model.CyNetwork;
-import org.cytoscape.model.CyNetworkManager;
-import org.cytoscape.model.CyNetworkTableManager;
-import org.cytoscape.model.subnetwork.CyRootNetwork;
-import org.cytoscape.model.subnetwork.CySubNetwork;
-
-import org.cytoscape.view.model.CyNetworkViewManager;
-import org.cytoscape.view.model.VisualLexicon;
-import org.cytoscape.view.vizmap.VisualMappingManager;
-import org.cytoscape.work.TaskIterator;
-import org.cytoscape.work.TaskManager;
-import org.ndexbio.model.exceptions.NdexException;
-import org.ndexbio.model.object.Permissions;
-import org.ndexbio.model.object.network.NetworkSummary;
-import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -83,7 +60,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * @author David
  */
-public class ExportNetworkDialog extends javax.swing.JDialog {
+public class ExportNetworkDialog  extends javax.swing.JDialog implements PropertyChangeListener {
 
 	/**
 	* 
@@ -98,6 +75,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
 	public ExportNetworkDialog(Frame parent, SaveParameters saveParameters) {
 		super(parent, false);
 		this.saveParameters = saveParameters;
+		ServerManager.INSTANCE.addPropertyChangeListener(this);
 		initComponents();
 		prepComponents();
 	}
@@ -300,7 +278,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
             }
         });
 
-        jButton2.setText("profile");
+        jButton2.setText(SignInButtonHelper.getSignInText());
 
         jLabel6.setText("Author");
 
@@ -695,6 +673,11 @@ public class ExportNetworkDialog extends javax.swing.JDialog {
     private javax.swing.JCheckBox updateCheckbox;
     private javax.swing.JButton upload;
     private javax.swing.JTextField versionField;
+
+		@Override
+		public void propertyChange(PropertyChangeEvent arg0) {
+			jButton1.setText(SignInButtonHelper.getSignInText());
+		}
     // End of variables declaration//GEN-END:variables
 
 }

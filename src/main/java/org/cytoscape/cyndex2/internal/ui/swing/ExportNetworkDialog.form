@@ -177,7 +177,7 @@
     <Component class="javax.swing.JButton" name="jButton2">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="&quot;profile&quot;" type="code"/>
+          <Connection code="SignInButtonHelper.getSignInText()" type="code"/>
         </Property>
       </Properties>
       <AuxValues>
