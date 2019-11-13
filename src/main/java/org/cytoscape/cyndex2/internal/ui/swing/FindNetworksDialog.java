@@ -381,7 +381,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 	}
 
 	private void doneActionPerformed(java.awt.event.ActionEvent evt) {
-
+    this.setVisible(false);
 	}
 
 	private void search() {
