@@ -30,7 +30,7 @@ public class SignInButtonHelper {
     	final Server selectedServer = ServerManager.INSTANCE.getSelectedServer();
     	
     	if (selectedServer == null) {
-    		return "Sign In";
+    		return "Sign in";
     	} else {
     		return selectedServer.getUsername() + "@" + selectedServer.getUrl();
     	}

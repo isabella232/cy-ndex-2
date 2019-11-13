@@ -66,21 +66,22 @@ public class SignInDialog extends javax.swing.JDialog {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         jLabel2.setFont(new java.awt.Font("Lucida Grande", 1, 13)); // NOI18N
-        jLabel2.setText("NDEx Source");
+        jLabel2.setText("NDEx Sign in");
 
+        url1.setText("public.ndexbio.org");
         url1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 url1ActionPerformed(evt);
             }
         });
 
-        jLabel4.setText("URL:");
+        jLabel4.setText("NDEx Server:");
 
         jLabel5.setText("Username:");
 
         jLabel6.setText("Password:");
 
-        save.setText("Save");
+        save.setText("Sign in");
         save.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 saveActionPerformed(evt);
@@ -115,7 +116,7 @@ public class SignInDialog extends javax.swing.JDialog {
                             .addComponent(username)
                             .addComponent(password)))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 221, Short.MAX_VALUE)
+                        .addGap(0, 207, Short.MAX_VALUE)
                         .addComponent(cancel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(save)))
