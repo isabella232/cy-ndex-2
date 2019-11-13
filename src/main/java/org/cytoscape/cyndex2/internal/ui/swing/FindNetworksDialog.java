@@ -549,7 +549,13 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 
 	@Override
 	public void propertyChange(PropertyChangeEvent arg0) {
-		search();
+	
 		jButton1.setText(SignInButtonHelper.getSignInText());
+		Server selectedServer = ServerManager.INSTANCE.getServer();
+		if (administeredByMe.isSelected()) { 
+			administeredByMe.setSelected(selectedServer.getUsername() != null && !selectedServer.getUsername().isEmpty());
+		}
+		administeredByMe.setVisible(selectedServer.getUsername() != null && !selectedServer.getUsername().isEmpty());
+		search();
 	}
 }
