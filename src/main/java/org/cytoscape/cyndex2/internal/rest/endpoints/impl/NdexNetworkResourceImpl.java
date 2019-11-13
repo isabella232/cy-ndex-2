@@ -34,6 +34,7 @@ import org.cytoscape.cyndex2.internal.task.NDExExportTaskFactory;
 import org.cytoscape.cyndex2.internal.task.NDExImportTaskFactory;
 import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 import org.cytoscape.cyndex2.internal.util.NetworkUUIDManager;
+import org.cytoscape.cyndex2.internal.util.UpdateUtil;
 import org.cytoscape.io.read.AbstractCyNetworkReader;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.model.CyColumn;
@@ -319,7 +320,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		// Check UUID
 		UUID uuid;
 		try {
-			uuid = updateIsPossibleHelper(suid, params);
+			uuid = UpdateUtil.updateIsPossibleHelper(suid, params.username, params.password, params.serverUrl);
 		} catch (Exception e) {
 			final String message = "Unable to update network in NDEx." + e.getMessage()
 					+ " Try saving as a new network.";
@@ -390,42 +391,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		return updateNetworkInNdex(network.getSUID(), params);
 	}
 
-	private static UUID updateIsPossibleHelper(final Long suid, final NDExBasicSaveParameters params) throws Exception {
 
-		CyNetworkManager network_manager = CyServiceModule.getService(CyNetworkManager.class);
-		CyNetwork network = network_manager.getNetwork(suid);
-		UUID ndexNetworkId = NetworkUUIDManager.getUUID(network);
-		
-		if (ndexNetworkId == null) {
-			throw new Exception(
-					"NDEx network UUID not found. You can only update networks that were imported with CyNDEx2");
-		}
-
-		final NdexRestClient nc = new NdexRestClient(params.username, params.password, params.serverUrl,
-				CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
-		final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
-		try {
-
-			Map<String, Permissions> permissionTable = mal.getUserNetworkPermission(nc.getUserUid(), ndexNetworkId,
-					false);
-			if (permissionTable == null || permissionTable.get(ndexNetworkId.toString()) == Permissions.READ)
-				throw new Exception("You don't have permission to write to this network.");
-
-		} catch (IOException | NdexException e) {
-			throw new Exception("Unable to read network permissions. " + e.getMessage());
-		}
-
-		NetworkSummary ns = null;
-		try {
-			ns = mal.getNetworkSummaryById(ndexNetworkId);
-			if (ns.getIsReadOnly())
-				throw new Exception("The network is read only.");
-
-		} catch (IOException | NdexException e) {
-			throw new Exception(" An error occurred while checking permissions. " + e.getMessage());
-		}
-		return ndexNetworkId;
-	}
 
 	@Override
 	@CIWrapping
