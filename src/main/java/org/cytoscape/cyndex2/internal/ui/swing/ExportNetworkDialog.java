@@ -34,14 +34,15 @@ import java.io.PipedOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.Map;
-import javax.swing.JTextField;
 import javax.swing.SwingWorker;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -51,6 +52,7 @@ import org.cytoscape.cyndex2.internal.rest.parameter.NDExSaveParameters;
 import org.cytoscape.cyndex2.internal.rest.response.SummaryResponse;
 import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
+import org.cytoscape.cyndex2.internal.util.UpdateUtil;
 import org.cytoscape.model.CyNetwork;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -124,9 +126,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 			SummaryResponse summaryResponse = objectMapper.treeToValue(jsonNode.get("data"), SummaryResponse.class);
 		
 			// CyNetwork cyNetwork = CyObjectManager.INSTANCE.getCurrentNetwork();
-			boolean updatePossible = false; // updateIsPossible();
-			updateCheckbox.setSelected(false);
-			updateCheckbox.setEnabled(updatePossible);
+			updateUpdateButton();
 
 			authorField.setEnabled(!isCollection);
 			organismField.setEnabled(!isCollection);
@@ -423,13 +423,13 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 			protected Integer doInBackground() throws Exception {
 
 				final Server selectedServer = ServerManager.INSTANCE.getSelectedServer();
-
+				final boolean update = updateCheckbox.isEnabled() && updateCheckbox.isSelected();
 				final String REST_URI = "http://localhost:1234/cyndex2/v1/networks/" + saveParameters.suid;
 
 				HttpClient httpClient = HttpClients.createDefault();
 				final URI uri = URI.create(REST_URI);
-				final HttpPost post = new HttpPost(uri.toString());
-				post.setHeader("Content-type", "application/json");
+				final HttpEntityEnclosingRequestBase request = update ? new HttpPut(uri.toString()): new HttpPost(uri.toString());
+				request.setHeader("Content-type", "application/json");
 
 				Map<String, String> metadata = Map.of("name", nameField.getText(), "author", authorField.getText(), "organism",
 						organismField.getText(), "disease", diseaseField.getText(), "tissue", tissueField.getText(), "rightsHolder",
@@ -443,8 +443,8 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 				ObjectMapper objectMapper = new ObjectMapper();
 
 				try {
-					post.setEntity(new StringEntity(objectMapper.writeValueAsString(saveParameters)));
-					HttpResponse response = httpClient.execute(post);
+					request.setEntity(new StringEntity(objectMapper.writeValueAsString(saveParameters)));
+					HttpResponse response = httpClient.execute(request);
 
 					System.out.println("Response: " + response.toString());
 
@@ -557,9 +557,10 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 	public void propertyChange(PropertyChangeEvent arg0) {
 		jButton2.setText(SignInButtonHelper.getSignInText());
 		updateUploadButton();
+		updateUpdateButton();
 	}
 
-	public void updateUploadButton() {
+	private void updateUploadButton() {
 		final Server selectedServer = ServerManager.INSTANCE.getServer();
 		if (selectedServer.getUsername() == null) {
 			upload.setEnabled(false);
@@ -568,6 +569,19 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 			upload.setEnabled(true);
 			upload.setToolTipText(null);
 		}
+	}
+	
+	private void updateUpdateButton () {
+		final Server selectedServer = ServerManager.INSTANCE.getServer();
+		boolean updatePossible;
+		try {
+			updatePossible = UpdateUtil.updateIsPossibleHelper(saveParameters.suid, selectedServer.getUsername(), selectedServer.getPassword(), selectedServer.getUrl()) != null;		
+		} catch (Exception e) {
+			updatePossible = false;
+			e.printStackTrace();
+		}
+		updateCheckbox.setSelected(false);
+		updateCheckbox.setEnabled(updatePossible);
 	}
 
 	/**
