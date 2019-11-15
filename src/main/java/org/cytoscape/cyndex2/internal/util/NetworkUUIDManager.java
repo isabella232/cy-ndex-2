@@ -16,7 +16,7 @@ public class NetworkUUIDManager {
 			table.createColumn(UUID_COLUMN, String.class, false);
 		}
 		CyRow row = table.getRow(network.getSUID());
-		System.out.println("Saving UUID for network " + network.getSUID());
+		System.out.println("Saving UUID for network " + network.getSUID() + " row != null: " + (row != null));
 		row.set(UUID_COLUMN, uuid.toString());
 	}
 	
