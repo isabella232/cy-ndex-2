@@ -118,9 +118,9 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 			
 			if (!isUpdate) {
 				networkUUID = mal.createCXNetwork(cxStream);
-				NetworkUUIDManager.saveUUID(network, networkUUID);
+				NetworkUUIDManager.saveUUID(writeCollection ? rootNetwork : network, networkUUID);
 			} else {
-				networkUUID = NetworkUUIDManager.getUUID(network);
+				networkUUID = NetworkUUIDManager.getUUID(writeCollection ? rootNetwork : network);
 				if (networkUUID == null) {
 					throw new NetworkUpdateException("No UUID found for " + network);
 				}

@@ -2,13 +2,17 @@ package org.cytoscape.cyndex2.internal.util;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.rest.parameter.NDExBasicSaveParameters;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
+import org.cytoscape.model.subnetwork.CyRootNetwork;
+import org.cytoscape.model.subnetwork.CyRootNetworkManager;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.Permissions;
 import org.ndexbio.model.object.network.NetworkSummary;
@@ -16,10 +20,19 @@ import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 public class UpdateUtil {
-	public static UUID updateIsPossibleHelper(final Long suid, String username, String password, String url) throws Exception {
+	
+	private static CyNetwork getRootNetwork(final Long suid, final CyNetworkManager networkManager, final CyRootNetworkManager rootNetworkManager) {
+		Optional<CyRootNetwork> optional = networkManager.getNetworkSet().stream().map(net -> rootNetworkManager.getRootNetwork(net))
+		.findFirst();
+		return optional.isPresent() ? optional.get() : null;
+	}
+	
+	public static UUID updateIsPossibleHelper(final Long suid, boolean isCollection, String username, String password, String url) throws Exception {
 
-		CyNetworkManager network_manager = CyServiceModule.getService(CyNetworkManager.class);
-		CyNetwork network = network_manager.getNetwork(suid);
+		final CyNetworkManager network_manager = CyServiceModule.getService(CyNetworkManager.class);
+		final CyRootNetworkManager root_network_manager = CyServiceModule.getService(CyRootNetworkManager.class);
+		final CyNetwork network = isCollection ? getRootNetwork(suid, network_manager, root_network_manager) : network_manager.getNetwork(suid);
+		
 		UUID ndexNetworkId = NetworkUUIDManager.getUUID(network);
 		
 		if (ndexNetworkId == null) {

@@ -137,32 +137,9 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 	}
 
 	private void load(final NetworkSummary networkSummary) {
-		// Note: In this code, references named network, node, and edge generally refer
-		// to the NDEx object model
-		// while references named cyNetwork, cyNode, and cyEdge generally refer to the
-		// Cytoscape object model.
-
-		boolean largeNetwork = false;
-		largeNetwork = networkSummary.getEdgeCount() > 10000;
-
-		if (largeNetwork) {
-			/*
-			 * JFrame parent = CyObjectManager.INSTANCE.getApplicationFrame(); String msg =
-			 * "You have chosen to download a network that has more than 10,000 edges.\n";
-			 * msg +=
-			 * "The download will occur in the background and you can continue working,\n";
-			 * msg +=
-			 * "but it may take a while to appear in Cytoscape. Also, no layout will be\n";
-			 * msg += "applied. Would you like to proceed?"; String dialogTitle =
-			 * "Proceed?"; int choice = JOptionPane.showConfirmDialog(parent, msg,
-			 * dialogTitle, JOptionPane.YES_NO_OPTION); if (choice == JOptionPane.NO_OPTION)
-			 * return;
-			 */
-		}
-//        final boolean finalLargeNetwork = largeNetwork;
 
 		final Component me = this;
-		// final boolean isLargeNetwork = largeNetwork;
+		
 		SwingWorker<Integer, Integer> worker = new SwingWorker<Integer, Integer>() {
 
 			@Override

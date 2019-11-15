@@ -320,7 +320,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		// Check UUID
 		UUID uuid;
 		try {
-			uuid = UpdateUtil.updateIsPossibleHelper(suid, params.username, params.password, params.serverUrl);
+			uuid = UpdateUtil.updateIsPossibleHelper(suid, network instanceof CyRootNetwork, params.username, params.password, params.serverUrl);
 		} catch (Exception e) {
 			final String message = "Unable to update network in NDEx." + e.getMessage()
 					+ " Try saving as a new network.";

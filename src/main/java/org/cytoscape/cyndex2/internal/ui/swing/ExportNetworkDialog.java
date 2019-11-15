@@ -462,82 +462,6 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 			}
 		};
 		worker.execute();
-		/*
-		 * CyNetwork cyNetwork = CyObjectManager.INSTANCE.getCurrentNetwork(); // get
-		 * the current subNetwork
-		 * 
-		 * if (cyNetwork.getEdgeCount() > 10000) { JFrame parent =
-		 * CyObjectManager.INSTANCE.getApplicationFrame(); String msg =
-		 * "You have chosen to upload a network that has more than 10,000 edges.\n"; msg
-		 * += "The upload will occur in the background and you can continue working,\n";
-		 * msg +=
-		 * "but it may take a while to appear in NDEx. Would you like to proceed?";
-		 * String dialogTitle = "Proceed?"; int choice =
-		 * JOptionPane.showConfirmDialog(parent, msg, dialogTitle,
-		 * JOptionPane.YES_NO_OPTION); if (choice == JOptionPane.NO_OPTION) return; }
-		 * 
-		 * CyRootNetwork rootNetwork = ((CySubNetwork) cyNetwork).getRootNetwork();
-		 * 
-		 * 
-		 * String collectionName = rootNetwork.getRow(rootNetwork).get(CyNetwork.NAME,
-		 * String.class); String uploadName = nameField.getText().trim(); String
-		 * networkName = cyNetwork.getRow(cyNetwork).get(CyNetwork.NAME, String.class);
-		 * 
-		 * rootNetwork.getRow(rootNetwork).set(CyNetwork.NAME, uploadName); // If
-		 * network is selected if (networkOrCollectionCombo.getSelectedIndex() == 0)
-		 * cyNetwork.getRow(cyNetwork).set(CyNetwork.NAME, uploadName);
-		 * 
-		 * Server selectedServer = ServerManager.INSTANCE.getSelectedServer(); final
-		 * NdexRestClientModelAccessLayer mal = selectedServer.getModelAccessLayer();
-		 * 
-		 * PipedInputStream in = null; PipedOutputStream out = null;
-		 * 
-		 * UUID networkUUID = null; // boolean networkUpdated = false; try { in = new
-		 * PipedInputStream(); out = new PipedOutputStream(in);
-		 * 
-		 * if (updateCheckbox.isSelected()) { UUID networkId =
-		 * NetworkManager.INSTANCE.getNdexNetworkId(cyNetwork.getSUID()); if (networkId
-		 * == null) networkId =
-		 * NetworkManager.INSTANCE.getCXInfoHolder(cyNetwork.getSUID()).getNetworkId();
-		 * 
-		 * if (updateIsPossible()) {
-		 * 
-		 * prepareToWriteNetworkToCXStream(cyNetwork, out, true);
-		 * mal.updateCXNetwork(networkId, in); networkUUID = networkId;
-		 * 
-		 * } else { JFrame parent = CyObjectManager.INSTANCE.getApplicationFrame();
-		 * String msg = "You have chosen to update, but it is no longer possible.\n";
-		 * msg += "Would you like to proceed by creating a new network instead?\n";
-		 * String dialogTitle = "Proceed?"; int choice =
-		 * JOptionPane.showConfirmDialog(parent, msg, dialogTitle,
-		 * JOptionPane.YES_NO_OPTION); if (choice == JOptionPane.NO_OPTION) return;
-		 * prepareToWriteNetworkToCXStream(cyNetwork, out, false); networkUUID =
-		 * mal.createCXNetwork(in); }
-		 * 
-		 * } else { prepareToWriteNetworkToCXStream(cyNetwork, out, false); networkUUID
-		 * = mal.createCXNetwork(in); }
-		 * 
-		 * } catch (Exception e) { e.printStackTrace(); } finally {
-		 * 
-		 * if (in != null) { try { in.close(); } catch (IOException e) {
-		 * e.printStackTrace(); } } if (out != null) { try { out.close(); } catch
-		 * (IOException e) { e.printStackTrace(); } }
-		 * rootNetwork.getRow(rootNetwork).set(CyNetwork.NAME, collectionName);
-		 * cyNetwork.getRow(cyNetwork).set(CyNetwork.NAME, networkName);
-		 * 
-		 * CyObjectManager.INSTANCE.getApplicationFrame().revalidate(); }
-		 * 
-		 * if (networkUUID == null) { JFrame parent =
-		 * CyObjectManager.INSTANCE.getApplicationFrame(); String msg =
-		 * "There was a problem exporting the network!";
-		 * JOptionPane.showMessageDialog(parent, msg, "Error",
-		 * JOptionPane.ERROR_MESSAGE); return; }
-		 * 
-		 * SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-		 * 
-		 * @Override protected Void doInBackground() throws Exception { return null; }
-		 * }; worker.execute();
-		 */
 		this.setVisible(false);
 
 	}// GEN-LAST:event_uploadActionPerformed
@@ -575,7 +499,8 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 		final Server selectedServer = ServerManager.INSTANCE.getServer();
 		boolean updatePossible;
 		try {
-			updatePossible = UpdateUtil.updateIsPossibleHelper(saveParameters.suid, selectedServer.getUsername(), selectedServer.getPassword(), selectedServer.getUrl()) != null;		
+			System.out.println("Checking if update is possible for suid: " + saveParameters.suid);
+			updatePossible = UpdateUtil.updateIsPossibleHelper(saveParameters.suid, saveParameters.saveType.equals("collection"), selectedServer.getUsername(), selectedServer.getPassword(), selectedServer.getUrl()) != null;		
 		} catch (Exception e) {
 			updatePossible = false;
 			e.printStackTrace();
