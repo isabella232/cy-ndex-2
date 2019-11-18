@@ -1,20 +1,34 @@
 package org.cytoscape.cyndex2.internal.ui.swing;
 
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
+import javax.swing.Icon;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+
+import org.cytoscape.cyndex2.internal.util.IconUtil;
 import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerKey;
 import org.cytoscape.cyndex2.internal.util.ServerList;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
+import org.cytoscape.util.swing.TextIcon;
 
 public class ProfilePopupMenu extends JPopupMenu {
 
+	
+	
+	static final Font font = IconUtil.getIconFont(23f);
+	static int iconSize = 24;
+	
+	static final Icon ADD_PROFILE_ICON = new TextIcon(IconUtil.ICON_NDEX_ACCOUNT_PLUS, font, iconSize, iconSize);
+	static final Icon REMOVE_PROFILE_ICON = new TextIcon(IconUtil.ICON_NDEX_ACCOUNT_MINUS, font, iconSize, iconSize);
+ 	static final Icon PROFILE_ICON = new TextIcon(IconUtil.ICON_NDEX_ACCOUNT, font, iconSize, iconSize);
+	
 	public void show(Component invoker, int x, int y) {
 		while (getSubElements().length > 0) {
 			remove(0);
@@ -26,7 +40,7 @@ public class ProfilePopupMenu extends JPopupMenu {
 		if (selectedServer == null) {
 
 		} else {
-			add(new JMenuItem(new AbstractAction("Remove Profile") {
+			add(new JMenuItem(new AbstractAction("Remove Current Profile", REMOVE_PROFILE_ICON) {
 				public void actionPerformed(ActionEvent e) {
 					System.out.println("log out " + selectedServer.getUsername() + "@" + selectedServer.getUrl());
 					ServerManager.INSTANCE.removeServer(selectedServer);
@@ -41,7 +55,7 @@ public class ProfilePopupMenu extends JPopupMenu {
 		if (serverItems.size() > 0) {
 			serverItems.stream().forEach(server -> {
 				JMenuItem jMenuItem = new JMenuItem(new AbstractAction(
-						"<HTML>" + "<b>" + server.getUsername() + "</b>" + "<br>" + server.getUrl() + "</HTML>") {
+						"<HTML>" + "<b>" + server.getUsername() + "</b>" + "<br>" + server.getUrl() + "</HTML>", PROFILE_ICON) {
 					@Override
 					public void actionPerformed(ActionEvent arg0) {
 						ServerManager.INSTANCE.setSelectedServer(new ServerKey(server));
@@ -53,7 +67,7 @@ public class ProfilePopupMenu extends JPopupMenu {
 			addSeparator();
 		}
 
-		add(new JMenuItem(new AbstractAction("Add new profile...") {
+		add(new JMenuItem(new AbstractAction("Add new profile...", ADD_PROFILE_ICON) {
 			public void actionPerformed(ActionEvent e) {
 				SignInDialog signInDialog = new SignInDialog(null);
 				signInDialog.setVisible(true);

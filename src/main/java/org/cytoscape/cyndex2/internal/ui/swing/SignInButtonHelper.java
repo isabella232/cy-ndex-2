@@ -1,21 +1,29 @@
 package org.cytoscape.cyndex2.internal.ui.swing;
 
+import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JPopupMenu;
 
+import org.cytoscape.cyndex2.internal.util.IconUtil;
 import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
+import org.cytoscape.util.swing.TextIcon;
 
 public class SignInButtonHelper {
 
     public static JButton createSignInButton() {
         //Create the popup menu.
         final JPopupMenu popup = new ProfilePopupMenu();
-        JButton signInButton = new JButton();
+      	Font font = IconUtil.getIconFont(23f);
+    		int iconSize = 24;
+      	Icon icon = new TextIcon(IconUtil.ICON_NDEX_ACCOUNT, font, iconSize, iconSize);
         
+        JButton signInButton = new JButton();
+        signInButton.setIcon(icon);
         signInButton.setText(getSignInText());
        
         signInButton.addMouseListener(new MouseAdapter() {
