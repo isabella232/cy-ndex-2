@@ -26,37 +26,26 @@
 
 package org.cytoscape.cyndex2.internal.ui.swing;
 
-import java.awt.Component;
 import java.awt.Frame;
 import java.awt.HeadlessException;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import java.net.URI;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-import java.util.Vector;
+import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
-import javax.swing.SwingWorker;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClients;
 import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
-import org.cytoscape.cyndex2.internal.rest.parameter.NDExImportParameters;
 import org.cytoscape.cyndex2.internal.util.ErrorMessage;
-import org.cytoscape.cyndex2.internal.util.IconUtil;
 import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
 import org.ndexbio.model.exceptions.NdexException;
-import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.network.NetworkSummary;
+import org.ndexbio.model.object.network.VisibilityType;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  *
@@ -137,63 +126,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		}
 	}
 
-	private void load(final NetworkSummary networkSummary) {
-
-		final Component me = this;
-		
-		SwingWorker<Integer, Integer> worker = new SwingWorker<Integer, Integer>() {
-
-			@Override
-			protected Integer doInBackground() throws Exception {
-
-				// For entire network, we will query again, hence will check credential
-				final Server selectedServer = ServerManager.INSTANCE.getServer();
-				final NdexRestClientModelAccessLayer mal = selectedServer.getModelAccessLayer();
-				boolean success = selectedServer.check(mal);
-				if (success) {
-					// The network to copy from.
-//                        NetworkSummary networkSummary = NetworkManager.INSTANCE.getSelectedNetworkSummary();
-					UUID uuid = networkSummary.getExternalId();
-					try {
-						// ProvenanceEntity provenance = mal.getNetworkProvenance(id.toString());
-
-						String REST_URI = "http://localhost:1234/cyndex2/v1/networks";
-						HttpClient httpClient = HttpClients.createDefault();
-						final URI uri = URI.create(REST_URI);
-						final HttpPost post = new HttpPost(uri.toString());
-						post.setHeader("Content-type", "application/json");
-						
-						NDExImportParameters importParameters = new NDExImportParameters(uuid.toString(), selectedServer.getUsername(), selectedServer.getPassword(),
-								selectedServer.getUrl(), null, null);
-						ObjectMapper objectMapper = new ObjectMapper();
-
-						post.setEntity(new StringEntity(objectMapper.writeValueAsString(importParameters)));
-
-						httpClient.execute(post);
-
-					}
-
-					/*
-					 * catch (IOException ex) { JOptionPane.showMessageDialog(me,
-					 * ErrorMessage.failedToParseJson, "Error", JOptionPane.ERROR_MESSAGE); return
-					 * -1; }
-					 */
-					catch (RuntimeException ex2) {
-						JOptionPane.showMessageDialog(me, "This network can't be imported to cytoscape. Cause: " + ex2.getMessage(),
-								"Error", JOptionPane.ERROR_MESSAGE);
-						ex2.printStackTrace();
-						return -1;
-					}
-				} else {
-					JOptionPane.showMessageDialog(me, ErrorMessage.failedServerCommunication, "Error", JOptionPane.ERROR_MESSAGE);
-				}
-				return 1;
-			}
-		};
-		worker.execute();
-//        findNetworksDialog.setFocusOnDone();
-//        this.setVisible(false);
-	}
+	
 
 	/**
 	 * This method is called from within the constructor to initialize the form.
@@ -207,7 +140,6 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 
         jScrollPane1 = new javax.swing.JScrollPane();
         resultsTable = new javax.swing.JTable();
-        selectNetwork = new javax.swing.JButton();
         done = new javax.swing.JButton();
         search = new javax.swing.JButton();
         searchField = new javax.swing.JTextField();
@@ -221,31 +153,9 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Find Networks");
 
-        resultsTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null, null, null}
-            },
-            new String [] {
-                "Network Title", "Format", "Number of Nodes", "Number of Edges", "Owned By", "Last Modified"
-            }
-        ) {
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, true
-            };
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
+        resultsTable.setModel(new NetworkSummaryTableModel(List.of()));
         resultsTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane1.setViewportView(resultsTable);
-
-        selectNetwork.setText("Load Network");
-        selectNetwork.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                selectNetworkActionPerformed(evt);
-            }
-        });
 
         done.setText("Done Loading Networks");
         done.addActionListener(new java.awt.event.ActionListener() {
@@ -275,40 +185,41 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
         jButton1.setText(SignInButtonHelper.getSignInText());
 
         ndexLogo.setText(null);
-        ndexLogo.setIcon(IconUtil.getNdexIcon());
-        
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
-                    .addComponent(jSeparator1)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(searchField)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(search))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jLabel4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(selectNetwork, javax.swing.GroupLayout.PREFERRED_SIZE, 183, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(done, javax.swing.GroupLayout.PREFERRED_SIZE, 183, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(ndexLogo)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton1)))
+                        .addContainerGap()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane1)
+                            .addComponent(jSeparator1)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(searchField)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(search))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(done, javax.swing.GroupLayout.PREFERRED_SIZE, 183, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(ndexLogo)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jButton1))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel1)
+                                .addGap(0, 0, Short.MAX_VALUE))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(377, 377, 377)
+                        .addComponent(administeredByMe)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
             .addGroup(layout.createSequentialGroup()
-                .addGap(377, 377, 377)
-                .addComponent(administeredByMe)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(98, 98, 98)
+                .addComponent(jLabel4)
+                .addContainerGap(121, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -330,9 +241,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 299, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(selectNetwork)
-                    .addComponent(jLabel4))
+                .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(done)
                 .addContainerGap())
@@ -350,7 +259,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		NetworkSummary ns = displayedNetworkSummaries.get(selectedIndex);
 		// NetworkManager.INSTANCE.setSelectedNetworkSummary(ns);
 
-		load(ns);
+		//load(ns);
 	}// GEN-LAST:event_selectNetworkActionPerformed
 
 	private void getMyNetworks() {
@@ -442,47 +351,17 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 	private List<NetworkSummary> displayedNetworkSummaries = new ArrayList<>();
 
 	private void showSearchResults() {
-		DefaultTableModel model = new DefaultTableModel();
-		model.setColumnIdentifiers(
-				new String[] { "Network Title", "Format", "Number of Nodes", "Number of Edges", "Owned By", "Last Modified" });
+		TableModel model = new NetworkSummaryTableModel(networkSummaries);
 		displayedNetworkSummaries.clear();
 		for (NetworkSummary networkSummary : networkSummaries) {
-
-			if (networkSummary.getErrorMessage() != null)
-				continue;
-
-			Vector row = new Vector();
-
-			// Network Title
-			if (networkSummary.getName() != null)
-				row.add(networkSummary.getName());
-			else {
-				row.add("Network: " + networkSummary.getExternalId().toString());
-			}
-			// Format
-			row.add(getSourceFormat(networkSummary));
-			// Number of Nodes
-			row.add(networkSummary.getNodeCount());
-			// Number of Edges
-			row.add(networkSummary.getEdgeCount());
-			// Owned By
-			row.add(networkSummary.getOwner());
-			// Last Modified
-			row.add(networkSummary.getModificationTime());
-
-			model.addRow(row);
 			displayedNetworkSummaries.add(networkSummary);
 		}
 		resultsTable.setModel(model);
+		resultsTable.setDefaultRenderer(NetworkSummary.class, new NetworkSummaryTableModel.ImportButtonRenderer());
+		resultsTable.setDefaultRenderer(VisibilityType.class, new NetworkSummaryTableModel.VisibilityTypeRenderer());
+		resultsTable.setDefaultRenderer(Timestamp.class, new NetworkSummaryTableModel.TimestampRenderer());
+		resultsTable.setDefaultEditor(NetworkSummary.class, new NetworkSummaryTableModel.ImportButtonEditor(new JCheckBox()));
 		resultsTable.getSelectionModel().setSelectionInterval(0, 0);
-	}
-
-	private String getSourceFormat(NetworkSummary ns) {
-		for (NdexPropertyValuePair vp : ns.getProperties()) {
-			if (vp.getPredicateString().equals("ndex:sourceFormat"))
-				return vp.getValue();
-		}
-		return null;
 	}
 
 	/**
@@ -547,7 +426,6 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
     private javax.swing.JTable resultsTable;
     private javax.swing.JButton search;
     private javax.swing.JTextField searchField;
-    private javax.swing.JButton selectNetwork;
     // End of variables declaration//GEN-END:variables
 
 	@Override

@@ -10,7 +10,6 @@ public class BaseTests {
 	public void verifyServerKey() {
 		assertEquals("ServerList key has been changed. This will make previously saved user profiles invalid.", "YlKMdJocN6eNNlCY", ServerList.KEY);
 	}
-	
 }
 
 
