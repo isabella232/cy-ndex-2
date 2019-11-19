@@ -153,6 +153,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		setTitle("Find Networks");
 
 		resultsTable.setModel(new NetworkSummaryTableModel(List.of()));
+		resultsTable.setAutoCreateRowSorter(true);
 		resultsTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
 		jScrollPane1.setViewportView(resultsTable);
 
