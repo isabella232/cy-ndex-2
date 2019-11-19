@@ -1,5 +1,6 @@
 package org.cytoscape.cyndex2.internal.ui.swing;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,8 +17,13 @@ import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
+import javax.swing.JSpinner;
 import javax.swing.JTable;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingWorker;
 import javax.swing.event.CellEditorListener;
 import javax.swing.table.AbstractTableModel;
@@ -94,13 +100,22 @@ public class NetworkSummaryTableModel extends AbstractTableModel {
 	
 	private static void load(final NetworkSummary networkSummary) {
 
-		//final Component me = this;
+		JDialog dlgProgress = new JDialog((java.awt.Dialog)null, "Please wait...");//true means that the dialog created is modal
+		JLabel lblStatus = new JLabel("Working..."); // this is just a label in which you can indicate the state of the processing
+
+		JProgressBar pbProgress = new JProgressBar(0, 100);
+		pbProgress.setIndeterminate(true); //we'll use an indeterminate progress bar
+
+		dlgProgress.add(BorderLayout.NORTH, lblStatus);
+		dlgProgress.add(BorderLayout.CENTER, pbProgress);
+		dlgProgress.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE); // prevent the user from closing the dialog
+		dlgProgress.setSize(300, 90);
+
 		
 		SwingWorker<Integer, Integer> worker = new SwingWorker<Integer, Integer>() {
 
 			@Override
 			protected Integer doInBackground() throws Exception {
-
 				// For entire network, we will query again, hence will check credential
 				final Server selectedServer = ServerManager.INSTANCE.getServer();
 				final NdexRestClientModelAccessLayer mal = selectedServer.getModelAccessLayer();
@@ -144,8 +159,14 @@ public class NetworkSummaryTableModel extends AbstractTableModel {
 				}
 				return 1;
 			}
+			
+			@Override 
+			protected void done() {
+				dlgProgress.dispose();
+			}
 		};
 		worker.execute();
+		dlgProgress.setVisible(true);
 //        findNetworksDialog.setFocusOnDone();
 //        this.setVisible(false);
 	}
