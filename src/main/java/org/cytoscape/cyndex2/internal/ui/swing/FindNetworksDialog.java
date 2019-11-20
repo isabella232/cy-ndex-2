@@ -26,19 +26,29 @@
 
 package org.cytoscape.cyndex2.internal.ui.swing;
 
+import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.HeadlessException;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.net.URI;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JCheckBox;
-import javax.swing.JOptionPane;
-import javax.swing.table.TableModel;
+import java.util.UUID;
 
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
+import javax.swing.SwingWorker;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClients;
 import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
+import org.cytoscape.cyndex2.internal.rest.parameter.NDExImportParameters;
 import org.cytoscape.cyndex2.internal.util.ErrorMessage;
 import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
@@ -46,6 +56,8 @@ import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.object.network.VisibilityType;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  *
@@ -70,6 +82,76 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		prepComponents(loadParameters.searchTerm);
 	}
 
+	private void load(final NetworkSummary networkSummary) {
+		
+		JDialog dlgProgress = new JDialog(this, "Importing Network", true);//true means that the dialog created is modal
+		dlgProgress.setLocationRelativeTo(this);
+		JProgressBar pbProgress = new JProgressBar(0, 100);
+		pbProgress.setIndeterminate(true); //we'll use an indeterminate progress bar
+
+		dlgProgress.add(BorderLayout.CENTER, pbProgress);
+		dlgProgress.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE); // prevent the user from closing the dialog
+		dlgProgress.setSize(300, 90);
+
+		SwingWorker<Integer, Integer> worker = new SwingWorker<Integer, Integer>() {
+
+			@Override
+			protected Integer doInBackground() throws Exception {
+				// For entire network, we will query again, hence will check credential
+				final Server selectedServer = ServerManager.INSTANCE.getServer();
+				final NdexRestClientModelAccessLayer mal = selectedServer.getModelAccessLayer();
+				boolean success = selectedServer.check(mal);
+				if (success) {
+					// The network to copy from.
+//                        NetworkSummary networkSummary = NetworkManager.INSTANCE.getSelectedNetworkSummary();
+					UUID uuid = networkSummary.getExternalId();
+					try {
+						// ProvenanceEntity provenance = mal.getNetworkProvenance(id.toString());
+
+						String REST_URI = "http://localhost:1234/cyndex2/v1/networks";
+						HttpClient httpClient = HttpClients.createDefault();
+						final URI uri = URI.create(REST_URI);
+						final HttpPost post = new HttpPost(uri.toString());
+						post.setHeader("Content-type", "application/json");
+						
+						NDExImportParameters importParameters = new NDExImportParameters(uuid.toString(), selectedServer.getUsername(), selectedServer.getPassword(),
+								selectedServer.getUrl(), null, null);
+						ObjectMapper objectMapper = new ObjectMapper();
+
+						post.setEntity(new StringEntity(objectMapper.writeValueAsString(importParameters)));
+
+						httpClient.execute(post);
+
+					}
+
+					/*
+					 * catch (IOException ex) { JOptionPane.showMessageDialog(me,
+					 * ErrorMessage.failedToParseJson, "Error", JOptionPane.ERROR_MESSAGE); return
+					 * -1; }
+					 */
+					catch (RuntimeException ex2) {
+						JOptionPane.showMessageDialog(null, "This network can't be imported to cytoscape. Cause: " + ex2.getMessage(),
+								"Error", JOptionPane.ERROR_MESSAGE);
+						ex2.printStackTrace();
+						return -1;
+					}
+				} else {
+					JOptionPane.showMessageDialog(null, ErrorMessage.failedServerCommunication, "Error", JOptionPane.ERROR_MESSAGE);
+				}
+				return 1;
+			}
+			
+			@Override 
+			protected void done() {
+				dlgProgress.dispose();
+			}
+		};
+		worker.execute();
+		dlgProgress.setVisible(true);
+//        findNetworksDialog.setFocusOnDone();
+//        this.setVisible(false);
+	}
+	
 	public void setFocusOnDone() {
 		this.getRootPane().setDefaultButton(done);
 		done.requestFocus();
@@ -152,7 +234,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 		setTitle("Find Networks");
 
-		resultsTable.setModel(new NetworkSummaryTableModel(List.of()));
+		resultsTable.setModel(new NetworkSummaryTableModel(List.of(), null));
 		resultsTable.setAutoCreateRowSorter(true);
 		resultsTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
 		jScrollPane1.setViewportView(resultsTable);
@@ -337,7 +419,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 	private List<NetworkSummary> displayedNetworkSummaries = new ArrayList<>();
 
 	private void showSearchResults() {
-		TableModel model = new NetworkSummaryTableModel(networkSummaries);
+		NetworkSummaryTableModel model = new NetworkSummaryTableModel(networkSummaries, this::load);
 		displayedNetworkSummaries.clear();
 		for (NetworkSummary networkSummary : networkSummaries) {
 			displayedNetworkSummaries.add(networkSummary);
@@ -347,7 +429,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		resultsTable.setDefaultRenderer(VisibilityType.class, new NetworkSummaryTableModel.VisibilityTypeRenderer());
 		resultsTable.setDefaultRenderer(Timestamp.class, new NetworkSummaryTableModel.TimestampRenderer());
 		resultsTable.setDefaultEditor(NetworkSummary.class,
-				new NetworkSummaryTableModel.ImportButtonEditor(new JCheckBox()));
+				model.new ImportButtonEditor(new JCheckBox()));
 		resultsTable.getSelectionModel().setSelectionInterval(0, 0);
 	}
 

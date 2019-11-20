@@ -10,6 +10,7 @@ import java.text.DateFormat;
 import java.util.EventObject;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractCellEditor;
@@ -58,8 +59,11 @@ public class NetworkSummaryTableModel extends AbstractTableModel {
 
 	private final List<NetworkSummary> networkSummaries;
 
-	public NetworkSummaryTableModel(List<NetworkSummary> networkSummaries) {
+	private Consumer<NetworkSummary> networkSummaryConsumer;
+	
+	public NetworkSummaryTableModel(List<NetworkSummary> networkSummaries, Consumer<NetworkSummary> networkSummaryConsumer) {
 		this.networkSummaries = List.copyOf(networkSummaries);
+		this.networkSummaryConsumer = networkSummaryConsumer;
 	}
 
 	public static class TimestampRenderer extends DefaultTableCellRenderer {
@@ -98,80 +102,11 @@ public class NetworkSummaryTableModel extends AbstractTableModel {
 		}
 	}
 	
-	private static void load(final NetworkSummary networkSummary) {
-
-		JDialog dlgProgress = new JDialog((java.awt.Dialog)null, "Please wait...");//true means that the dialog created is modal
-		JLabel lblStatus = new JLabel("Working..."); // this is just a label in which you can indicate the state of the processing
-
-		JProgressBar pbProgress = new JProgressBar(0, 100);
-		pbProgress.setIndeterminate(true); //we'll use an indeterminate progress bar
-
-		dlgProgress.add(BorderLayout.NORTH, lblStatus);
-		dlgProgress.add(BorderLayout.CENTER, pbProgress);
-		dlgProgress.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE); // prevent the user from closing the dialog
-		dlgProgress.setSize(300, 90);
-
-		
-		SwingWorker<Integer, Integer> worker = new SwingWorker<Integer, Integer>() {
-
-			@Override
-			protected Integer doInBackground() throws Exception {
-				// For entire network, we will query again, hence will check credential
-				final Server selectedServer = ServerManager.INSTANCE.getServer();
-				final NdexRestClientModelAccessLayer mal = selectedServer.getModelAccessLayer();
-				boolean success = selectedServer.check(mal);
-				if (success) {
-					// The network to copy from.
-//                        NetworkSummary networkSummary = NetworkManager.INSTANCE.getSelectedNetworkSummary();
-					UUID uuid = networkSummary.getExternalId();
-					try {
-						// ProvenanceEntity provenance = mal.getNetworkProvenance(id.toString());
-
-						String REST_URI = "http://localhost:1234/cyndex2/v1/networks";
-						HttpClient httpClient = HttpClients.createDefault();
-						final URI uri = URI.create(REST_URI);
-						final HttpPost post = new HttpPost(uri.toString());
-						post.setHeader("Content-type", "application/json");
-						
-						NDExImportParameters importParameters = new NDExImportParameters(uuid.toString(), selectedServer.getUsername(), selectedServer.getPassword(),
-								selectedServer.getUrl(), null, null);
-						ObjectMapper objectMapper = new ObjectMapper();
-
-						post.setEntity(new StringEntity(objectMapper.writeValueAsString(importParameters)));
-
-						httpClient.execute(post);
-
-					}
-
-					/*
-					 * catch (IOException ex) { JOptionPane.showMessageDialog(me,
-					 * ErrorMessage.failedToParseJson, "Error", JOptionPane.ERROR_MESSAGE); return
-					 * -1; }
-					 */
-					catch (RuntimeException ex2) {
-						JOptionPane.showMessageDialog(null, "This network can't be imported to cytoscape. Cause: " + ex2.getMessage(),
-								"Error", JOptionPane.ERROR_MESSAGE);
-						ex2.printStackTrace();
-						return -1;
-					}
-				} else {
-					JOptionPane.showMessageDialog(null, ErrorMessage.failedServerCommunication, "Error", JOptionPane.ERROR_MESSAGE);
-				}
-				return 1;
-			}
-			
-			@Override 
-			protected void done() {
-				dlgProgress.dispose();
-			}
-		};
-		worker.execute();
-		dlgProgress.setVisible(true);
-//        findNetworksDialog.setFocusOnDone();
-//        this.setVisible(false);
+	private void load(final NetworkSummary networkSummary) {
+		networkSummaryConsumer.accept(networkSummary);
 	}
 	
-	public static class ImportButtonEditor extends DefaultCellEditor {
+	public class ImportButtonEditor extends DefaultCellEditor {
 
     protected JButton button;
     private NetworkSummary networkSummary;
