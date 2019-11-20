@@ -31,6 +31,8 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 	protected final String appName;
 	private static JDialog dialog;
 
+	private static FindNetworksDialog loadDialog = null;
+	
 	public OpenDialogTaskFactory(final String appName) {
 		super();
 		this.appName = appName;
@@ -89,8 +91,7 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 							switch(widget) {
 								case "choose": 
 									final LoadParameters loadParameters = objectMapper.treeToValue(jsonNode.get("data").get("parameters"), LoadParameters.class);
-									final FindNetworksDialog loadDialog = new FindNetworksDialog(null, loadParameters);
-									loadDialog.setVisible(true);
+									getFindNetworksDialog(loadParameters);
 									break;
 								case "save" :
 									final SaveParameters saveParameters = objectMapper.treeToValue(jsonNode.get("data").get("parameters"), SaveParameters.class);
@@ -111,7 +112,15 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 
 		return ti;
 	}
-
+	
+	private void getFindNetworksDialog(LoadParameters loadParameters) {
+		if (loadDialog != null && loadDialog.isVisible()) {
+			loadDialog.setVisible(false);
+		}
+		loadDialog = new FindNetworksDialog(null, loadParameters);
+		loadDialog.setVisible(true);
+	}
+	
 	@Override
 	public boolean isReady() {
 		return !ExternalAppManager.loadFailed();
