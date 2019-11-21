@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.PipedOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 import javax.swing.SwingWorker;
 import org.apache.http.HttpEntity;
@@ -75,7 +76,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 	 * Creates new form UploadNetwork
 	 */
 	public ExportNetworkDialog(Frame parent, SaveParameters saveParameters) {
-		super(parent, false);
+		super(parent, true);
 		this.saveParameters = saveParameters;
 		ServerManager.INSTANCE.addPropertyChangeListener(this);
 		initComponents();
@@ -102,7 +103,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 
 	private void prepComponents() {
 		final boolean isCollection = isCollection();
-		// setModal(true);
+		setModal(true);
 
 		updateUploadButton();
 		rootPane.setDefaultButton(upload);
@@ -431,10 +432,17 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 				final HttpEntityEnclosingRequestBase request = update ? new HttpPut(uri.toString()): new HttpPost(uri.toString());
 				request.setHeader("Content-type", "application/json");
 
-				Map<String, String> metadata = Map.of("name", nameField.getText(), "author", authorField.getText(), "organism",
-						organismField.getText(), "disease", diseaseField.getText(), "tissue", tissueField.getText(), "rightsHolder",
-						rightsHolderField.getText(), "version", versionField.getText(), "reference", referenceField.getText(),
-						"description", descriptionTextArea.getText());
+				final Map<String, String> metadata = new HashMap<String, String>();
+				metadata.put("name", nameField.getText());
+				metadata.put("author", authorField.getText());
+				metadata.put("organism", organismField.getText());
+				metadata.put("disease", diseaseField.getText());
+				metadata.put("tissue", tissueField.getText());
+				metadata.put("rightsHolder", rightsHolderField.getText());
+				metadata.put("version", versionField.getText());
+				metadata.put("reference", referenceField.getText());
+				metadata.put("description", descriptionTextArea.getText());
+						
 				System.out.println("REST_URI: " + REST_URI);
 				System.out.println("url " + selectedServer.getUrl());
 
@@ -479,9 +487,11 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 
 	@Override
 	public void propertyChange(PropertyChangeEvent arg0) {
+		if (isVisible()) {
 		jButton2.setText(SignInButtonHelper.getSignInText());
 		updateUploadButton();
-		updateUpdateButton();
+		updateUpdateButton(); 
+		}
 	}
 
 	private void updateUploadButton() {

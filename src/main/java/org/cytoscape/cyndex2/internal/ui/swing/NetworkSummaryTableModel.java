@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.List;
 import java.util.UUID;
@@ -62,7 +63,7 @@ public class NetworkSummaryTableModel extends AbstractTableModel {
 	private Consumer<NetworkSummary> networkSummaryConsumer;
 	
 	public NetworkSummaryTableModel(List<NetworkSummary> networkSummaries, Consumer<NetworkSummary> networkSummaryConsumer) {
-		this.networkSummaries = List.copyOf(networkSummaries);
+		this.networkSummaries = new ArrayList<NetworkSummary>(networkSummaries);
 		this.networkSummaryConsumer = networkSummaryConsumer;
 	}
 

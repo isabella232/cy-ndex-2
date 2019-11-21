@@ -17,6 +17,7 @@ import javax.swing.Icon;
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CyAction;
+import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.cyndex2.internal.rest.NdexClient;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexBaseResource;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexNetworkResource;
@@ -121,6 +122,9 @@ public class CyActivator extends AbstractCyActivator {
 		CyServiceModule.setServiceRegistrar(serviceRegistrar);
 		final CyApplicationConfiguration config = getService(bc, CyApplicationConfiguration.class);
 		final CyApplicationManager appManager = getService(bc, CyApplicationManager.class);
+		final CySwingApplication swingApplication = getService(bc, CySwingApplication.class);
+		CyServiceModule.setSwingApplication(swingApplication);
+		
 		cyProps = getService(bc, CyProperty.class, "(cyPropertyName=cytoscape3.props)");
 		taskManager = getService(bc, TaskManager.class);
 		

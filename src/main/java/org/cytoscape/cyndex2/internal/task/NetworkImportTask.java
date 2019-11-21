@@ -79,6 +79,7 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 	public NetworkImportTask(String serverUrl, UUID uuid, String accessKey, String idToken)
 			throws IOException, NdexException {
 		super();
+		this.uuid = uuid;
 		NdexRestClient client = new NdexRestClient(null, null, serverUrl,
 				CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
 		if (idToken != null)

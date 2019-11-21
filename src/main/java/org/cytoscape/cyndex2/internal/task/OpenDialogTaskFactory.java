@@ -4,6 +4,7 @@ import java.awt.Frame;
 import java.io.IOException;
 import java.net.URI;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -14,6 +15,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.cytoscape.cyndex2.external.SaveParameters;
 import org.cytoscape.cyndex2.internal.CyActivator;
+import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
 import org.cytoscape.cyndex2.internal.ui.swing.ExportNetworkDialog;
 import org.cytoscape.cyndex2.internal.ui.swing.FindNetworksDialog;
@@ -94,8 +96,9 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 									getFindNetworksDialog(loadParameters);
 									break;
 								case "save" :
+									final JFrame parentFrame = CyServiceModule.INSTANCE.getSwingApplcation().getJFrame();
 									final SaveParameters saveParameters = objectMapper.treeToValue(jsonNode.get("data").get("parameters"), SaveParameters.class);
-									final ExportNetworkDialog saveDialog = new ExportNetworkDialog(null, saveParameters);
+									final ExportNetworkDialog saveDialog = new ExportNetworkDialog(parentFrame, saveParameters);
 									saveDialog.setVisible(true);
 									break;
 								default : break;
