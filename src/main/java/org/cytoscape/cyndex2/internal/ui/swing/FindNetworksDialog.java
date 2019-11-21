@@ -44,6 +44,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
+import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
 import org.cytoscape.cyndex2.internal.rest.parameter.NDExImportParameters;
 import org.cytoscape.cyndex2.internal.util.ErrorMessage;
@@ -98,7 +99,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 				try {
 					// ProvenanceEntity provenance = mal.getNetworkProvenance(id.toString());
 
-					String REST_URI = "http://localhost:1234/cyndex2/v1/networks";
+					String REST_URI = "http://localhost:" + CyActivator.getCyRESTPort() +"/cyndex2/v1/networks";
 					HttpClient httpClient = HttpClients.createDefault();
 					final URI uri = URI.create(REST_URI);
 					final HttpPost post = new HttpPost(uri.toString());

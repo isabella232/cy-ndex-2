@@ -73,7 +73,7 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						String REST_URI = "http://localhost:1234/cyndex2/v1/status";
+						String REST_URI = "http://localhost:" + CyActivator.getCyRESTPort() +"/cyndex2/v1/status";
 						HttpClient httpClient = HttpClients.createDefault();
 						final URI uri = URI.create(REST_URI);
 						final HttpGet get = new HttpGet(uri.toString());

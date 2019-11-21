@@ -48,6 +48,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.cytoscape.cyndex2.external.SaveParameters;
+import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.rest.SimpleNetworkSummary;
 import org.cytoscape.cyndex2.internal.rest.parameter.NDExSaveParameters;
 import org.cytoscape.cyndex2.internal.rest.response.SummaryResponse;
@@ -108,7 +109,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 		updateUploadButton();
 		rootPane.setDefaultButton(upload);
 
-		String REST_URI = "http://localhost:1234/cyndex2/v1/networks/" + saveParameters.suid;
+		String REST_URI = "http://localhost:" + CyActivator.getCyRESTPort() +"/cyndex2/v1/networks/" + saveParameters.suid;
 		HttpClient httpClient = HttpClients.createDefault();
 		final URI uri = URI.create(REST_URI);
 		final HttpGet get = new HttpGet(uri.toString());
@@ -425,7 +426,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 
 				final Server selectedServer = ServerManager.INSTANCE.getSelectedServer();
 				final boolean update = updateCheckbox.isEnabled() && updateCheckbox.isSelected();
-				final String REST_URI = "http://localhost:1234/cyndex2/v1/networks/" + saveParameters.suid;
+				final String REST_URI = "http://localhost:" + CyActivator.getCyRESTPort() +"/cyndex2/v1/networks/" + saveParameters.suid;
 
 				HttpClient httpClient = HttpClients.createDefault();
 				final URI uri = URI.create(REST_URI);
