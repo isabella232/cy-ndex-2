@@ -98,7 +98,8 @@ public class NetworkSummaryTableModel extends AbstractTableModel {
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
 				int row, int column) {
 			button.setBorder(BorderFactory.createEmptyBorder());
-			button.setToolTipText(value.toString());
+			final String description = value instanceof NetworkSummary ? ((NetworkSummary)value).getDescription() : "Improperly formatted Network Summary, no description available";
+			button.setToolTipText(description != null && description.trim().length() > 0 ? description : "No description available");
 			return button;
 		}
 	}
