@@ -222,6 +222,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Find Networks");
 
+        resultsTable.setIntercellSpacing(new java.awt.Dimension(6, 2));
         resultsTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane1.setViewportView(resultsTable);
 
