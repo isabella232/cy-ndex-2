@@ -225,7 +225,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 		upload = new javax.swing.JButton();
 		cancel = new javax.swing.JButton();
 		updateCheckbox = new javax.swing.JCheckBox();
-		jButton2 = SignInButtonHelper.createSignInButton();
+		jButton2 = SignInButtonHelper.createSignInButton(this);
 		jLabel6 = new javax.swing.JLabel();
 		jLabel7 = new javax.swing.JLabel();
 		authorField = new javax.swing.JTextField();

@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Base64;
 
+import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 
 import org.apache.http.HttpEntity;
@@ -39,8 +40,8 @@ public class SignInDialog extends javax.swing.JDialog {
     /**
      * Creates new form NewJDialog
      */
-    public SignInDialog(java.awt.Frame parent) {
-        super(parent, false);
+    public SignInDialog(JDialog parent) {
+        super(parent, true);
         initComponents();
     }
 
@@ -208,7 +209,7 @@ public class SignInDialog extends javax.swing.JDialog {
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                SignInDialog dialog = new SignInDialog(new javax.swing.JFrame());
+                SignInDialog dialog = new SignInDialog(new javax.swing.JDialog());
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {

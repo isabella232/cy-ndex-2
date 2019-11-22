@@ -144,8 +144,18 @@ public class ServerManager {
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		JsonNode jsonNode = objectMapper.readValue(result, JsonNode.class);
-		System.out.println(jsonNode);
+		
+		if (response.getStatusLine().getStatusCode() != 200) {
+			try {
+				final String message = jsonNode.get("message").asText("Error in login. No error message available.");
+				throw new Exception(message);
+			} catch (Exception e) {
+				throw new Exception(e);
+			}
+		}
 
+		
+		
 		if (availableServers.getServer(new ServerKey(username, url)) != null) {
 			throw new Exception("Server already exists.");
 		}

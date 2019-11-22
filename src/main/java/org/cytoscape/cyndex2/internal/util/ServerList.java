@@ -126,7 +126,6 @@ public class ServerList extends AbstractListModel<Server> {
 							cipher.init(Cipher.DECRYPT_MODE, key);
 
 							final String password = new String(cipher.doFinal(Base64.getDecoder().decode(jsonObject.get("password").getAsString())),"UTF-8");
-							System.out.println("password: " + password);
 							server.setPassword(password);
 						} catch (InvalidKeyException e) {
 							e.printStackTrace();

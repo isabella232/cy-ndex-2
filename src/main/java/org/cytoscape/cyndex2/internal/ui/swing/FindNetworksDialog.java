@@ -216,7 +216,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		jSeparator1 = new javax.swing.JSeparator();
 		jLabel1 = new javax.swing.JLabel();
 		jLabel4 = new javax.swing.JLabel();
-		jButton1 = SignInButtonHelper.createSignInButton();
+		jButton1 = SignInButtonHelper.createSignInButton(this);
 		ndexLogo = new javax.swing.JLabel();
 
 		setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
