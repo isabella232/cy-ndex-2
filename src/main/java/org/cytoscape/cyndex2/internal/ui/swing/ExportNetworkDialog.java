@@ -248,6 +248,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Upload Network to NDEx");
+        setPreferredSize(new java.awt.Dimension(627, 586));
 
         jScrollPane2.setBorder(null);
 
