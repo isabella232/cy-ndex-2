@@ -24,7 +24,7 @@ public class ProfilePopupMenu extends JPopupMenu {
 
 	
 	
-	static final Font font = IconUtil.getIconFont(23f);
+	static final Font font = IconUtil.getAppFont(23f);
 	static int iconSize = 24;
 	
 	static final Icon ADD_PROFILE_ICON = new TextIcon(IconUtil.ICON_NDEX_ACCOUNT_PLUS, font, iconSize, iconSize);

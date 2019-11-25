@@ -26,6 +26,7 @@
 
 package org.cytoscape.cyndex2.internal.ui.swing;
 
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.HeadlessException;
 import java.beans.PropertyChangeEvent;
@@ -37,19 +38,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
+import javax.swing.SwingConstants;
+
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.cytoscape.cyndex2.internal.CyActivator;
+import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
 import org.cytoscape.cyndex2.internal.rest.parameter.NDExImportParameters;
 import org.cytoscape.cyndex2.internal.util.ErrorMessage;
+import org.cytoscape.cyndex2.internal.util.IconUtil;
 import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
+import org.cytoscape.util.swing.IconManager;
+import org.cytoscape.util.swing.TextIcon;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.object.network.VisibilityType;
@@ -70,6 +78,11 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 	private static final long serialVersionUID = 1L;
 	private List<NetworkSummary> networkSummaries;
 
+	static final Font font = IconUtil.getAppFont(23f);
+	static final int ICON_SIZE = 24;
+	static final Icon NDEX_ICON = new TextIcon(IconUtil.ICON_NDEX_LOGO, font, ICON_SIZE, ICON_SIZE);
+
+	
 	/**
 	 * Creates new form SimpleSearch
 	 */
@@ -80,6 +93,12 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		prepComponents(loadParameters.searchTerm);
 	}
 
+	private TextIcon getSearchIcon() {
+		final IconManager iconManager = CyServiceModule.INSTANCE.getService(IconManager.class);
+		final TextIcon searchIcon = new TextIcon(iconManager.ICON_SEARCH, iconManager.getIconFont(24), 24, 24);
+		return searchIcon;
+	}
+	
 	private void load(final NetworkSummary networkSummary) {
 		ModalProgressHelper.runWorker(this, "Loading Network", () -> {
 			final Server selectedServer = ServerManager.INSTANCE.getServer();
@@ -212,14 +231,14 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
         jScrollPane1 = new javax.swing.JScrollPane();
         resultsTable = new javax.swing.JTable();
         done = new javax.swing.JButton();
-        search = new javax.swing.JButton();
+        search = new javax.swing.JButton(getSearchIcon());
         searchField = new javax.swing.JTextField();
         administeredByMe = new javax.swing.JCheckBox();
         jSeparator1 = new javax.swing.JSeparator();
         jLabel1 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jButton1 = SignInButtonHelper.createSignInButton(this);
-        ndexLogo = new javax.swing.JLabel();
+        ndexLogo = new javax.swing.JLabel("NDEx", NDEX_ICON, SwingConstants.LEFT);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Find Networks");
@@ -240,7 +259,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
             }
         });
 
-        search.setText("Search");
+        search.setMargin(new java.awt.Insets(2, 2, 2, 2));
         search.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 searchActionPerformed(evt);
@@ -271,17 +290,6 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1)
                     .addComponent(jSeparator1)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(searchField)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(search))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(done, javax.swing.GroupLayout.PREFERRED_SIZE, 183, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(ndexLogo)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton1))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel1)
@@ -291,7 +299,18 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addGap(86, 86, 86)
                                 .addComponent(jLabel4)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addComponent(searchField)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(search, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(done, javax.swing.GroupLayout.PREFERRED_SIZE, 183, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addComponent(ndexLogo, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButton1)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -302,9 +321,9 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
                     .addComponent(jButton1)
                     .addComponent(ndexLogo))
                 .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(searchField, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(search, javax.swing.GroupLayout.Alignment.TRAILING))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(search, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(searchField))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(administeredByMe)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -335,7 +354,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 513, Short.MAX_VALUE)
+                .addComponent(jScrollPane2)
                 .addContainerGap())
         );
 

@@ -62,7 +62,7 @@ public class MainToolBarAction extends AbstractCyAction {
 		JPopupMenu popup = new JPopupMenu();
 		
 		DialogTaskManager taskManager = serviceRegistrar.getService(DialogTaskManager.class);
-		Font font = IconUtil.getIconFont(23f);
+		Font font = IconUtil.getAppFont(23f);
 		int iconSize = 24;
 		
 		{

@@ -19,7 +19,7 @@ public class SignInButtonHelper {
     public static JButton createSignInButton(JDialog frame) {
         //Create the popup menu.
         final JPopupMenu popup = new ProfilePopupMenu(frame);
-      	Font font = IconUtil.getIconFont(23f);
+      	Font font = IconUtil.getAppFont(23f);
     		int iconSize = 24;
       	Icon icon = new TextIcon(IconUtil.ICON_NDEX_ACCOUNT, font, iconSize, iconSize);
         
