@@ -18,6 +18,7 @@ import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerKey;
 import org.cytoscape.cyndex2.internal.util.ServerList;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
+import org.cytoscape.cyndex2.internal.util.ServerUtil;
 import org.cytoscape.util.swing.TextIcon;
 
 public class ProfilePopupMenu extends JPopupMenu {
@@ -57,13 +58,14 @@ public class ProfilePopupMenu extends JPopupMenu {
 			addSeparator();
 		}
 
-		List<Server> serverItems = serverList.stream().filter(server -> !server.equals(selectedServer))
+		final List<Server> serverItems = serverList.stream().filter(server -> !server.equals(selectedServer))
 				.collect(Collectors.toList());
 
 		if (serverItems.size() > 0) {
 			serverItems.stream().forEach(server -> {
-				JMenuItem jMenuItem = new JMenuItem(new AbstractAction(
-						"<HTML>" + "<b>" + server.getUsername() + "</b>" + "<br>" + server.getUrl() + "</HTML>", PROFILE_ICON) {
+				
+				final JMenuItem jMenuItem = new JMenuItem(new AbstractAction(
+						"<HTML>" + "<b>" + ServerUtil.getDisplayUsernameHTML(server.getUsername()) + "</b>" + "<br>" + server.getUrl() + "</HTML>", PROFILE_ICON) {
 					@Override
 					public void actionPerformed(ActionEvent arg0) {
 						ServerManager.INSTANCE.setSelectedServer(new ServerKey(server));

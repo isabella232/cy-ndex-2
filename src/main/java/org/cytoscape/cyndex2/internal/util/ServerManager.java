@@ -105,66 +105,75 @@ public class ServerManager {
 
 	private String getBaseRoute(String url) {
 		final String baseroute;
-		if ( url.toLowerCase().startsWith("http://") || url.toLowerCase().startsWith("https://"))
+		if (url.toLowerCase().startsWith("http://") || url.toLowerCase().startsWith("https://"))
 			baseroute = url;
 		else
-			baseroute = "http://"+ url + "/v2";
+			baseroute = "http://" + url + "/v2";
 		return baseroute;
 	}
-	
+
 	/**
 	 * Adds a new server to the server list and automatically selects it.
 	 * 
 	 * @param server
 	 * @throws Exception
 	 */
-	public void addServer(String username, String password, String serverUrl) throws Exception {
-	
+	public void addServer(final String username, final String password, final String serverUrl) throws Exception {
+
 		final String baseroute = this.getBaseRoute(serverUrl);
-		
+
 		final String url = baseroute.concat("/user?valid=true");
 
 		if (availableServers.getServer(new ServerKey(username, url)) != null) {
 			throw new Exception("Server already exists.");
 		}
 
-		CredentialsProvider provider = new BasicCredentialsProvider();
-		UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, password);
+		if (username == null && password == null) {
+			System.out.println("Anonymous access");
+			// Anonymous access
+		} else if (username != null && password != null) {
+			System.out.println("Accessing as " + username + " with " + password);
+			CredentialsProvider provider = new BasicCredentialsProvider();
+			UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, password);
 
-		provider.setCredentials(AuthScope.ANY, credentials);
+			provider.setCredentials(AuthScope.ANY, credentials);
 
-		HttpClient httpClient = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
+			HttpClient httpClient = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
 
-		final HttpGet get = new HttpGet(url);
+			final HttpGet get = new HttpGet(url);
 
-		final HttpResponse response = httpClient.execute(get);
+			final HttpResponse response = httpClient.execute(get);
 
-		final HttpEntity entity = response.getEntity();
-		final String result = EntityUtils.toString(entity);
+			final HttpEntity entity = response.getEntity();
+			final String result = EntityUtils.toString(entity);
 
-		ObjectMapper objectMapper = new ObjectMapper();
-		JsonNode jsonNode = objectMapper.readValue(result, JsonNode.class);
-		
-		if (response.getStatusLine().getStatusCode() != 200) {
-			try {
-				final String message = jsonNode.get("message").asText("Error in login. No error message available.");
-				throw new Exception(message);
-			} catch (Exception e) {
-				throw new Exception(e);
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode jsonNode = objectMapper.readValue(result, JsonNode.class);
+
+			if (response.getStatusLine().getStatusCode() != 200) {
+				try {
+					final String message = jsonNode.get("message").asText("Error in login. No error message available.");
+					throw new Exception(message);
+				} catch (Exception e) {
+					throw new Exception(e);
+				}
 			}
+		} else if (password == null) {
+			System.out.println("no password");
+			throw new Exception("Password must be provided");
+		} else if (username == null) {
+			System.out.println("no username");
+			throw new Exception("Passwords are not used for anonymous access.");
 		}
 
-		
-		
 		if (availableServers.getServer(new ServerKey(username, url)) != null) {
 			throw new Exception("Server already exists.");
 		}
 
 		Server server = new Server();
 
-		
 		server.setUrl(serverUrl);
-		
+
 		server.setUsername(username);
 		server.setPassword(password);
 
@@ -183,7 +192,7 @@ public class ServerManager {
 		selectNextAvailableServer();
 		saveSelectedServer();
 		PropertyChangeEvent event = new PropertyChangeEvent(this, "selectedServer", oldValue, selectedServer);
-    mPcs.firePropertyChange(event);
+		mPcs.firePropertyChange(event);
 	}
 
 	public void saveSelectedServer() {
@@ -212,7 +221,7 @@ public class ServerManager {
 		this.selectedServer = serverKey;
 		this.saveSelectedServer();
 		PropertyChangeEvent event = new PropertyChangeEvent(this, "selectedServer", oldValue, serverKey);
-    mPcs.firePropertyChange(event);
+		mPcs.firePropertyChange(event);
 	}
 
 	private ServerKey readSelectedServer() {

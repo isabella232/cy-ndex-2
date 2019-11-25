@@ -114,8 +114,8 @@ public class ServerList extends AbstractListModel<Server> {
 						final JsonObject jsonObject = json.getAsJsonObject();
 						final Server server = new Server();
 
-						server.setUsername(jsonObject.get("username").getAsString());
-					
+						JsonElement usernameElement = jsonObject.get("username");
+						server.setUsername(usernameElement != null ? usernameElement.getAsString() : null);
 						server.setUrl(jsonObject.get("url").getAsString());
 
 						SecretKey key = new SecretKeySpec(KEY.getBytes(), "AES");
@@ -124,8 +124,11 @@ public class ServerList extends AbstractListModel<Server> {
 						try {
 							cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
 							cipher.init(Cipher.DECRYPT_MODE, key);
+							final JsonElement passwordElement = jsonObject.get("password");
 
-							final String password = new String(cipher.doFinal(Base64.getDecoder().decode(jsonObject.get("password").getAsString())),"UTF-8");
+							final String password = passwordElement != null
+									? new String(cipher.doFinal(Base64.getDecoder().decode(passwordElement.getAsString())), "UTF-8")
+									: null;
 							server.setPassword(password);
 						} catch (InvalidKeyException e) {
 							e.printStackTrace();
@@ -140,7 +143,7 @@ public class ServerList extends AbstractListModel<Server> {
 						} catch (UnsupportedEncodingException e) {
 							e.printStackTrace();
 						}
-						
+
 						return server;
 					});
 			Gson gson = builder.create();
@@ -166,30 +169,32 @@ public class ServerList extends AbstractListModel<Server> {
 		gsonBuilder.registerTypeAdapter(Server.class,
 				(JsonSerializer<Server>) (Server server, Type type, JsonSerializationContext context) -> {
 					JsonObject obj = new JsonObject();
-			
+
 					obj.addProperty("username", server.getUsername());
 					obj.addProperty("url", server.getUrl());
 
-					SecretKey key = new SecretKeySpec(KEY.getBytes(), "AES");
+					if (server.getPassword() != null) {
+						SecretKey key = new SecretKeySpec(KEY.getBytes(), "AES");
+						Cipher cipher;
+						try {
+							cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+							cipher.init(Cipher.ENCRYPT_MODE, key);
 
-					Cipher cipher;
-					try {
-						cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-						cipher.init(Cipher.ENCRYPT_MODE, key);
-
-						obj.addProperty("password", Base64.getEncoder().encodeToString(cipher.doFinal(server.getPassword().getBytes("UTF-8"))));
-					} catch (InvalidKeyException e) {
-						e.printStackTrace();
-					} catch (NoSuchAlgorithmException e) {
-						e.printStackTrace();
-					} catch (NoSuchPaddingException e) {
-						e.printStackTrace();
-					} catch (IllegalBlockSizeException e) {
-						e.printStackTrace();
-					} catch (BadPaddingException e) {
-						e.printStackTrace();
-					} catch (UnsupportedEncodingException e) {
-						e.printStackTrace();
+							obj.addProperty("password",
+									Base64.getEncoder().encodeToString(cipher.doFinal(server.getPassword().getBytes("UTF-8"))));
+						} catch (InvalidKeyException e) {
+							e.printStackTrace();
+						} catch (NoSuchAlgorithmException e) {
+							e.printStackTrace();
+						} catch (NoSuchPaddingException e) {
+							e.printStackTrace();
+						} catch (IllegalBlockSizeException e) {
+							e.printStackTrace();
+						} catch (BadPaddingException e) {
+							e.printStackTrace();
+						} catch (UnsupportedEncodingException e) {
+							e.printStackTrace();
+						}
 					}
 					return obj;
 				});
@@ -226,7 +231,7 @@ public class ServerList extends AbstractListModel<Server> {
 
 	public Server getServer(ServerKey serverKey) {
 		List<Server> result = serverList.stream()
-				.filter(server -> serverKey.username.equals(server.getUsername()) && serverKey.url.equals(server.getUrl()))
+				.filter(server -> serverKey.equals(new ServerKey(server.getUsername(), server.getUrl())))
 				.collect(Collectors.toList());
 		return result.size() == 1 ? result.get(0) : null;
 	}

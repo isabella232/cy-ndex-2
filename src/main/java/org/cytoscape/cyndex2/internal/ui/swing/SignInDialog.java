@@ -163,14 +163,19 @@ public class SignInDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_cancelActionPerformed
     
     private void signInToServer() {
-        final String username = this.username.getText();
-        final String password = new String(this.password.getPassword());
+        final String usernameText = this.username.getText();
+        final String passwordText = new String(this.password.getPassword());
+        
+        final String username = usernameText.trim().length() > 0 ? usernameText.trim() : null;
+        final String password = passwordText.length() > 0 ? passwordText : null;
+        
         final String serverUrl = this.url1.getText().trim().length() > 0 ? this.url1.getText() : "";
         
         try {
         	ServerManager.INSTANCE.addServer(username, password, serverUrl);
         	setVisible(false);
         } catch (Exception ex) {
+        	ex.printStackTrace();
                 JOptionPane.showMessageDialog(this,
                     ex.getMessage(),
                     "Error Adding Server",

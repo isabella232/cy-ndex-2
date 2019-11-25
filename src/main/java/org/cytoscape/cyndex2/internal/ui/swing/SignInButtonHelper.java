@@ -12,6 +12,7 @@ import javax.swing.JPopupMenu;
 import org.cytoscape.cyndex2.internal.util.IconUtil;
 import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
+import org.cytoscape.cyndex2.internal.util.ServerUtil;
 import org.cytoscape.util.swing.TextIcon;
 
 public class SignInButtonHelper {
@@ -41,7 +42,7 @@ public class SignInButtonHelper {
     	if (selectedServer == null) {
     		return "Sign in";
     	} else {
-    		return selectedServer.getUsername() + "@" + selectedServer.getUrl();
+    		return "<html>" + ServerUtil.getDisplayUsernameHTML(selectedServer.getUsername()) + "@" + selectedServer.getUrl() + "</html>";
     	}
     }
 }

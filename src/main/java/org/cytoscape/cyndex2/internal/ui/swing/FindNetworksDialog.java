@@ -278,6 +278,9 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
         jLabel4.setText("WARNING: In some cases, not all network information stored in NDEx will be available within Cytoscape after loading.");
 
         jButton1.setText(SignInButtonHelper.getSignInText());
+        jButton1.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jButton1.setMaximumSize(new java.awt.Dimension(200, 30));
+        jButton1.setMinimumSize(new java.awt.Dimension(48, 30));
 
         ndexLogo.setFont(new java.awt.Font("Ubuntu", 0, 24)); // NOI18N
         ndexLogo.setText("NDEx");
@@ -308,7 +311,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addComponent(ndexLogo, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton1)))
+                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -320,7 +323,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jButton1)
+                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(ndexLogo))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)

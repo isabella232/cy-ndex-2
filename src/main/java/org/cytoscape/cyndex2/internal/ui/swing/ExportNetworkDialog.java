@@ -248,7 +248,6 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Upload Network to NDEx");
-        setPreferredSize(new java.awt.Dimension(627, 586));
 
         jScrollPane2.setBorder(null);
 
@@ -296,6 +295,8 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
         });
 
         jButton2.setText(SignInButtonHelper.getSignInText());
+        jButton2.setMaximumSize(new java.awt.Dimension(200, 30));
+        jButton2.setMinimumSize(new java.awt.Dimension(48, 30));
 
         jLabel9.setText("Tissue");
 
@@ -352,7 +353,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
                         .addComponent(upload))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jButton2))
+                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(206, 206, 206)
                         .addComponent(updateCheckbox)
@@ -363,7 +364,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jButton2)
+                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
