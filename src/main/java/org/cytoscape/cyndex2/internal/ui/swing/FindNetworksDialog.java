@@ -78,9 +78,9 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 	private static final long serialVersionUID = 1L;
 	private List<NetworkSummary> networkSummaries;
 
-	static final Font font = IconUtil.getAppFont(23f);
-	static final int ICON_SIZE = 24;
-	static final Icon NDEX_ICON = new TextIcon(IconUtil.ICON_NDEX_LOGO, font, ICON_SIZE, ICON_SIZE);
+	static final Font font = IconUtil.getAppFont(32f);
+	static final int ICON_SIZE = 32;
+	static final Icon NDEX_ICON = new TextIcon(IconUtil.ICON_NDEX_LOGO, font, IconUtil.ICON_COLOR_1, 32, 32);
 
 	
 	/**
@@ -279,7 +279,8 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 
         jButton1.setText(SignInButtonHelper.getSignInText());
 
-        ndexLogo.setText(null);
+        ndexLogo.setFont(new java.awt.Font("Ubuntu", 0, 24)); // NOI18N
+        ndexLogo.setText("NDEx");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -293,9 +294,6 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel1)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGap(365, 365, 365)
-                                .addComponent(administeredByMe))
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addGap(86, 86, 86)
                                 .addComponent(jLabel4)))
@@ -312,15 +310,19 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jButton1)))
                 .addContainerGap())
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(administeredByMe)
+                .addGap(396, 396, 396))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jButton1)
                     .addComponent(ndexLogo))
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(search, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(searchField))
