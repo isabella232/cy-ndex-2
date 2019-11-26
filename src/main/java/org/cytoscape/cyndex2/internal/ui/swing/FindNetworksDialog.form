@@ -155,6 +155,9 @@
                       <TableHeader reorderingAllowed="true" resizingAllowed="true"/>
                     </Property>
                   </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="getResultsTable()"/>
+                  </AuxValues>
                 </Component>
               </SubComponents>
             </Container>

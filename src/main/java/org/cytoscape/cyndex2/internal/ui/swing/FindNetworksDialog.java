@@ -26,6 +26,7 @@
 
 package org.cytoscape.cyndex2.internal.ui.swing;
 
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.HeadlessException;
@@ -40,8 +41,11 @@ import java.util.UUID;
 
 import javax.swing.Icon;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
 import javax.swing.SwingConstants;
+import javax.swing.table.TableCellRenderer;
 
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -220,6 +224,21 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		}
 	}
 
+	private JTable getResultsTable() {
+		return new JTable() {
+		
+		public Component prepareRenderer(TableCellRenderer renderer,int row, int col) {
+	    Component comp = super.prepareRenderer(renderer, row, col);
+	    JComponent jcomp = (JComponent)comp;
+	    if (comp == jcomp) {
+	      if (col != 0) {  
+	      	NetworkSummary networkSummary = (NetworkSummary)getValueAt(row, 0);
+	      	jcomp.setToolTipText(networkSummary.getDescription());
+	      } 
+	     }
+	    return comp; } };
+	}
+	
 	/**
 	 * This method is called from within the constructor to initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is always
@@ -235,7 +254,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
         jScrollPane2 = new javax.swing.JScrollPane();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        resultsTable = new javax.swing.JTable();
+        resultsTable = getResultsTable();
         done = new javax.swing.JButton();
         search = new javax.swing.JButton(getSearchIcon());
         searchField = new javax.swing.JTextField();

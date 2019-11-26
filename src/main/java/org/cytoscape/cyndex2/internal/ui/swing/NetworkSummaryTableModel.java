@@ -109,8 +109,7 @@ public class NetworkSummaryTableModel extends AbstractTableModel {
 			button.setBorder(BorderFactory.createEmptyBorder());
 			button.setBorderPainted(false);
 			button.setContentAreaFilled(false);
-			final String description = value instanceof NetworkSummary ? ((NetworkSummary)value).getDescription() : "Improperly formatted Network Summary, no description available";
-			button.setToolTipText(description != null && description.trim().length() > 0 ? description : "No description available");
+			button.setToolTipText("Import network to Cytoscape");
 			return button;
 		}
 	}
