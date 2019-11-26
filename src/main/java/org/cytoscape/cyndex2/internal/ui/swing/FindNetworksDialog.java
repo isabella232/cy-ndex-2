@@ -99,6 +99,12 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		return searchIcon;
 	}
 	
+	private TextIcon getImportIcon() {
+		final IconManager iconManager = CyServiceModule.INSTANCE.getService(IconManager.class);
+		final TextIcon importIcon = new TextIcon(iconManager.ICON_SEARCH, iconManager.getIconFont(24), 24, 24);
+		return importIcon;
+	}
+	
 	private void load(final NetworkSummary networkSummary) {
 		ModalProgressHelper.runWorker(this, "Loading Network", () -> {
 			final Server selectedServer = ServerManager.INSTANCE.getServer();
@@ -249,6 +255,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 
         resultsTable.setAutoCreateRowSorter(true);
         resultsTable.setIntercellSpacing(new java.awt.Dimension(6, 2));
+        resultsTable.setRowHeight(24);
         resultsTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane1.setViewportView(resultsTable);
 
@@ -462,6 +469,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 			displayedNetworkSummaries.add(networkSummary);
 		}
 		resultsTable.setModel(model);
+		resultsTable.getColumnModel().getColumn(0).setPreferredWidth(24);
 		resultsTable.setDefaultRenderer(NetworkSummary.class, new NetworkSummaryTableModel.ImportButtonRenderer());
 		resultsTable.setDefaultRenderer(VisibilityType.class, new NetworkSummaryTableModel.VisibilityTypeRenderer());
 		resultsTable.setDefaultRenderer(Timestamp.class, new NetworkSummaryTableModel.TimestampRenderer());

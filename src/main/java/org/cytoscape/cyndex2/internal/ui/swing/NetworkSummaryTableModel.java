@@ -37,10 +37,13 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
+import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.rest.parameter.NDExImportParameters;
 import org.cytoscape.cyndex2.internal.util.ErrorMessage;
 import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
+import org.cytoscape.util.swing.IconManager;
+import org.cytoscape.util.swing.TextIcon;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.object.network.VisibilityType;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
@@ -92,12 +95,20 @@ public class NetworkSummaryTableModel extends AbstractTableModel {
 		}
 	}
 
+	private static TextIcon getImportIcon() {
+		final IconManager iconManager = CyServiceModule.INSTANCE.getService(IconManager.class);
+		final TextIcon importIcon = new TextIcon(iconManager.ICON_ARROW_CIRCLE_O_DOWN, iconManager.getIconFont(24), 24, 24);
+		return importIcon;
+	}
+	
 	public static class ImportButtonRenderer implements TableCellRenderer {
-		JButton button = new JButton("Import");
+		JButton button = new JButton(getImportIcon());
 
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
 				int row, int column) {
 			button.setBorder(BorderFactory.createEmptyBorder());
+			button.setBorderPainted(false);
+			button.setContentAreaFilled(false);
 			final String description = value instanceof NetworkSummary ? ((NetworkSummary)value).getDescription() : "Improperly formatted Network Summary, no description available";
 			button.setToolTipText(description != null && description.trim().length() > 0 ? description : "No description available");
 			return button;
