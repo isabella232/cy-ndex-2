@@ -27,6 +27,7 @@
 package org.cytoscape.cyndex2.internal.ui.swing;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.HeadlessException;
@@ -494,6 +495,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		resultsTable.setDefaultRenderer(Timestamp.class, new NetworkSummaryTableModel.TimestampRenderer());
 		resultsTable.setDefaultEditor(NetworkSummary.class, model.new ImportButtonEditor(new JCheckBox()));
 		resultsTable.getSelectionModel().setSelectionInterval(0, 0);
+		resultsTable.getTableHeader().setPreferredSize(new Dimension(resultsTable.getPreferredSize().width, 24));
 	}
 
 	/**
