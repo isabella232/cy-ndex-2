@@ -10,6 +10,7 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -79,7 +80,7 @@ public class NetworkSummaryTableModel extends AbstractTableModel {
 
 		public void setValue(Object value) {
 			if (formatter == null) {
-				formatter = DateFormat.getDateInstance();
+				formatter = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault());
 			}
 			setText((value == null && value instanceof Timestamp) ? "" : formatter.format(((Timestamp) value)));
 		}
