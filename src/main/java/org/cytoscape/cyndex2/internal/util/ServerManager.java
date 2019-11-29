@@ -77,7 +77,9 @@ public class ServerManager {
 	private ServerKey selectedServer;
 
 	private ServerManager() {
-		availableServers = new ServerList();
+		File configDir = CyServiceModule.INSTANCE.getConfigDir();
+		File addedServersJsonFile = new File(configDir, FilePath.ADDED_SERVERS);
+		availableServers = ServerList.readServerList(addedServersJsonFile);
 		selectedServer = readSelectedServer();
 		if (selectedServer == null)
 			selectNextAvailableServer();
@@ -86,7 +88,7 @@ public class ServerManager {
 	private void selectNextAvailableServer() {
 		{
 			if (availableServers.getSize() > 0) {
-				selectedServer = new ServerKey(availableServers.get(0));
+				selectedServer = new ServerKey(availableServers.getElementAt(0));
 			}
 		}
 	}
@@ -178,15 +180,21 @@ public class ServerManager {
 		server.setPassword(password);
 
 		availableServers.add(server);
-		availableServers.save();
+		availableServers.writeServerList(getServerListFile());
 
 		setSelectedServer(new ServerKey(server));
 		saveSelectedServer();
 	}
 
+	private static File getServerListFile() {
+		final File configDir = CyServiceModule.INSTANCE.getConfigDir();
+		final File addedServersFile = new File(configDir, FilePath.ADDED_SERVERS);
+		return addedServersFile;
+	}
+	
 	public void removeServer(Server server) {
 		availableServers.delete(server);
-		availableServers.save();
+		availableServers.writeServerList(getServerListFile());
 		ServerKey oldValue = selectedServer;
 		selectedServer = null;
 		selectNextAvailableServer();

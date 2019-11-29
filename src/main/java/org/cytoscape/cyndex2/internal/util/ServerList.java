@@ -52,8 +52,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.AbstractListModel;
 
-import org.cytoscape.cyndex2.internal.CyServiceModule;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializationContext;
@@ -85,17 +83,16 @@ public class ServerList extends AbstractListModel<Server> {
 
 	public ServerList() {
 		super();
-		readServers();
+	}
+	
+	public static ServerList readServerList(File file) {
+		final ServerList serverList = new ServerList();
+		Collection<Server> addedServers = readServerCollection(file);
+		serverList.serverList.addAll(addedServers);
+		return serverList;
 	}
 
-	private void readServers() {
-		File configDir = CyServiceModule.INSTANCE.getConfigDir();
-		File addedServersJsonFile = new File(configDir, FilePath.ADDED_SERVERS);
-		Collection<Server> addedServers = readServerCollection(addedServersJsonFile);
-		serverList.addAll(addedServers);
-	}
-
-	private Collection<Server> readServerCollection(File jsonFile) {
+	private static Collection<Server> readServerCollection(File jsonFile) {
 		try {
 			return readServerCollection(new FileReader(jsonFile));
 		} catch (IOException ex) {
@@ -106,7 +103,7 @@ public class ServerList extends AbstractListModel<Server> {
 		}
 	}
 
-	private Collection<Server> readServerCollection(Reader reader) throws IOException {
+	private static Collection<Server> readServerCollection(Reader reader) throws IOException {
 		try (BufferedReader br = new BufferedReader(reader)) {
 			GsonBuilder builder = new GsonBuilder();
 			builder.registerTypeAdapter(Server.class,
@@ -154,17 +151,7 @@ public class ServerList extends AbstractListModel<Server> {
 		}
 	}
 
-	public void save() {
-		File configDir = CyServiceModule.INSTANCE.getConfigDir();
-		File addedServersFile = new File(configDir, FilePath.ADDED_SERVERS);
-		saveServerList(serverList, addedServersFile.getAbsolutePath());
-	}
-
-	public Stream<Server> stream() {
-		return serverList.stream();
-	}
-
-	private void saveServerList(List<Server> serverList2, String filePath) {
+	public void writeServerList(File file) {
 		GsonBuilder gsonBuilder = new GsonBuilder();
 		gsonBuilder.registerTypeAdapter(Server.class,
 				(JsonSerializer<Server>) (Server server, Type type, JsonSerializationContext context) -> {
@@ -199,14 +186,17 @@ public class ServerList extends AbstractListModel<Server> {
 					return obj;
 				});
 		Gson gson = gsonBuilder.setPrettyPrinting().create();
-		String json = gson.toJson(serverList2);
-		File serverFile = new File(filePath);
+		String json = gson.toJson(serverList);
+		
 		try {
-			Files.write(json, serverFile, Charsets.UTF_8);
+			Files.write(json, file, Charsets.UTF_8);
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
+	}
 
+	public Stream<Server> stream() {
+		return serverList.stream();
 	}
 
 	public void delete(Server server) {
@@ -223,10 +213,6 @@ public class ServerList extends AbstractListModel<Server> {
 		serverList.add(server);
 		int indexOfAddedServer = serverList.indexOf(server);
 		fireContentsChanged(this, indexOfAddedServer, indexOfAddedServer);
-	}
-
-	public Server get(int index) {
-		return serverList.get(index);
 	}
 
 	public Server getServer(ServerKey serverKey) {
