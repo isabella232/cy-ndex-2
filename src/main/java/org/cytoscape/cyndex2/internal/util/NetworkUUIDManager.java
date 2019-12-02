@@ -21,7 +21,6 @@ public class NetworkUUIDManager {
 	}
 	
 	public static UUID getUUID(CyNetwork network) {
-		System.out.println("Getting UUID for network " + network.getSUID());
 		CyTable table = network.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
 		CyRow row = table.getRow(network.getSUID());
 		if (row == null) {
