@@ -60,7 +60,7 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 	private UUID networkUUID = null;
 	
 	
-	public NetworkExportTask(Long suid, InputStream cxStream, NDExBasicSaveParameters params, boolean writeCollection, boolean isUpdate) throws JsonProcessingException, IOException, NdexException 
+	public NetworkExportTask(NdexRestClientModelAccessLayer mal, Long suid, InputStream cxStream, NDExBasicSaveParameters params, boolean writeCollection, boolean isUpdate) throws JsonProcessingException, IOException, NdexException 
 			 {
 		super();
 		this.params = params;
@@ -68,10 +68,8 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 		this.isUpdate = isUpdate;
 		this.cxStream = cxStream;
 		this.suid = suid;
-
-		NdexRestClient client = new NdexRestClient(params.username, params.password, params.serverUrl,
-				CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
-		mal = new NdexRestClientModelAccessLayer(client);
+		this.mal = mal;
+	
 	}
 
 	@Override

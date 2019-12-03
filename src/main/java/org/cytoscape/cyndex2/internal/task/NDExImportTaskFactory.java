@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response.Status;
 
+import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorType;
@@ -12,12 +13,14 @@ import org.cytoscape.cyndex2.internal.rest.parameter.NDExImportParameters;
 import org.cytoscape.work.AbstractTaskFactory;
 import org.cytoscape.work.TaskIterator;
 import org.ndexbio.model.exceptions.NdexException;
+import org.ndexbio.rest.client.NdexRestClient;
+import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 public class NDExImportTaskFactory extends AbstractTaskFactory {
 
 	private ErrorBuilder errorBuilder;
 	private NDExImportParameters params;
-	
+
 	private NetworkImportTask importer;
 
 	public NDExImportTaskFactory(NDExImportParameters params) {
@@ -25,28 +28,40 @@ public class NDExImportTaskFactory extends AbstractTaskFactory {
 		this.params = params;
 		this.errorBuilder = CyServiceModule.INSTANCE.getErrorBuilder();
 	}
-	
+
 	private NetworkImportTask buildImportTask() throws IOException, NdexException {
 		UUID uuid = validateImportParameters(params);
-		
+
 		if (params.username != null && params.password != null) {
-			return new NetworkImportTask(params.username, params.password, params.serverUrl, uuid,
-					params.accessKey);
+			final String serverUrl = params.serverUrl == null ? "http://ndexbio.org/v2/" : params.serverUrl;
+
+			final NdexRestClient client = new NdexRestClient(params.username, params.password, serverUrl,
+					CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
+			final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(client);
+			return new NetworkImportTask(mal, uuid, params.accessKey);
+		} else {
+			final NdexRestClient client = new NdexRestClient(null, null, params.serverUrl,
+					CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
+			if (params.idToken != null)
+				client.signIn(params.idToken);
+
+			final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(client);
+
+			return new NetworkImportTask(mal, uuid, params.accessKey);
 		}
-		return new NetworkImportTask(params.serverUrl, uuid, params.accessKey, params.idToken);
 	}
-	
+
 	@Override
-	public TaskIterator createTaskIterator() {		
+	public TaskIterator createTaskIterator() {
 		try {
 			importer = buildImportTask();
 			return new TaskIterator(importer);
 		} catch (IOException | NdexException e) {
 			final String message = "Failed to connect to server and retrieve network. " + e.getMessage();
-			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);		
+			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 		}
 	}
-	
+
 	private UUID validateImportParameters(NDExImportParameters params) {
 		if (params == null) {
 			final String message = "No import parameters found.";
@@ -61,12 +76,12 @@ public class NDExImportTaskFactory extends AbstractTaskFactory {
 		}
 		try {
 			return UUID.fromString(params.uuid);
-		}catch (IllegalArgumentException e) {
+		} catch (IllegalArgumentException e) {
 			String message = "Invalid UUID parameter: " + params.uuid + ". Must conform to UUID standards";
 			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INVALID_PARAMETERS);
 		}
 	}
-	
+
 	public long getSUID() {
 		return importer.getSUID();
 	}

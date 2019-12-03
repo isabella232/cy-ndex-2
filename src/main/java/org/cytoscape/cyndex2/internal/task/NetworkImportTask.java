@@ -41,7 +41,6 @@ import org.cytoscape.io.read.AbstractCyNetworkReader;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
-import org.cytoscape.model.subnetwork.CyRootNetwork;
 import org.cytoscape.model.subnetwork.CySubNetwork;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ObservableTask;
@@ -61,30 +60,14 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 	private String accessKey = null;
 	protected InputStream cxStream;
 
-	public NetworkImportTask(String userId, String password, String serverUrl, UUID uuid, String accessKey)
+	public NetworkImportTask(final NdexRestClientModelAccessLayer mal, UUID uuid, String accessKey)
 			throws IOException, NdexException {
 		super();
 		this.uuid = uuid;
-		if (serverUrl == null) {
-			serverUrl = "http://ndexbio.org/v2/";
-		}
-		NdexRestClient client = new NdexRestClient(userId, password, serverUrl,
-				CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
-		mal = new NdexRestClientModelAccessLayer(client);
-		networkSummary = mal.getNetworkSummaryById(uuid, accessKey);
-		this.accessKey = accessKey;
-		cxStream = null;
-	}
-
-	public NetworkImportTask(String serverUrl, UUID uuid, String accessKey, String idToken)
-			throws IOException, NdexException {
-		super();
-		this.uuid = uuid;
-		NdexRestClient client = new NdexRestClient(null, null, serverUrl,
-				CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
-		if (idToken != null)
-			client.signIn(idToken);
-		mal = new NdexRestClientModelAccessLayer(client);
+		/*
+		
+		*/
+		this.mal = mal;
 		networkSummary = mal.getNetworkSummaryById(uuid, accessKey);
 		this.accessKey = accessKey;
 		cxStream = null;
