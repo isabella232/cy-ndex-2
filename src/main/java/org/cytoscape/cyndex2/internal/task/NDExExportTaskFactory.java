@@ -54,8 +54,6 @@ public class NDExExportTaskFactory implements NetworkViewTaskFactory, NetworkTas
 
 		for (Method method : writerMethods) {
 			if (method.getName().equals("setWriteSiblings")) {
-				System.out.println("setWriteSiblings parameters: " + method.getParameterTypes().length);
-				System.out.println("setWriteSiblings return type: " + method.getReturnType());
 				if (method.getParameterTypes().length == 1 && method.getReturnType() == Void.TYPE) {
 					if (method.getParameterTypes()[0].equals(Boolean.class)) {
 						setWriteSiblingsMethod = method;
