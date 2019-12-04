@@ -41,7 +41,7 @@ public class NdexNetworkResourceTest {
 		final NdexClient client = mock(NdexClient.class);
 		final CyApplicationManager appManager = mock(CyApplicationManager.class);
 		final CyNetworkManager networkManager = mock(CyNetworkManager.class);
-		final CIServiceManager ciServiceTracker = mock(CIServiceManager.class);
+		final CIServiceManager ciServiceManager = mock(CIServiceManager.class);
 
 		CIResponseFactory ciResponseFactory = mock(CIResponseFactory.class);
 		
@@ -58,7 +58,7 @@ public class NdexNetworkResourceTest {
 			e.printStackTrace();
 		}
 		
-		when(ciServiceTracker.getCIResponseFactory()).thenReturn(ciResponseFactory);
+		when(ciServiceManager.getCIResponseFactory()).thenReturn(ciResponseFactory);
 		
 		CySubNetwork currentSubNetwork = mock(CySubNetwork.class);
 		when(currentSubNetwork.getSUID()).thenReturn(669l);
@@ -143,7 +143,7 @@ public class NdexNetworkResourceTest {
 		when(currentSubNetwork.getSUID()).thenReturn(669l);
 		when(appManager.getCurrentNetwork()).thenReturn(currentSubNetwork);
 		
-		NdexNetworkResourceImpl impl = new NdexNetworkResourceImpl(client, appManager, networkManager, ciServiceTracker);
+		NdexNetworkResourceImpl impl = new NdexNetworkResourceImpl(client, appManager, networkManager, ciServiceManager);
 		CISummaryResponse ciSummaryResponse = impl.getCurrentNetworkSummary();
 		
 		assertEquals(Long.valueOf(669l),ciSummaryResponse.data.currentNetworkSuid);
