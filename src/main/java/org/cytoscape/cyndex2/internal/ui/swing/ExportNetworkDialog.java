@@ -220,7 +220,6 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
     private void initComponents() {
 
         jButton1 = new javax.swing.JButton();
-        jScrollPane2 = new javax.swing.JScrollPane();
         jPanel1 = new javax.swing.JPanel();
         organismField = new javax.swing.JTextField();
         authorField = new javax.swing.JTextField();
@@ -229,8 +228,6 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
         rightsHolderField = new javax.swing.JTextField();
         jLabel7 = new javax.swing.JLabel();
         upload = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        descriptionTextArea = new javax.swing.JTextArea();
         jLabel11 = new javax.swing.JLabel();
         tissueField = new javax.swing.JTextField();
         updateCheckbox = new javax.swing.JCheckBox();
@@ -245,11 +242,11 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
         jLabel5 = new javax.swing.JLabel();
         jLabel12 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        descriptionTextArea = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Upload Network to NDEx");
-
-        jScrollPane2.setBorder(null);
 
         jPanel1.setBorder(null);
 
@@ -273,10 +270,6 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
                 uploadActionPerformed(evt);
             }
         });
-
-        descriptionTextArea.setColumns(20);
-        descriptionTextArea.setRows(5);
-        jScrollPane1.setViewportView(descriptionTextArea);
 
         jLabel11.setText("Version");
 
@@ -318,6 +311,11 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 
         jLabel10.setText("Rights Holder");
 
+        descriptionTextArea.setColumns(20);
+        descriptionTextArea.setLineWrap(true);
+        descriptionTextArea.setRows(5);
+        jScrollPane3.setViewportView(descriptionTextArea);
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -343,10 +341,10 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
                             .addComponent(tissueField)
                             .addComponent(rightsHolderField)
                             .addComponent(versionField)
-                            .addComponent(jScrollPane1)
                             .addComponent(referenceField, javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(nameField)
-                            .addComponent(authorField)))
+                            .addComponent(authorField)
+                            .addComponent(jScrollPane3)))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(cancel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -400,7 +398,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel13)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(updateCheckbox)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -410,23 +408,21 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
                 .addContainerGap())
         );
 
-        jScrollPane2.setViewportView(jPanel1);
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 603, Short.MAX_VALUE)
-                .addContainerGap())
+                .addGap(6, 6, 6)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(6, 6, 6))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 538, Short.MAX_VALUE)
-                .addContainerGap())
+                .addGap(12, 12, 12)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(12, 12, 12))
         );
 
         pack();
@@ -618,8 +614,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTextField nameField;
     private javax.swing.JTextField organismField;
     private javax.swing.JTextField referenceField;
