@@ -17,6 +17,7 @@ import org.cytoscape.model.CyTable;
 import org.cytoscape.model.NetworkTestSupport;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
 import org.cytoscape.model.subnetwork.CySubNetwork;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -27,8 +28,11 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class NdexNetworkResourceTest {
@@ -36,14 +40,50 @@ public class NdexNetworkResourceTest {
 	protected NetworkTestSupport nts = new NetworkTestSupport();
 	protected NetworkViewTestSupport nvts = new NetworkViewTestSupport();
 	
-	@Test
-	public void testGetCurrentNetworkSummary() {
-		final NdexClient client = mock(NdexClient.class);
-		final CyApplicationManager appManager = mock(CyApplicationManager.class);
-		final CyNetworkManager networkManager = mock(CyNetworkManager.class);
-		final CIServiceManager ciServiceManager = mock(CIServiceManager.class);
+	NdexClient client = mock(NdexClient.class);
+	CyApplicationManager appManager = mock(CyApplicationManager.class);
+	CyNetworkManager networkManager = mock(CyNetworkManager.class);
+	CIServiceManager ciServiceManager = mock(CIServiceManager.class);
 
-		CIResponseFactory ciResponseFactory = mock(CIResponseFactory.class);
+	CIResponseFactory ciResponseFactory;
+	CySubNetwork currentSubNetwork;
+	CyRow subNetworkRow;
+	CyTable subNetworkTable;
+	
+	List<CyColumn> subNetworkTableColumns;
+	CyColumn subMockColumn;
+	
+	CyRow hiddenSubNetworkRow;
+	CyTable hiddenSubNetworkTable;
+	
+	
+	CyRow localSubNetworkRow;
+	CyTable localSubNetworkTable;
+	
+	CyRootNetwork currentRootNetwork;
+	
+	CyRow rootNetworkRow;
+	CyTable rootNetworkTable;
+	List<CyColumn> rootNetworkTableColumns = new ArrayList<CyColumn>();
+	CyColumn cyRootMockColumn = mock(CyColumn.class);
+	
+	CyRow hiddenRootRow;
+	CyTable hiddenRootTable;
+		
+	CyRow localRootRow;
+	CyTable localRootTable;
+	
+	List<CySubNetwork> subNetworkList;
+	
+	
+	@Before
+	public void prepMocks() {
+		client = mock(NdexClient.class);
+		appManager = mock(CyApplicationManager.class);
+		networkManager = mock(CyNetworkManager.class);
+		ciServiceManager = mock(CIServiceManager.class);
+
+		ciResponseFactory = mock(CIResponseFactory.class);
 		
 		//when(ciResponseFactory.getCIResponse(data, CISummaryResponse.class))
 		try {
@@ -60,15 +100,15 @@ public class NdexNetworkResourceTest {
 		
 		when(ciServiceManager.getCIResponseFactory()).thenReturn(ciResponseFactory);
 		
-		CySubNetwork currentSubNetwork = mock(CySubNetwork.class);
+		currentSubNetwork = mock(CySubNetwork.class);
 		when(currentSubNetwork.getSUID()).thenReturn(669l);
 		
-		CyRow subNetworkRow = mock(CyRow.class);
+		subNetworkRow = mock(CyRow.class);
 		when(subNetworkRow.get("mocksubkey", String.class)).thenReturn("mocksubvalue");
-		CyTable subNetworkTable = mock(CyTable.class);
+		subNetworkTable = mock(CyTable.class);
 		
-		List<CyColumn> subNetworkTableColumns = new ArrayList<CyColumn>();
-		CyColumn subMockColumn = mock(CyColumn.class);
+		subNetworkTableColumns = new ArrayList<CyColumn>();
+		subMockColumn = mock(CyColumn.class);
 		when(subMockColumn.getName()).thenReturn("mocksubkey");
 		when(subMockColumn.getType()).thenReturn((Class)String.class);
 		
@@ -81,33 +121,33 @@ public class NdexNetworkResourceTest {
 		
 		when(subNetworkTable.getRow(669l)).thenReturn(subNetworkRow);
 		
-		CyRow hiddenSubNetworkRow = mock(CyRow.class);
+		hiddenSubNetworkRow = mock(CyRow.class);
 		when(hiddenSubNetworkRow.get("NDEx UUID", String.class)).thenReturn((new UUID(1l,2l)).toString());
 		
 		
-		CyTable hiddenSubNetworkTable = mock(CyTable.class);
+		hiddenSubNetworkTable = mock(CyTable.class);
 		when(hiddenSubNetworkTable.getRow(669l)).thenReturn(hiddenSubNetworkRow);
 		when(currentSubNetwork.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS)).thenReturn(hiddenSubNetworkTable);
 		
-		CyRow localSubNetworkRow = mock(CyRow.class);
-		CyTable localSubNetworkTable = mock(CyTable.class);
+		localSubNetworkRow = mock(CyRow.class);
+		localSubNetworkTable = mock(CyTable.class);
 		
 		when(localSubNetworkTable.getRow(669l)).thenReturn(localSubNetworkRow);
 		when(localSubNetworkRow.get("name", String.class)).thenReturn("mock sub name");
 		
 		when(currentSubNetwork.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS)).thenReturn(localSubNetworkTable);
 		
-		CyRootNetwork currentRootNetwork = mock(CyRootNetwork.class);
+		currentRootNetwork = mock(CyRootNetwork.class);
 		when(currentRootNetwork.getSUID()).thenReturn(668l);
 		
-		CyRow rootNetworkRow = mock(CyRow.class);
+		rootNetworkRow = mock(CyRow.class);
 		when(rootNetworkRow.get("NDEx UUID", String.class)).thenReturn((new UUID(3l,4l)).toString());
 		when(rootNetworkRow.get("mockrootkey", String.class)).thenReturn("mockrootvalue");
 		
-		CyTable rootNetworkTable = mock(CyTable.class);
+		rootNetworkTable = mock(CyTable.class);
 		
-		List<CyColumn> rootNetworkTableColumns = new ArrayList<CyColumn>();
-		CyColumn cyRootMockColumn = mock(CyColumn.class);
+		rootNetworkTableColumns = new ArrayList<CyColumn>();
+		cyRootMockColumn = mock(CyColumn.class);
 		when(cyRootMockColumn.getName()).thenReturn("mockrootkey");
 		when(cyRootMockColumn.getType()).thenReturn((Class)String.class);
 		
@@ -118,23 +158,23 @@ public class NdexNetworkResourceTest {
 		when(currentRootNetwork.getDefaultNetworkTable()).thenReturn(rootNetworkTable);
 		when(currentRootNetwork.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS)).thenReturn(rootNetworkTable);
 	
-		CyRow hiddenRootRow = mock(CyRow.class);
-		CyTable hiddenRootTable = mock(CyTable.class);
+		hiddenRootRow = mock(CyRow.class);
+		hiddenRootTable = mock(CyTable.class);
 		
 		when(hiddenRootTable.getRow(668l)).thenReturn(hiddenRootRow);
 		when(hiddenRootRow.get("NDEx UUID", String.class)).thenReturn((new UUID(3l,4l)).toString());
 		
 		when(currentRootNetwork.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS)).thenReturn(hiddenRootTable);
 		
-		CyRow localRootRow = mock(CyRow.class);
-		CyTable localRootTable = mock(CyTable.class);
+		localRootRow = mock(CyRow.class);
+		localRootTable = mock(CyTable.class);
 		
 		when(localRootTable.getRow(668l)).thenReturn(localRootRow);
 		when(localRootRow.get("name", String.class)).thenReturn("mock root name");
 		
 		when(currentRootNetwork.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS)).thenReturn(localRootTable);
 		
-		List<CySubNetwork> subNetworkList = new ArrayList<CySubNetwork>();
+		subNetworkList = new ArrayList<CySubNetwork>();
 		subNetworkList.add(currentSubNetwork);
 	
 		when(currentRootNetwork.getSubNetworkList()).thenReturn(subNetworkList);
@@ -142,6 +182,19 @@ public class NdexNetworkResourceTest {
 		when(currentSubNetwork.getRootNetwork()).thenReturn(currentRootNetwork);
 		when(currentSubNetwork.getSUID()).thenReturn(669l);
 		when(appManager.getCurrentNetwork()).thenReturn(currentSubNetwork);
+		
+		when(networkManager.getNetwork(669l)).thenReturn(currentSubNetwork);
+		when(networkManager.getNetwork(668l)).thenReturn(currentRootNetwork);
+		
+		Set<CyNetwork> networks = new HashSet<CyNetwork>();
+		networks.add(currentSubNetwork);
+		networks.add(currentRootNetwork);
+		when(networkManager.getNetworkSet()).thenReturn(networks);
+		
+	}
+	
+	@Test
+	public void testGetCurrentNetworkSummary() {
 		
 		NdexNetworkResourceImpl impl = new NdexNetworkResourceImpl(client, appManager, networkManager, ciServiceManager);
 		CISummaryResponse ciSummaryResponse = impl.getCurrentNetworkSummary();
@@ -164,7 +217,29 @@ public class NdexNetworkResourceTest {
 		assertEquals("mocksubvalue", subNetworkSummary.props.get("mocksubkey"));
 	}
 	
-	
+	@Test
+	public void testGetNetworkSummary() {
+		
+		NdexNetworkResourceImpl impl = new NdexNetworkResourceImpl(client, appManager, networkManager, ciServiceManager);
+		CISummaryResponse ciSummaryResponse = impl.getNetworkSummary(669l);
+		
+		assertEquals(Long.valueOf(669l),ciSummaryResponse.data.currentNetworkSuid);
+		assertEquals(new UUID(3l,4l).toString(),ciSummaryResponse.data.currentRootNetwork.uuid);
+		assertEquals("mock root name",ciSummaryResponse.data.currentRootNetwork.name);
+		assertEquals(Long.valueOf(668l),ciSummaryResponse.data.currentRootNetwork.suid);
+		
+		assertEquals(1, ciSummaryResponse.data.members.size());
+		
+	  assertEquals("mockrootvalue", ciSummaryResponse.data.currentRootNetwork.props.get("mockrootkey"));
+		
+		SimpleNetworkSummary subNetworkSummary = ciSummaryResponse.data.members.iterator().next();
+		
+		assertEquals(Long.valueOf(669l), subNetworkSummary.suid);
+		assertEquals(new UUID(1l,2l).toString(), subNetworkSummary.uuid);
+		assertEquals("mock sub name", subNetworkSummary.name);
+		
+		assertEquals("mocksubvalue", subNetworkSummary.props.get("mocksubkey"));
+	}
 }
 
 
