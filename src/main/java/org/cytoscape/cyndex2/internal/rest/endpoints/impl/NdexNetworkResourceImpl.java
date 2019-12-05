@@ -58,7 +58,6 @@ import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 	private static final Logger logger = LoggerFactory.getLogger(NdexNetworkResourceImpl.class);
@@ -71,14 +70,14 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 	private final ErrorBuilder errorBuilder;
 
-	public NdexNetworkResourceImpl(final NdexClient client,
-			CyApplicationManager appManager, CyNetworkManager networkManager, CIServiceManager ciServiceTracker) {
+	public NdexNetworkResourceImpl(final NdexClient client, CyApplicationManager appManager,
+			CyNetworkManager networkManager, CIServiceManager ciServiceTracker) {
 
 		this.client = client;
 		this.ciServiceManager = ciServiceTracker;
 
 		this.errorBuilder = CyServiceModule.INSTANCE.getErrorBuilder();
-		
+
 		this.networkManager = networkManager;
 		this.appManager = appManager;
 
@@ -93,7 +92,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		}
 		return network;
 	}
-	
+
 	private CyNetwork getNetworkFromSUID(Long suid) throws WebApplicationException {
 		/*
 		 * Attempt to get the CyNetwork object from an SUID. If the SUID is null, get
@@ -105,8 +104,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		 */
 		if (suid == null) {
 			logger.error("SUID is missing");
-			throw errorBuilder.buildException(Status.BAD_REQUEST, "SUID is not specified.",
-					ErrorType.INVALID_PARAMETERS);
+			throw errorBuilder.buildException(Status.BAD_REQUEST, "SUID is not specified.", ErrorType.INVALID_PARAMETERS);
 		}
 		CyNetwork network = networkManager.getNetwork(suid.longValue());
 
@@ -132,15 +130,15 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	@Override
 	@CIWrapping
 	public CINdexBaseResponse createNetworkFromNdex(final NDExImportParameters params) {
-		
+
 		try {
 			NDExImportTaskFactory importFactory = new NDExImportTaskFactory(params);
 			TaskIterator iter = importFactory.createTaskIterator();
-			
+
 			execute(iter);
-			
+
 			final NdexBaseResponse response = new NdexBaseResponse(importFactory.getSUID(), params.uuid);
-		
+
 			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
 		} catch (InstantiationException | IllegalAccessException e) {
 			final String message = "Could not create wrapped CI JSON. Error: " + e.getMessage();
@@ -155,11 +153,11 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		try {
 			NDExExportTaskFactory exportFactory = new NDExExportTaskFactory(params, false);
 			CyNetwork network = getNetworkFromSUID(suid);
-			
+
 			TaskIterator iter = exportFactory.createTaskIterator(network);
-			
+
 			execute(iter);
-			
+
 			UUID newUUID = exportFactory.getUUID();
 			if (newUUID == null) {
 				final String message = "No UUID returned from NDEx API.";
@@ -167,16 +165,16 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 				throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 			}
 			setVisibility(params, newUUID.toString());
-			
+
 			final NdexBaseResponse response = new NdexBaseResponse(suid, newUUID.toString());
 			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
-		
+
 		} catch (InstantiationException | IllegalAccessException e2) {
 			final String message = "Could not create wrapped CI JSON response. Error: " + e2.getMessage();
 			logger.error(message);
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 		}
-		
+
 	}
 
 	@Override
@@ -190,8 +188,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		int retries = 0;
 		for (; retries < 5; retries++) {
 			try {
-				client.setVisibility(params.serverUrl, uuid, params.isPublic.booleanValue(), params.username,
-						params.password);
+				client.setVisibility(params.serverUrl, uuid, params.isPublic.booleanValue(), params.username, params.password);
 				break;
 			} catch (Exception e) {
 				String message = String.format("Error updating visibility. Retrying (%d/5)...", retries);
@@ -201,8 +198,8 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 				} catch (InterruptedException e1) {
 					message = "Failed to wait. This should never happen.";
 					logger.error(message);
-					final CIError ciError = ciServiceManager.getCIErrorFactory().getCIError(
-							Status.BAD_REQUEST.getStatusCode(), "urn:cytoscape:ci:ndex:v1:errors:1", message);
+					final CIError ciError = ciServiceManager.getCIErrorFactory().getCIError(Status.BAD_REQUEST.getStatusCode(),
+							"urn:cytoscape:ci:ndex:v1:errors:1", message);
 					throw ciServiceManager.getCIExceptionFactory().getCIException(Status.BAD_REQUEST.getStatusCode(),
 							new CIError[] { ciError });
 
@@ -242,11 +239,13 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		if (network == null) {
 			// Check if the suid points to a collection
 			for (CyNetwork net : networkManager.getNetworkSet()) {
-				CyRootNetwork root = ((CySubNetwork) net).getRootNetwork();
-				Long rootSUID = root.getSUID();
-				if (rootSUID.compareTo(suid) == 0) {
-					rootNetwork = root;
-					break;
+				if (net instanceof CySubNetwork) {
+					CyRootNetwork root = ((CySubNetwork) net).getRootNetwork();
+					Long rootSUID = root.getSUID();
+					if (rootSUID.compareTo(suid) == 0) {
+						rootNetwork = root;
+						break;
+					}
 				}
 			}
 		} else {
@@ -277,14 +276,13 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		final SummaryResponse summary = new SummaryResponse();
 
 		// Network local table
-		final SimpleNetworkSummary rootSummary = buildNetworkSummary(root, root.getDefaultNetworkTable(),
-				root.getSUID());
+		final SimpleNetworkSummary rootSummary = buildNetworkSummary(root, root.getDefaultNetworkTable(), root.getSUID());
 		if (network != null)
 			summary.currentNetworkSuid = network.getSUID();
 		summary.currentRootNetwork = rootSummary;
 		List<SimpleNetworkSummary> members = new ArrayList<>();
-		root.getSubNetworkList().stream().forEach(
-				subnet -> members.add(buildNetworkSummary(subnet, subnet.getDefaultNetworkTable(), subnet.getSUID())));
+		root.getSubNetworkList().stream()
+				.forEach(subnet -> members.add(buildNetworkSummary(subnet, subnet.getDefaultNetworkTable(), subnet.getSUID())));
 		summary.members = members;
 
 		return summary;
@@ -315,20 +313,20 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	@Override
 	@CIWrapping
 	public CINdexBaseResponse updateNetworkInNdex(Long suid, NDExBasicSaveParameters params) {
-		
+
 		CyNetwork network = getNetworkFromSUID(suid);
 		// Check UUID
 		UUID uuid;
 		try {
-			uuid = UpdateUtil.updateIsPossibleHelper(suid, network instanceof CyRootNetwork, params.username, params.password, params.serverUrl);
+			uuid = UpdateUtil.updateIsPossibleHelper(suid, network instanceof CyRootNetwork, params.username, params.password,
+					params.serverUrl);
 		} catch (Exception e) {
-			final String message = "Unable to update network in NDEx." + e.getMessage()
-					+ " Try saving as a new network.";
+			final String message = "Unable to update network in NDEx." + e.getMessage() + " Try saving as a new network.";
 			logger.error(message);
 			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INVALID_PARAMETERS);
 
 		}
-		
+
 		boolean success = updateLoop(network, params);
 
 		if (!success) {
@@ -349,16 +347,14 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		}
 	}
 
-	private final boolean updateExistingNetwork(
-			final CyNetwork network,
-			final NDExBasicSaveParameters params) {
+	private final boolean updateExistingNetwork(final CyNetwork network, final NDExBasicSaveParameters params) {
 
 		NDExExportTaskFactory exportFactory = new NDExExportTaskFactory(params, true);
 		TaskIterator iter = exportFactory.createTaskIterator(network);
 		CyActivator.taskManager.execute(iter);
 		return true;
 	}
-	
+
 	private boolean updateLoop(CyNetwork network, NDExBasicSaveParameters params) {
 		int retryCount = 0;
 		boolean success = false;
@@ -391,27 +387,25 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		return updateNetworkInNdex(network.getSUID(), params);
 	}
 
-
-
 	@Override
 	@CIWrapping
 	public CINdexBaseResponse createNetworkFromCx(final InputStream in) {
 
 		InputStreamTaskFactory taskFactory = CxTaskFactoryManager.INSTANCE.getCxReaderFactory();
 		TaskIterator iter = taskFactory.createTaskIterator(in, null);
-		
+
 		// Get task to get SUID
 		AbstractCyNetworkReader reader = (AbstractCyNetworkReader) iter.next();
 		reader.setRootNetworkList(new ListSingleSelection<String>());
 		iter.append(reader);
-		
+
 		execute(iter);
-		
+
 		for (CyNetwork net : reader.getNetworks()) {
 			networkManager.addNetwork(net);
 		}
 		reader.buildCyNetworkView(reader.getNetworks()[0]);
-		
+
 		Long suid = reader.getNetworks()[0].getSUID();
 		final NdexBaseResponse response = new NdexBaseResponse(suid, "");
 		try {
@@ -422,25 +416,25 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 		}
 	}
-	
+
 	private void execute(TaskIterator iter) {
 		DialogTaskManager tm = CyServiceModule.getService(DialogTaskManager.class);
 //		SynchronousTaskManager<?> tm = CyServiceModule.getService(SynchronousTaskManager.class);
-		
+
 		Object lock = new Object();
 		Runnable runner = new Runnable() {
 			@Override
 			public void run() {
 				tm.execute(iter, new TaskObserver() {
-					
+
 					@Override
 					public void taskFinished(ObservableTask task) {
-						
+
 					}
-					
+
 					@Override
 					public void allFinished(FinishStatus finishStatus) {
-						synchronized(lock) {
+						synchronized (lock) {
 							lock.notify();
 						}
 					}
@@ -449,14 +443,13 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		};
 
 		try {
-            SwingUtilities.invokeAndWait(runner);
-            synchronized (lock) {
-	            lock.wait();	
+			SwingUtilities.invokeAndWait(runner);
+			synchronized (lock) {
+				lock.wait();
 			}
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }

@@ -184,7 +184,7 @@ public class NdexNetworkResourceTest {
 		when(appManager.getCurrentNetwork()).thenReturn(currentSubNetwork);
 		
 		when(networkManager.getNetwork(669l)).thenReturn(currentSubNetwork);
-		when(networkManager.getNetwork(668l)).thenReturn(currentRootNetwork);
+		//when(networkManager.getNetwork(668l)).thenReturn(currentRootNetwork);
 		
 		Set<CyNetwork> networks = new HashSet<CyNetwork>();
 		networks.add(currentSubNetwork);
@@ -224,6 +224,30 @@ public class NdexNetworkResourceTest {
 		CISummaryResponse ciSummaryResponse = impl.getNetworkSummary(669l);
 		
 		assertEquals(Long.valueOf(669l),ciSummaryResponse.data.currentNetworkSuid);
+		assertEquals(new UUID(3l,4l).toString(),ciSummaryResponse.data.currentRootNetwork.uuid);
+		assertEquals("mock root name",ciSummaryResponse.data.currentRootNetwork.name);
+		assertEquals(Long.valueOf(668l),ciSummaryResponse.data.currentRootNetwork.suid);
+		
+		assertEquals(1, ciSummaryResponse.data.members.size());
+		
+	  assertEquals("mockrootvalue", ciSummaryResponse.data.currentRootNetwork.props.get("mockrootkey"));
+		
+		SimpleNetworkSummary subNetworkSummary = ciSummaryResponse.data.members.iterator().next();
+		
+		assertEquals(Long.valueOf(669l), subNetworkSummary.suid);
+		assertEquals(new UUID(1l,2l).toString(), subNetworkSummary.uuid);
+		assertEquals("mock sub name", subNetworkSummary.name);
+		
+		assertEquals("mocksubvalue", subNetworkSummary.props.get("mocksubkey"));
+	}
+	
+	@Test
+	public void testGetRootNetworkSummary() {
+		
+		NdexNetworkResourceImpl impl = new NdexNetworkResourceImpl(client, appManager, networkManager, ciServiceManager);
+		CISummaryResponse ciSummaryResponse = impl.getNetworkSummary(668l);
+		
+		assertEquals(null,ciSummaryResponse.data.currentNetworkSuid);
 		assertEquals(new UUID(3l,4l).toString(),ciSummaryResponse.data.currentRootNetwork.uuid);
 		assertEquals("mock root name",ciSummaryResponse.data.currentRootNetwork.name);
 		assertEquals(Long.valueOf(668l),ciSummaryResponse.data.currentRootNetwork.suid);
