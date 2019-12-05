@@ -1,12 +1,20 @@
 package org.cytoscape.cyndex2.internal;
 
+import java.io.File;
+
+import org.cytoscape.application.swing.CySwingApplication;
+import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.service.util.CyServiceRegistrar;
 
 public class CyServiceModule {
 	
 	public static CyServiceModule INSTANCE = new CyServiceModule();
+	
 	private CyServiceRegistrar registrar;
+	
+	private CySwingApplication swingApplication;
+	
 	private ErrorBuilder errorBuilder;
 	
 	private CyServiceModule() {
@@ -22,9 +30,23 @@ public class CyServiceModule {
 		INSTANCE.errorBuilder = errorBuilder;
 	}
 	
+	public static void setSwingApplication(CySwingApplication swingApplication) {
+		INSTANCE.swingApplication = swingApplication;
+	}
+	
+	public CySwingApplication getSwingApplcation() {
+		return swingApplication;
+	}
+	
 	public ErrorBuilder getErrorBuilder() {
 		return errorBuilder;
 	}
 	
+	public CyApplicationConfiguration getConfig() {
+		return registrar.getService(CyApplicationConfiguration.class);
+	}
 	
+	public File getConfigDir() {
+		return getConfig().getAppConfigurationDirectoryLocation(CyActivator.class);
+	}
 }

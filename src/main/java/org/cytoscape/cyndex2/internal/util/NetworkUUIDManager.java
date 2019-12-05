@@ -8,6 +8,7 @@ import org.cytoscape.model.CyTable;
 
 public class NetworkUUIDManager {
 	public static final String UUID_COLUMN = "NDEx UUID";
+	
 	public static void saveUUID(CyNetwork network, UUID uuid) {
 		CyTable table = network.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
 		
@@ -15,6 +16,7 @@ public class NetworkUUIDManager {
 			table.createColumn(UUID_COLUMN, String.class, false);
 		}
 		CyRow row = table.getRow(network.getSUID());
+		System.out.println("Saving UUID for network: " + network.getSUID());
 		row.set(UUID_COLUMN, uuid.toString());
 	}
 	

@@ -3,7 +3,6 @@ package org.cytoscape.cyndex2.internal.task;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -12,6 +11,7 @@ import java.util.UUID;
 import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.cyndex2.internal.CxTaskFactoryManager;
+import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorType;
@@ -30,6 +30,8 @@ import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
+import org.ndexbio.rest.client.NdexRestClient;
+import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 public class NDExExportTaskFactory implements NetworkViewTaskFactory, NetworkTaskFactory {
 
@@ -55,8 +57,6 @@ public class NDExExportTaskFactory implements NetworkViewTaskFactory, NetworkTas
 
 		for (Method method : writerMethods) {
 			if (method.getName().equals("setWriteSiblings")) {
-				System.out.println("setWriteSiblings parameters: " + method.getParameterTypes().length);
-				System.out.println("setWriteSiblings return type: " + method.getReturnType());
 				if (method.getParameterTypes().length == 1 && method.getReturnType() == Void.TYPE) {
 					if (method.getParameterTypes()[0].equals(Boolean.class)) {
 						setWriteSiblingsMethod = method;
@@ -134,7 +134,12 @@ public class NDExExportTaskFactory implements NetworkViewTaskFactory, NetworkTas
 				writer.run(taskMonitor);
 				byte[] bytes = out.toByteArray();
 				ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-				exporter = new NetworkExportTask(network.getSUID(), in, params, writeCollection, isUpdate);
+				
+				NdexRestClient client = new NdexRestClient(params.username, params.password, params.serverUrl,
+						CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
+				NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(client);
+				
+				exporter = new NetworkExportTask(mal, network.getSUID(), in, params, writeCollection, isUpdate);
 				getTaskIterator().append(exporter);
 			}
 			@Override
@@ -184,7 +189,7 @@ public class NDExExportTaskFactory implements NetworkViewTaskFactory, NetworkTas
 					"Must provide save parameters (username and password)", ErrorType.INVALID_PARAMETERS);
 		}
 		if (params.serverUrl == null) {
-			params.serverUrl = "http://ndexbio.org/v2/";
+			params.serverUrl = "http://ndexbio.org/v2";
 		}
 		if (params.metadata == null) {
 			params.metadata = new HashMap<>();
