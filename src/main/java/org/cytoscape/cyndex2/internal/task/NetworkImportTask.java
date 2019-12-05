@@ -33,7 +33,6 @@ import java.util.UUID;
 import javax.swing.SwingUtilities;
 
 import org.cytoscape.cyndex2.internal.CxTaskFactoryManager;
-import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.util.HeadlessTaskMonitor;
 import org.cytoscape.cyndex2.internal.util.NetworkUUIDManager;
@@ -48,7 +47,6 @@ import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.network.NetworkSummary;
-import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 public class NetworkImportTask extends AbstractTask implements ObservableTask {
@@ -71,13 +69,6 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 		networkSummary = mal.getNetworkSummaryById(uuid, accessKey);
 		this.accessKey = accessKey;
 		cxStream = null;
-	}
-
-	public NetworkImportTask(InputStream in) {
-		super();
-		networkSummary = null;
-		mal = null;
-		cxStream = in;
 	}
 
 	@Override
