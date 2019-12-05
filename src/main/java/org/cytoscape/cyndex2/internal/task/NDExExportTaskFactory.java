@@ -11,6 +11,7 @@ import java.util.UUID;
 import javax.ws.rs.core.Response.Status;
 
 import org.cytoscape.cyndex2.internal.CxTaskFactoryManager;
+import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorType;
@@ -29,6 +30,8 @@ import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
+import org.ndexbio.rest.client.NdexRestClient;
+import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 public class NDExExportTaskFactory implements NetworkViewTaskFactory, NetworkTaskFactory {
 
@@ -131,7 +134,12 @@ public class NDExExportTaskFactory implements NetworkViewTaskFactory, NetworkTas
 				writer.run(taskMonitor);
 				byte[] bytes = out.toByteArray();
 				ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-				exporter = new NetworkExportTask(network.getSUID(), in, params, writeCollection, isUpdate);
+				
+				NdexRestClient client = new NdexRestClient(params.username, params.password, params.serverUrl,
+						CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
+				NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(client);
+				
+				exporter = new NetworkExportTask(mal, network.getSUID(), in, params, writeCollection, isUpdate);
 				getTaskIterator().append(exporter);
 			}
 			@Override
