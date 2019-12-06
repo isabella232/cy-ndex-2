@@ -2,13 +2,18 @@ package org.cytoscape.cyndex2.rest.impl;
 
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.ci.CIResponseFactory;
+import org.cytoscape.cyndex2.internal.CxTaskFactoryManager;
+import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.rest.NdexClient;
 import org.cytoscape.cyndex2.internal.rest.SimpleNetworkSummary;
+import org.cytoscape.cyndex2.internal.rest.endpoints.NdexNetworkResource.CINdexBaseResponse;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexNetworkResource.CISummaryResponse;
 import org.cytoscape.cyndex2.internal.rest.endpoints.impl.NdexNetworkResourceImpl;
 import org.cytoscape.cyndex2.internal.rest.response.SummaryResponse;
 import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 import org.cytoscape.ding.NetworkViewTestSupport;
+import org.cytoscape.io.read.AbstractCyNetworkReader;
+import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
@@ -17,23 +22,40 @@ import org.cytoscape.model.CyTable;
 import org.cytoscape.model.NetworkTestSupport;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
 import org.cytoscape.model.subnetwork.CySubNetwork;
+import org.cytoscape.service.util.CyServiceRegistrar;
+import org.cytoscape.work.FinishStatus;
+import org.cytoscape.work.ObservableTask;
+import org.cytoscape.work.Task;
+import org.cytoscape.work.TaskIterator;
+import org.cytoscape.work.TaskMonitor;
+import org.cytoscape.work.TaskObserver;
+import org.cytoscape.work.swing.DialogTaskManager;
+import org.cytoscape.cyndex2.internal.rest.response.NdexBaseResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
 
-import java.lang.reflect.Array;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class NdexNetworkResourceTest {
 	
@@ -55,7 +77,6 @@ public class NdexNetworkResourceTest {
 	
 	CyRow hiddenSubNetworkRow;
 	CyTable hiddenSubNetworkTable;
-	
 	
 	CyRow localSubNetworkRow;
 	CyTable localSubNetworkTable;
@@ -94,6 +115,18 @@ public class NdexNetworkResourceTest {
 					return output;
 				}
 			}).when(ciResponseFactory).getCIResponse(org.mockito.Matchers.any(), eq(CISummaryResponse.class));
+		} catch (InstantiationException | IllegalAccessException e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			doAnswer(new Answer<CINdexBaseResponse>() {
+				public CINdexBaseResponse answer(InvocationOnMock invocation) {
+					final CINdexBaseResponse output = new CINdexBaseResponse();
+					output.data = (NdexBaseResponse) invocation.getArguments()[0];
+					return output;
+				}
+			}).when(ciResponseFactory).getCIResponse(org.mockito.Matchers.any(), eq(CINdexBaseResponse.class));
 		} catch (InstantiationException | IllegalAccessException e) {
 			e.printStackTrace();
 		}
@@ -215,6 +248,73 @@ public class NdexNetworkResourceTest {
 		assertEquals("mock sub name", subNetworkSummary.name);
 		
 		assertEquals("mocksubvalue", subNetworkSummary.props.get("mocksubkey"));
+	}
+	
+	@Test
+	public void testCreateNetworkFromCX() {
+		CyServiceRegistrar reg = mock(CyServiceRegistrar.class);
+		DialogTaskManager dtm = mock(DialogTaskManager.class);
+		
+		doAnswer(new Answer<Void>() {
+			public Void answer(InvocationOnMock invocation) {
+				final ExecutorService service = Executors.newSingleThreadExecutor();
+				service.submit(()-> {
+					Object[] args = invocation.getArguments();
+
+					TaskIterator taskIterator = (TaskIterator) args[0];
+					TaskObserver observer = (TaskObserver) args[1];
+					// System.out.println("SyncTaskManager.execute");
+					
+			    Task task = null;
+					try {
+						while (taskIterator.hasNext()) {
+							task = taskIterator.next();
+					
+							task.run(mock(TaskMonitor.class));
+
+							if (task instanceof ObservableTask && observer != null) {
+								observer.taskFinished((ObservableTask)task);
+							} 
+						}
+			            if (observer != null) observer.allFinished(FinishStatus.getSucceeded());
+
+					} catch (Exception exception) {
+			            if (observer != null && task != null) observer.allFinished(FinishStatus.newFailed(task, exception));
+					}
+				});
+				return null;
+			}
+		}).when(dtm).execute(any(TaskIterator.class), any(TaskObserver.class));
+		
+		when(reg.getService(DialogTaskManager.class)).thenReturn(dtm);
+		CyServiceModule.setServiceRegistrar(reg);
+		
+		InputStreamTaskFactory inputStreamTaskFactory = mock(InputStreamTaskFactory.class);
+		AbstractCyNetworkReader readerTask = mock(AbstractCyNetworkReader.class); 
+		CyNetwork cyNetwork = mock(CyNetwork.class);
+		CyNetwork[] cyNetworks = {cyNetwork};
+		when(readerTask.getNetworks()).thenReturn(cyNetworks);
+		
+		TaskIterator taskIterator = new TaskIterator();
+		taskIterator.append(readerTask);
+	
+		Map<String, String> properties = new HashMap<String, String>();
+		properties.put("id", "cytoscapeCxNetworkReaderFactory");
+		
+		when(inputStreamTaskFactory.createTaskIterator(any(InputStream.class), anyObject())).thenReturn(taskIterator);
+	
+		CxTaskFactoryManager.INSTANCE.addReaderFactory(inputStreamTaskFactory, properties);
+		
+		NdexNetworkResourceImpl impl = new NdexNetworkResourceImpl(client, appManager, networkManager, ciServiceManager);
+		InputStream inputStream = mock(InputStream.class);
+		
+		CINdexBaseResponse response = impl.createNetworkFromCx(inputStream);
+		
+		verify(inputStreamTaskFactory).createTaskIterator(inputStream, null);
+		
+		verify(networkManager).addNetwork(cyNetwork);
+		verify(readerTask).buildCyNetworkView(cyNetwork);
+		
 	}
 	
 	@Test
