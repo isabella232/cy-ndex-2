@@ -32,8 +32,6 @@ import org.junit.Test;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 public class NDExNetworkExportTaskTests {
 	
 	final UUID subNetworkUUID = new UUID(1,2);
@@ -116,31 +114,17 @@ public class NDExNetworkExportTaskTests {
 			NetworkExportTask task = new NetworkExportTask(mal, 669l, inputStream, params, false, false);
 			TaskMonitor taskMonitor = mock(TaskMonitor.class);
 			task.run(taskMonitor);
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-			fail();
-		} catch (IOException e) {
-			e.printStackTrace();
-			fail();
-		} catch (NdexException e) {
-			e.printStackTrace();
-			fail();
-		} catch (NetworkExportException e) {
-			e.printStackTrace();
-			fail();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-			fail();
-		} catch (InterruptedException e) {
+		} catch (IOException 
+				| NdexException 
+				| NetworkExportException 
+				| InvocationTargetException 
+				| InterruptedException e) {
 			e.printStackTrace();
 			fail();
 		}
 		try {
 			verify(mal).createCXNetwork(inputStream);
 			verify(mal, never()).updateCXNetwork(any(UUID.class), any(InputStream.class));
-		} catch (IllegalStateException e) {
-			e.printStackTrace();
-			fail();
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail();
@@ -165,31 +149,17 @@ public class NDExNetworkExportTaskTests {
 			NetworkExportTask task = new NetworkExportTask(mal, 669l, inputStream, params, true, false);
 			TaskMonitor taskMonitor = mock(TaskMonitor.class);
 			task.run(taskMonitor);
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-			fail();
-		} catch (IOException e) {
-			e.printStackTrace();
-			fail();
-		} catch (NdexException e) {
-			e.printStackTrace();
-			fail();
-		} catch (NetworkExportException e) {
-			e.printStackTrace();
-			fail();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-			fail();
-		} catch (InterruptedException e) {
+		} catch (IOException 
+				| NdexException
+				| NetworkExportException
+				| InvocationTargetException 
+				| InterruptedException e) {
 			e.printStackTrace();
 			fail();
 		}
 		try {
 			verify(mal).createCXNetwork(inputStream);
 			verify(mal, never()).updateCXNetwork(any(UUID.class), any(InputStream.class));
-		} catch (IllegalStateException e) {
-			e.printStackTrace();
-			fail();
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail();
@@ -214,31 +184,17 @@ public class NDExNetworkExportTaskTests {
 			NetworkExportTask task = new NetworkExportTask(mal, 669l, inputStream, params, false, true);
 			TaskMonitor taskMonitor = mock(TaskMonitor.class);
 			task.run(taskMonitor);
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-			fail();
-		} catch (IOException e) {
-			e.printStackTrace();
-			fail();
-		} catch (NdexException e) {
-			e.printStackTrace();
-			fail();
-		} catch (NetworkExportException e) {
-			e.printStackTrace();
-			fail();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-			fail();
-		} catch (InterruptedException e) {
+		} catch (IOException 
+				| NdexException 
+				| NetworkExportException 
+				| InvocationTargetException
+				|InterruptedException e) {
 			e.printStackTrace();
 			fail();
 		}
 		try {
 			verify(mal).updateCXNetwork(subNetworkUUID, inputStream);
 			verify(mal, never()).createCXNetwork(any(InputStream.class));
-		} catch (IllegalStateException e) {
-			e.printStackTrace();
-			fail();
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail();
@@ -263,31 +219,17 @@ public class NDExNetworkExportTaskTests {
 			NetworkExportTask task = new NetworkExportTask(mal, 669l, inputStream, params, true, true);
 			TaskMonitor taskMonitor = mock(TaskMonitor.class);
 			task.run(taskMonitor);
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-			fail();
-		} catch (IOException e) {
-			e.printStackTrace();
-			fail();
-		} catch (NdexException e) {
-			e.printStackTrace();
-			fail();
-		} catch (NetworkExportException e) {
-			e.printStackTrace();
-			fail();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-			fail();
-		} catch (InterruptedException e) {
+		} catch (IOException 
+				| NdexException 
+				| NetworkExportException 
+				| InvocationTargetException 
+				| InterruptedException e) {
 			e.printStackTrace();
 			fail();
 		}
 		try {
 			verify(mal).updateCXNetwork(rootNetworkUUID, inputStream);
 			verify(mal, never()).createCXNetwork(any(InputStream.class));
-		} catch (IllegalStateException e) {
-			e.printStackTrace();
-			fail();
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail();

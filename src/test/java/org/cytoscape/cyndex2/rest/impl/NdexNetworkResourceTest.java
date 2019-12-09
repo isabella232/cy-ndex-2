@@ -9,11 +9,18 @@ import org.cytoscape.cyndex2.internal.rest.SimpleNetworkSummary;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexNetworkResource.CINdexBaseResponse;
 import org.cytoscape.cyndex2.internal.rest.endpoints.NdexNetworkResource.CISummaryResponse;
 import org.cytoscape.cyndex2.internal.rest.endpoints.impl.NdexNetworkResourceImpl;
+import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
+import org.cytoscape.cyndex2.internal.rest.errors.ErrorType;
+import org.cytoscape.cyndex2.internal.rest.parameter.NDExImportParameters;
+import org.cytoscape.cyndex2.internal.rest.parameter.NDExSaveParameters;
 import org.cytoscape.cyndex2.internal.rest.response.SummaryResponse;
+import org.cytoscape.cyndex2.internal.task.NDExExportTaskFactory;
+import org.cytoscape.cyndex2.internal.task.NDExImportTaskFactory;
 import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 import org.cytoscape.ding.NetworkViewTestSupport;
 import org.cytoscape.io.read.AbstractCyNetworkReader;
 import org.cytoscape.io.read.InputStreamTaskFactory;
+import org.cytoscape.io.write.CyWriter;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
@@ -32,11 +39,14 @@ import org.cytoscape.work.TaskObserver;
 import org.cytoscape.work.swing.DialogTaskManager;
 import org.cytoscape.cyndex2.internal.rest.response.NdexBaseResponse;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
@@ -44,8 +54,6 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.times;
-
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,6 +64,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response.Status;
 
 public class NdexNetworkResourceTest {
 	
@@ -96,9 +107,24 @@ public class NdexNetworkResourceTest {
 	
 	List<CySubNetwork> subNetworkList;
 	
+	CyServiceRegistrar reg;
+	DialogTaskManager dtm;
 	
+
 	@Before
 	public void prepMocks() {
+		ErrorBuilder errorBuilder = mock(ErrorBuilder.class);
+		
+		doAnswer(new Answer<WebApplicationException>() {
+			public WebApplicationException answer(InvocationOnMock invocation) {
+				final WebApplicationException output = new WebApplicationException();
+				
+				return output;
+			}
+		}).when(errorBuilder).buildException(any(Status.class), any(String.class), any(ErrorType.class));
+		
+		CyServiceModule.setErrorBuilder(errorBuilder);
+		
 		client = mock(NdexClient.class);
 		appManager = mock(CyApplicationManager.class);
 		networkManager = mock(CyNetworkManager.class);
@@ -156,7 +182,6 @@ public class NdexNetworkResourceTest {
 		
 		hiddenSubNetworkRow = mock(CyRow.class);
 		when(hiddenSubNetworkRow.get("NDEx UUID", String.class)).thenReturn((new UUID(1l,2l)).toString());
-		
 		
 		hiddenSubNetworkTable = mock(CyTable.class);
 		when(hiddenSubNetworkTable.getRow(669l)).thenReturn(hiddenSubNetworkRow);
@@ -224,34 +249,6 @@ public class NdexNetworkResourceTest {
 		networks.add(currentRootNetwork);
 		when(networkManager.getNetworkSet()).thenReturn(networks);
 		
-	}
-	
-	@Test
-	public void testGetCurrentNetworkSummary() {
-		
-		NdexNetworkResourceImpl impl = new NdexNetworkResourceImpl(client, appManager, networkManager, ciServiceManager);
-		CISummaryResponse ciSummaryResponse = impl.getCurrentNetworkSummary();
-		
-		assertEquals(Long.valueOf(669l),ciSummaryResponse.data.currentNetworkSuid);
-		assertEquals(new UUID(3l,4l).toString(),ciSummaryResponse.data.currentRootNetwork.uuid);
-		assertEquals("mock root name",ciSummaryResponse.data.currentRootNetwork.name);
-		assertEquals(Long.valueOf(668l),ciSummaryResponse.data.currentRootNetwork.suid);
-		
-		assertEquals(1, ciSummaryResponse.data.members.size());
-		
-	  assertEquals("mockrootvalue", ciSummaryResponse.data.currentRootNetwork.props.get("mockrootkey"));
-		
-		SimpleNetworkSummary subNetworkSummary = ciSummaryResponse.data.members.iterator().next();
-		
-		assertEquals(Long.valueOf(669l), subNetworkSummary.suid);
-		assertEquals(new UUID(1l,2l).toString(), subNetworkSummary.uuid);
-		assertEquals("mock sub name", subNetworkSummary.name);
-		
-		assertEquals("mocksubvalue", subNetworkSummary.props.get("mocksubkey"));
-	}
-	
-	@Test
-	public void testCreateNetworkFromCX() {
 		CyServiceRegistrar reg = mock(CyServiceRegistrar.class);
 		DialogTaskManager dtm = mock(DialogTaskManager.class);
 		
@@ -289,6 +286,110 @@ public class NdexNetworkResourceTest {
 		when(reg.getService(DialogTaskManager.class)).thenReturn(dtm);
 		CyServiceModule.setServiceRegistrar(reg);
 		
+	}
+	
+	@Test
+	public void testGetCurrentNetworkSummary() {
+		
+		NdexNetworkResourceImpl impl = new NdexNetworkResourceImpl(client, appManager, networkManager, ciServiceManager);
+		CISummaryResponse ciSummaryResponse = impl.getCurrentNetworkSummary();
+		
+		assertEquals(Long.valueOf(669l),ciSummaryResponse.data.currentNetworkSuid);
+		assertEquals(new UUID(3l,4l).toString(),ciSummaryResponse.data.currentRootNetwork.uuid);
+		assertEquals("mock root name",ciSummaryResponse.data.currentRootNetwork.name);
+		assertEquals(Long.valueOf(668l),ciSummaryResponse.data.currentRootNetwork.suid);
+		
+		assertEquals(1, ciSummaryResponse.data.members.size());
+		
+	  assertEquals("mockrootvalue", ciSummaryResponse.data.currentRootNetwork.props.get("mockrootkey"));
+		
+		SimpleNetworkSummary subNetworkSummary = ciSummaryResponse.data.members.iterator().next();
+		
+		assertEquals(Long.valueOf(669l), subNetworkSummary.suid);
+		assertEquals(new UUID(1l,2l).toString(), subNetworkSummary.uuid);
+		assertEquals("mock sub name", subNetworkSummary.name);
+		
+		assertEquals("mocksubvalue", subNetworkSummary.props.get("mocksubkey"));
+	}
+	
+	@Test
+	public void testCreateNetworkFromNdex() {
+		NdexNetworkResourceImpl impl = new NdexNetworkResourceImpl(client, appManager, networkManager, ciServiceManager);
+		NdexNetworkResourceImpl implSpy = Mockito.spy(impl);
+		
+		Map<String, String> meta = new HashMap<String, String>();
+
+		
+		
+		CyNetwork cyNetwork = mock(CyNetwork.class);
+		CyNetwork[] cyNetworks = {cyNetwork};
+		
+		NDExImportTaskFactory mockedImportTaskFactory = Mockito.mock(NDExImportTaskFactory.class);
+		
+		Task task = mock(Task.class);
+		
+		TaskIterator taskIterator = new TaskIterator();
+		taskIterator.append(task);
+		
+		when(mockedImportTaskFactory.createTaskIterator()).thenReturn(taskIterator);
+		
+		final NDExImportParameters params = new NDExImportParameters(
+				new UUID(1l,2l).toString(),
+				"mockUsername", 
+				"mockPassword", 
+				"mockServerUrl", 
+				"mockAccessKey", 
+				"mockIdToken");
+		
+		Mockito.doReturn(mockedImportTaskFactory).when(implSpy)
+		.getNDExImportTaskFactory(params);
+		
+		CINdexBaseResponse response = implSpy.createNetworkFromNdex(params);
+		
+		verify(implSpy).getNDExImportTaskFactory(params);
+		verify(mockedImportTaskFactory).createTaskIterator();
+	}
+	
+	@Test
+	public void testCurrentNetworkToNdex() {
+		NdexNetworkResourceImpl impl = new NdexNetworkResourceImpl(client, appManager, networkManager, ciServiceManager);
+		NdexNetworkResourceImpl implSpy = Mockito.spy(impl);
+	
+		Map<String, String> meta = new HashMap<String, String>();
+		
+		NDExSaveParameters params = new NDExSaveParameters(
+				"mockUsername", 
+				"mockPassword", 
+				"mockServerUrl",
+				meta, 
+				false);
+		
+		CyNetwork cyNetwork = mock(CyNetwork.class);
+		CyNetwork[] cyNetworks = {cyNetwork};
+		
+		NDExExportTaskFactory mockedExportTaskFactory = Mockito.mock(NDExExportTaskFactory.class);
+		
+		CyWriter writerTask = mock(CyWriter.class);
+		
+		when(mockedExportTaskFactory.getUUID()).thenReturn(new UUID(1l,2l));
+		
+		TaskIterator taskIterator = new TaskIterator();
+		taskIterator.append(writerTask);
+		
+		when(mockedExportTaskFactory.createTaskIterator(any(CyNetwork.class))).thenReturn(taskIterator);
+		
+		Mockito.doReturn(mockedExportTaskFactory).when(implSpy)
+		.getNDExExportTaskFactory(params, false);
+		
+		implSpy.saveCurrentNetworkToNdex(params);
+		
+		verify(implSpy).getNDExExportTaskFactory(params, false);
+	}
+	
+	@Test
+	public void testCreateNetworkFromCX() {
+		
+		
 		InputStreamTaskFactory inputStreamTaskFactory = mock(InputStreamTaskFactory.class);
 		AbstractCyNetworkReader readerTask = mock(AbstractCyNetworkReader.class); 
 		CyNetwork cyNetwork = mock(CyNetwork.class);
@@ -309,6 +410,8 @@ public class NdexNetworkResourceTest {
 		InputStream inputStream = mock(InputStream.class);
 		
 		CINdexBaseResponse response = impl.createNetworkFromCx(inputStream);
+		
+		System.out.println(response.data);
 		
 		verify(inputStreamTaskFactory).createTaskIterator(inputStream, null);
 		

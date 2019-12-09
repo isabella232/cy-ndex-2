@@ -1,6 +1,5 @@
 package org.cytoscape.cyndex2.internal.rest.endpoints.impl;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
@@ -50,11 +49,6 @@ import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskObserver;
 import org.cytoscape.work.swing.DialogTaskManager;
 import org.cytoscape.work.util.ListSingleSelection;
-import org.ndexbio.model.exceptions.NdexException;
-import org.ndexbio.model.object.Permissions;
-import org.ndexbio.model.object.network.NetworkSummary;
-import org.ndexbio.rest.client.NdexRestClient;
-import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,7 +126,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	public CINdexBaseResponse createNetworkFromNdex(final NDExImportParameters params) {
 
 		try {
-			NDExImportTaskFactory importFactory = new NDExImportTaskFactory(params);
+			NDExImportTaskFactory importFactory = getNDExImportTaskFactory(params);
 			TaskIterator iter = importFactory.createTaskIterator();
 
 			execute(iter);
@@ -147,11 +141,19 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		}
 	}
 
+	public NDExExportTaskFactory getNDExExportTaskFactory( final NDExBasicSaveParameters params, boolean isUpdate) {
+		return new NDExExportTaskFactory(params, isUpdate);
+	}
+	
+	public NDExImportTaskFactory getNDExImportTaskFactory( final NDExImportParameters params) {
+		return new NDExImportTaskFactory(params);
+	}
+	
 	@Override
 	@CIWrapping
 	public CINdexBaseResponse saveNetworkToNdex(final Long suid, final NDExSaveParameters params) {
 		try {
-			NDExExportTaskFactory exportFactory = new NDExExportTaskFactory(params, false);
+			NDExExportTaskFactory exportFactory = getNDExExportTaskFactory(params, false);
 			CyNetwork network = getNetworkFromSUID(suid);
 
 			TaskIterator iter = exportFactory.createTaskIterator(network);
@@ -349,7 +351,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 	private final boolean updateExistingNetwork(final CyNetwork network, final NDExBasicSaveParameters params) {
 
-		NDExExportTaskFactory exportFactory = new NDExExportTaskFactory(params, true);
+		NDExExportTaskFactory exportFactory = getNDExExportTaskFactory(params, true);
 		TaskIterator iter = exportFactory.createTaskIterator(network);
 		CyActivator.taskManager.execute(iter);
 		return true;
