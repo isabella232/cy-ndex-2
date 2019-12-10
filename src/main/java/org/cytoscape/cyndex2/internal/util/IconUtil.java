@@ -8,6 +8,7 @@ import java.io.IOException;
 import javax.swing.Icon;
 import javax.swing.UIManager;
 
+import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.util.swing.TextIcon;
 
 public final class IconUtil {
@@ -16,20 +17,23 @@ public final class IconUtil {
 	public static final Color ICON_COLOR_1 = UIManager.getColor("CyColor.complement(-2)");
 	public static final Color ICON_COLOR_2 = UIManager.getColor("CyColor.complement(+1)");
 	
-	public static final String ICON_NDEX_LOGO = "a";
-	public static final String ICON_NDEX_CLOUD = "b";
-	public static final String ICON_NDEX_CLOUD_ARROW_DOWN = "c";
-	public static final String ICON_NDEX_CLOUD_ARROW_UP = "d";
-
+	public static final String ICON_NDEX_LOGO = "\ue906";
+	public static final String ICON_NDEX_CLOUD = "\ue903";
+	public static final String ICON_NDEX_CLOUD_ARROW_DOWN = "\ue905";
+	public static final String ICON_NDEX_CLOUD_ARROW_UP = "\ue904";
+	public static final String ICON_NDEX_ACCOUNT = "\ue900";
+	public static final String ICON_NDEX_ACCOUNT_MINUS = "\ue901";
+	public static final String ICON_NDEX_ACCOUNT_PLUS = "\ue902";
+	
 	public static final String[] LAYERED_OPEN_ICON = new String[] { ICON_NDEX_CLOUD, ICON_NDEX_CLOUD_ARROW_DOWN };
 	public static final String[] LAYERED_SAVE_ICON = new String[] { ICON_NDEX_CLOUD, ICON_NDEX_CLOUD_ARROW_UP };
 	public static final Color[] LAYERED_OPEN_SAVE_COLORS = new Color[] { ICON_COLOR_2, Color.WHITE };
 	
-	private static Font iconFont;
+	private static Font appFont;
 
 	static {
 		try {
-			iconFont = Font.createFont(Font.TRUETYPE_FONT, IconUtil.class.getResourceAsStream("/fonts/cyndex.ttf"));
+			appFont = Font.createFont(Font.TRUETYPE_FONT, IconUtil.class.getResourceAsStream("/fonts/cyndex.ttf"));
 		} catch (FontFormatException e) {
 			throw new RuntimeException();
 		} catch (IOException e) {
@@ -37,8 +41,8 @@ public final class IconUtil {
 		}
 	}
 	
-	public static Font getIconFont(float size) {
-		return iconFont.deriveFont(size);
+	public static Font getAppFont(float size) {
+		return appFont.deriveFont(size);
 	}
 	
 	private IconUtil() {
@@ -46,7 +50,9 @@ public final class IconUtil {
 	}
 
 	public static Icon getNdexIcon() {
-		Font iconFont = getIconFont(32f);
+		Font iconFont = getAppFont(32f);
 		return new TextIcon(IconUtil.ICON_NDEX_LOGO, iconFont, IconUtil.ICON_COLOR_1, 32, 32);
 	}
+	
+	
 }

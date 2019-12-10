@@ -60,7 +60,7 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 	private UUID networkUUID = null;
 	
 	
-	public NetworkExportTask(Long suid, InputStream cxStream, NDExBasicSaveParameters params, boolean writeCollection, boolean isUpdate) throws JsonProcessingException, IOException, NdexException 
+	public NetworkExportTask(NdexRestClientModelAccessLayer mal, Long suid, InputStream cxStream, NDExBasicSaveParameters params, boolean writeCollection, boolean isUpdate) throws JsonProcessingException, IOException, NdexException 
 			 {
 		super();
 		this.params = params;
@@ -68,10 +68,8 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 		this.isUpdate = isUpdate;
 		this.cxStream = cxStream;
 		this.suid = suid;
-
-		NdexRestClient client = new NdexRestClient(params.username, params.password, params.serverUrl,
-				CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
-		mal = new NdexRestClientModelAccessLayer(client);
+		this.mal = mal;
+	
 	}
 
 	@Override
@@ -118,9 +116,9 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 			
 			if (!isUpdate) {
 				networkUUID = mal.createCXNetwork(cxStream);
-				NetworkUUIDManager.saveUUID(network, networkUUID);
+				NetworkUUIDManager.saveUUID(writeCollection ? rootNetwork : network, networkUUID);
 			} else {
-				networkUUID = NetworkUUIDManager.getUUID(network);
+				networkUUID = NetworkUUIDManager.getUUID(writeCollection ? rootNetwork : network);
 				if (networkUUID == null) {
 					throw new NetworkUpdateException("No UUID found for " + network);
 				}

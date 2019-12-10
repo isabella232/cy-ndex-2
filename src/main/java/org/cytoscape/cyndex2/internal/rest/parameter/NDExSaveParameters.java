@@ -10,7 +10,7 @@ public class NDExSaveParameters extends NDExBasicSaveParameters {
 	@ApiModelProperty(value = "Visibility of network", example="true", required=true)
 	public Boolean isPublic;
 
-	private NDExSaveParameters(String username, String password, String serverUrl, Map<String, String> metadata, boolean writeCollection) {
+	public NDExSaveParameters(String username, String password, String serverUrl, Map<String, String> metadata, boolean writeCollection) {
 		
 		this.serverUrl = serverUrl;
 		this.password = password;

@@ -33,62 +33,42 @@ import java.util.UUID;
 import javax.swing.SwingUtilities;
 
 import org.cytoscape.cyndex2.internal.CxTaskFactoryManager;
-import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.util.HeadlessTaskMonitor;
+import org.cytoscape.cyndex2.internal.util.NetworkUUIDManager;
 import org.cytoscape.io.read.AbstractCyNetworkReader;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
+import org.cytoscape.model.subnetwork.CySubNetwork;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.network.NetworkSummary;
-import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 public class NetworkImportTask extends AbstractTask implements ObservableTask {
 
 	final NdexRestClientModelAccessLayer mal;
 	final NetworkSummary networkSummary;
+	private UUID uuid = null;
 	private Long suid = null;
 	private String accessKey = null;
 	protected InputStream cxStream;
 
-	public NetworkImportTask(String userId, String password, String serverUrl, UUID uuid, String accessKey)
+	public NetworkImportTask(final NdexRestClientModelAccessLayer mal, UUID uuid, String accessKey)
 			throws IOException, NdexException {
 		super();
-		if (serverUrl == null) {
-			serverUrl = "http://ndexbio.org/v2/";
-		}
-		NdexRestClient client = new NdexRestClient(userId, password, serverUrl,
-				CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
-		mal = new NdexRestClientModelAccessLayer(client);
+		this.uuid = uuid;
+		/*
+		
+		*/
+		this.mal = mal;
 		networkSummary = mal.getNetworkSummaryById(uuid, accessKey);
 		this.accessKey = accessKey;
 		cxStream = null;
-	}
-
-	public NetworkImportTask(String serverUrl, UUID uuid, String accessKey, String idToken)
-			throws IOException, NdexException {
-		super();
-		NdexRestClient client = new NdexRestClient(null, null, serverUrl,
-				CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
-		if (idToken != null)
-			client.signIn(idToken);
-		mal = new NdexRestClientModelAccessLayer(client);
-		networkSummary = mal.getNetworkSummaryById(uuid, accessKey);
-		this.accessKey = accessKey;
-		cxStream = null;
-	}
-
-	public NetworkImportTask(InputStream in) {
-		super();
-		networkSummary = null;
-		mal = null;
-		cxStream = in;
 	}
 
 	@Override
@@ -136,7 +116,6 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 			
 			taskMonitor.setProgress(.7);
 			
-			
 			CyNetworkManager network_manager = CyServiceModule.getService(CyNetworkManager.class);
 			int i = 1;
 			for (CyNetwork network : task.getNetworks()) {
@@ -149,7 +128,14 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 				i++;
 			}
 			taskMonitor.setProgress(.9);
-			suid = task.getNetworks()[0].getSUID();
+			final CyNetwork network = task.getNetworks()[0];
+			suid = network.getSUID();
+			
+			if (networkSummary.getSubnetworkIds().size() > 0) {	
+				NetworkUUIDManager.saveUUID(((CySubNetwork)network).getRootNetwork(), uuid);
+			} else {
+				NetworkUUIDManager.saveUUID(network, uuid);
+			}
 			
 		} catch (IOException ex) {
 			throw new NetworkImportException("Failed to parse JSON from NDEx source.");
