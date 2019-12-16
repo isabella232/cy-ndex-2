@@ -44,7 +44,9 @@ public class UpdateUtil {
 
 			Map<String, Permissions> permissionTable = mal.getUserNetworkPermission(nc.getUserUid(), ndexNetworkId,
 					false);
-			if (permissionTable == null || permissionTable.get(ndexNetworkId.toString()) == Permissions.READ)
+			if (permissionTable == null 
+					|| permissionTable.size() == 0
+					|| permissionTable.get(ndexNetworkId.toString()) == Permissions.READ)
 				throw new Exception("You don't have permission to write to this network.");
 
 		} catch (IOException | NdexException e) {
