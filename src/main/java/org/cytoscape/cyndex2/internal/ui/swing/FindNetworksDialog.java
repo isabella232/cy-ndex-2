@@ -229,12 +229,14 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		return new JTable() {
 		
 		public Component prepareRenderer(TableCellRenderer renderer,int row, int col) {
-	    Component comp = super.prepareRenderer(renderer, row, col);
-	    JComponent jcomp = (JComponent)comp;
+	    final Component comp = super.prepareRenderer(renderer, row, col);
+	    final JComponent jcomp = (JComponent)comp;
 	    if (comp == jcomp) {
 	      if (col != 0) {  
-	      	NetworkSummary networkSummary = (NetworkSummary)getValueAt(row, 0);
-	      	jcomp.setToolTipText(networkSummary.getDescription());
+	      	final NetworkSummary networkSummary = (NetworkSummary)getValueAt(row, 0);
+	      	final String toolTip = networkSummary.getDescription() == null ? null : "<html>" + networkSummary.getDescription() + "</html>";
+	      	jcomp.setToolTipText(toolTip);
+	      		
 	      } 
 	     }
 	    return comp; } };

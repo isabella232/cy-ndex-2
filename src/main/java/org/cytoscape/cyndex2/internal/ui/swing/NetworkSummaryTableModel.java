@@ -1,55 +1,29 @@
 package org.cytoscape.cyndex2.internal.ui.swing;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.URI;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.EventObject;
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
 import java.util.function.Consumer;
 
-import javax.swing.AbstractAction;
-import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JProgressBar;
-import javax.swing.JSpinner;
 import javax.swing.JTable;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingWorker;
-import javax.swing.event.CellEditorListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClients;
 import org.cytoscape.cyndex2.internal.CyServiceModule;
-import org.cytoscape.cyndex2.internal.rest.parameter.NDExImportParameters;
-import org.cytoscape.cyndex2.internal.util.ErrorMessage;
-import org.cytoscape.cyndex2.internal.util.Server;
-import org.cytoscape.cyndex2.internal.util.ServerManager;
 import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.util.swing.TextIcon;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.object.network.VisibilityType;
-import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class NetworkSummaryTableModel extends AbstractTableModel {
 
