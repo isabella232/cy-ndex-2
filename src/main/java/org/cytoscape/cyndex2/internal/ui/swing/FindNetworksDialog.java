@@ -491,7 +491,12 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 			displayedNetworkSummaries.add(networkSummary);
 		}
 		resultsTable.setModel(model);
-		resultsTable.getColumnModel().getColumn(0).setPreferredWidth(24);
+		resultsTable.getColumnModel().getColumn(NetworkSummaryTableModel.IMPORT_COL).setPreferredWidth(24);
+		resultsTable.getColumnModel().getColumn(NetworkSummaryTableModel.NAME_COL).setPreferredWidth(200);
+		resultsTable.getColumnModel().getColumn(NetworkSummaryTableModel.VISIBILITY_COL).setPreferredWidth(20);
+		resultsTable.getColumnModel().getColumn(NetworkSummaryTableModel.OWNER_COL).setPreferredWidth(40);
+		resultsTable.getColumnModel().getColumn(NetworkSummaryTableModel.NODES_COL).setPreferredWidth(20);
+		resultsTable.getColumnModel().getColumn(NetworkSummaryTableModel.EDGES_COL).setPreferredWidth(20);
 		resultsTable.setDefaultRenderer(NetworkSummary.class, new NetworkSummaryTableModel.ImportButtonRenderer());
 		resultsTable.setDefaultRenderer(VisibilityType.class, new NetworkSummaryTableModel.VisibilityTypeRenderer());
 		resultsTable.setDefaultRenderer(Timestamp.class, new NetworkSummaryTableModel.TimestampRenderer());
