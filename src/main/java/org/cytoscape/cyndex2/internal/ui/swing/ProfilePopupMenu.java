@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 

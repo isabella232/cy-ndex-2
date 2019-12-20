@@ -5,31 +5,10 @@
  */
 package org.cytoscape.cyndex2.internal.ui.swing;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.util.Base64;
-
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
-import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
-import org.cytoscape.cyndex2.internal.util.Server;
-import org.cytoscape.cyndex2.internal.util.ServerList;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
-import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 /**
  *

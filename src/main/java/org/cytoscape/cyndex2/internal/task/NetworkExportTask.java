@@ -31,7 +31,6 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.UUID;
 
-import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.rest.parameter.NDExBasicSaveParameters;
 import org.cytoscape.cyndex2.internal.util.NetworkUUIDManager;
@@ -43,7 +42,6 @@ import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.TaskMonitor;
 import org.ndexbio.model.exceptions.NdexException;
-import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;

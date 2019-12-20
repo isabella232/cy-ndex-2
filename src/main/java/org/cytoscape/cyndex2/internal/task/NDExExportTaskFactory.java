@@ -92,33 +92,6 @@ public class NDExExportTaskFactory implements NetworkViewTaskFactory, NetworkTas
 		} else {
 			
 		}
-/*
-		try {
-			Field field = writerClass.getField("writeSiblings");
-			field.setAccessible(true);
-			final Object fieldValue = field.get(writer);
-			final Class<? extends Object> fieldClass = fieldValue.getClass();
-			final Method setMethod = fieldClass.getDeclaredMethod("setWriteSiblings", Boolean.class);
-			System.out.println("Setting tunable writeSiblings to " + collection);
-			setMethod.invoke(fieldValue, collection);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		try {
-			Field field = writerClass.getField("useCxId");
-			field.setAccessible(true);
-			final Object fieldValue = field.get(writer);
-			final Class<? extends Object> fieldClass = fieldValue.getClass();
-			final Method setMethod = fieldClass.getDeclaredMethod("setUseCxId", Boolean.class);
-			System.out.println("Setting tunable useCxId to " + !collection);
-			setMethod.invoke(fieldValue, !collection);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		*/
 	}
 	
 	private AbstractTask getTaskWrapper(CyNetwork network, boolean writeCollection) {
