@@ -26,6 +26,7 @@
 
 package org.cytoscape.cyndex2.internal.ui.swing;
 
+import java.awt.Container;
 import java.awt.Frame;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -35,6 +36,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -52,6 +55,7 @@ import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.rest.SimpleNetworkSummary;
 import org.cytoscape.cyndex2.internal.rest.parameter.NDExSaveParameters;
 import org.cytoscape.cyndex2.internal.rest.response.SummaryResponse;
+import org.cytoscape.cyndex2.internal.util.ErrorMessage;
 import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
 import org.cytoscape.cyndex2.internal.util.UpdateUtil;
@@ -74,7 +78,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 	final SaveParameters saveParameters;
 
 	/**
-	 * Creates new form UploadNetwork
+	 * Creates new form ExportNetwork
 	 */
 	public ExportNetworkDialog(Frame parent, SaveParameters saveParameters) {
 		super(parent, true);
@@ -246,7 +250,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
         descriptionTextArea = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Upload Network to NDEx");
+        setTitle("Export Network to NDEx");
 
         jPanel1.setBorder(null);
 
@@ -457,9 +461,10 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 	}
 
 	private void uploadActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_uploadActionPerformed
-
+		Container container = this.getParent();
 		SwingWorker<Integer, Integer> worker = new SwingWorker<Integer, Integer>() {
 
+			
 			@Override
 			protected Integer doInBackground() throws Exception {
 
@@ -488,14 +493,30 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 
 				NDExSaveParameters saveParameters = new NDExSaveParameters(selectedServer.getUsername(),
 						selectedServer.getPassword(), selectedServer.getUrl(), metadata, false);
-				ObjectMapper objectMapper = new ObjectMapper();
+				final ObjectMapper objectMapper = new ObjectMapper();
 
 				try {
 					request.setEntity(new StringEntity(objectMapper.writeValueAsString(saveParameters)));
-					HttpResponse response = httpClient.execute(request);
+					final HttpResponse response = httpClient.execute(request);
+					final int statusCode = response.getStatusLine().getStatusCode();  
+					
+					
+					if (statusCode == 200) {
+						
+						final String result = EntityUtils.toString(response.getEntity());
 
-					System.out.println("Response: " + response.toString());
+						JsonNode jsonNode = objectMapper.readValue(result, JsonNode.class);
 
+						final String uuid = jsonNode.get("data").get("uuid").asText();
+							
+						
+						JOptionPane.showMessageDialog(container, "Export to NDEx successful.\n\nUUID: " + uuid, "Export Complete",
+							JOptionPane.PLAIN_MESSAGE); 
+					} else {
+						JOptionPane.showMessageDialog(container, "Export to NDEx failed" , "Error",
+								JOptionPane.ERROR_MESSAGE); 
+					}
+					
 				} catch (UnsupportedEncodingException | JsonProcessingException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
