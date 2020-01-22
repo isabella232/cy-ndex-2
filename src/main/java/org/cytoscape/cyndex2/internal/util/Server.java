@@ -90,7 +90,6 @@ public class Server
         boolean passwordPresent = password != null && !password.isEmpty();
         if( !usernamePresent && !passwordPresent )
         {
-           
             return true;
         }
         else
@@ -124,19 +123,11 @@ public class Server
         return result;
     } */
     
-    public NdexRestClientModelAccessLayer getModelAccessLayer()
+    public NdexRestClientModelAccessLayer getModelAccessLayer() throws IOException, NdexException
     {
-        NdexRestClient client;
-				String apiUrl = url;//url.concat("/v2");
-        try {
-					client = new NdexRestClient(username,password,apiUrl);
-				  return new NdexRestClientModelAccessLayer(client);
-				} catch (IOException | NdexException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				return null;
-      
+    	final String apiUrl = url;//url.concat("/v2");
+    	final NdexRestClient client = new NdexRestClient(username,password,apiUrl);
+			return new NdexRestClientModelAccessLayer(client);
     }
    
     @Override
