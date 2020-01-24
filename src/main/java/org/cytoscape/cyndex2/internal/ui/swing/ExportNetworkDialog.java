@@ -509,7 +509,6 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 
 						final String uuid = jsonNode.get("data").get("uuid").asText();
 							
-						
 						JOptionPane.showMessageDialog(container, "Export to NDEx successful.\n\nUUID: " + uuid, "Export Complete",
 							JOptionPane.PLAIN_MESSAGE); 
 					} else {

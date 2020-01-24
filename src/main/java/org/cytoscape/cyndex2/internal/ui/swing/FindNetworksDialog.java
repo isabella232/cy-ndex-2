@@ -202,7 +202,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 					administeredByMe.setVisible(true);
 				} catch (IOException e) {
 					e.printStackTrace();
-					JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication + ": " + e.getMessage(), "Error",
+					JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication + "\n\nError Message: " + e.getMessage(), "Error",
 							JOptionPane.ERROR_MESSAGE);
 				
 					//return;
@@ -218,25 +218,26 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 					
 					networkSummaries = mal != null ? mal.findNetworks(searchTerm, null, null, true, 0, 400).getNetworks() : List.of();
 					
-				
-				} catch (IOException | NdexException ex) {
+				} catch (IOException | NdexException ex ) {
 					ex.printStackTrace();
-					JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication, "Error",
+					JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication + "\n\nError Message: " + ex.getMessage(), "Error",
 							JOptionPane.ERROR_MESSAGE);
+					networkSummaries =  List.of();
 					//this.setVisible(false);
 					//return;
 				}
-				showSearchResults();
+				
 			} else {
 				JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication, "Error", JOptionPane.ERROR_MESSAGE);
-				
+				networkSummaries =  List.of();
 			}
 		} catch (HeadlessException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication, "Error", JOptionPane.ERROR_MESSAGE);
-
+			JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication + "\n\nError Message: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+			networkSummaries =  List.of();
 		}
+		showSearchResults();
 	}
 
 	private JTable getResultsTable() {
