@@ -28,6 +28,7 @@ package org.cytoscape.cyndex2.internal.task;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Properties;
 import java.util.UUID;
 
 import javax.swing.SwingUtilities;
@@ -40,6 +41,7 @@ import org.cytoscape.io.read.AbstractCyNetworkReader;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
+import org.cytoscape.property.CyProperty;
 import org.cytoscape.model.subnetwork.CySubNetwork;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ObservableTask;
@@ -51,6 +53,9 @@ import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 public class NetworkImportTask extends AbstractTask implements ObservableTask {
 
+	public static final String VIEW_THRESHOLD = "viewThreshold";
+	private static final int DEF_VIEW_THRESHOLD = 3000;
+	
 	final NdexRestClientModelAccessLayer mal;
 	final NetworkSummary networkSummary;
 	private UUID uuid = null;
@@ -124,7 +129,9 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 				}
 				taskMonitor.setStatusMessage(String.format("Registering network %s/%s...", i, task.getNetworks().length));
 				network_manager.addNetwork(network);
-				task.buildCyNetworkView(network);
+				if (network.getEdgeCount() + network.getNodeCount() < getViewThreshold()) {
+					task.buildCyNetworkView(network);
+				}
 				i++;
 			}
 			taskMonitor.setProgress(.9);
@@ -147,6 +154,21 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 		} catch(Exception e) {
 			throw new RuntimeException("Failed to import: " + e.getMessage());
 		}
+	}
+	
+	private int getViewThreshold() {
+		final Properties props = (Properties)
+				CyServiceModule.getService(CyProperty.class, "(cyPropertyName=cytoscape3.props)").getProperties();
+		final String vts = props.getProperty(VIEW_THRESHOLD);
+		int threshold;
+		
+		try {
+			threshold = Integer.parseInt(vts);
+		} catch (Exception e) {
+			threshold = DEF_VIEW_THRESHOLD;
+		}
+
+		return threshold;
 	}
 	
 	@Override

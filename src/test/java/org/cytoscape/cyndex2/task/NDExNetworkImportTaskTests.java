@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 
 import org.cytoscape.application.CyApplicationConfiguration;
@@ -31,12 +32,14 @@ import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
 import org.cytoscape.model.subnetwork.CySubNetwork;
+import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
@@ -62,6 +65,15 @@ public class NDExNetworkImportTaskTests {
 		reg = mock(CyServiceRegistrar.class);
 		networkManager = mock(CyNetworkManager.class);
 		when(reg.getService(CyNetworkManager.class)).thenReturn(networkManager);
+		
+		CyProperty cyProps = mock(CyProperty.class);
+		
+		Properties props = mock(Properties.class);
+		when(props.getProperty(Mockito.eq(NetworkImportTask.VIEW_THRESHOLD))).thenReturn("3000");
+		
+		when(cyProps.getProperties()).thenReturn(props);
+		when(reg.getService(Mockito.eq(CyProperty.class), Mockito.eq("(cyPropertyName=cytoscape3.props)"))).thenReturn(cyProps);
+		
 		
 		CyServiceModule.setServiceRegistrar(reg);
 		

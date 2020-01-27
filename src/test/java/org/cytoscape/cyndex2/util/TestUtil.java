@@ -4,12 +4,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.util.Properties;
 
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.CyServiceModule;
+import org.cytoscape.cyndex2.internal.task.NetworkImportTask;
+import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.work.SynchronousTaskManager;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +35,7 @@ public class TestUtil {
 		CyApplicationConfiguration config = mock(CyApplicationConfiguration.class);
 		when(config.getAppConfigurationDirectoryLocation(CyActivator.class)).thenReturn(getResource(configDirExists ? "mockAppDir" : "nullAppDir"));
 		when(reg.getService(CyApplicationConfiguration.class)).thenReturn(config);
+	
 		CyServiceModule.setServiceRegistrar(reg);
 	}
 	
