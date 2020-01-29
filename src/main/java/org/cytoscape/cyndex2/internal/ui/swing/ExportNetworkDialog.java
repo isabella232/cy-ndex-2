@@ -480,11 +480,9 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 
 	private void uploadActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_uploadActionPerformed
 		Container container = this.getParent();
-		SwingWorker<Integer, Integer> worker = new SwingWorker<Integer, Integer>() {
-
-			
-			@Override
-			protected Integer doInBackground() throws Exception {
+		
+				
+	  ModalProgressHelper.runWorker(this, "Exporting to NDEx", () -> {
 
 				final Server selectedServer = ServerManager.INSTANCE.getSelectedServer();
 				final boolean update = updateCheckbox.isEnabled() && updateCheckbox.isSelected();
@@ -514,19 +512,18 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 				final ObjectMapper objectMapper = new ObjectMapper();
 
 				try {
+					
 					request.setEntity(new StringEntity(objectMapper.writeValueAsString(saveParameters)));
 					final HttpResponse response = httpClient.execute(request);
 					final int statusCode = response.getStatusLine().getStatusCode();  
-					
 					
 					if (statusCode == 200) {
 						
 						final String result = EntityUtils.toString(response.getEntity());
 
 						JsonNode jsonNode = objectMapper.readValue(result, JsonNode.class);
-
 						final String uuid = jsonNode.get("data").get("uuid").asText();
-							
+					
 						JOptionPane.showMessageDialog(container, "Export to NDEx successful.\n\nUUID: " + uuid, "Export Complete",
 							JOptionPane.PLAIN_MESSAGE); 
 					} else {
@@ -545,9 +542,9 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 					e.printStackTrace();
 				}
 				return 1;
-			}
-		};
-		worker.execute();
+		}
+		);
+		
 		this.setVisible(false);
 
 	}// GEN-LAST:event_uploadActionPerformed
