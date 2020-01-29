@@ -248,10 +248,16 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 	    final JComponent jcomp = (JComponent)comp;
 	    if (comp == jcomp) {
 	      if (col != 0) {  
-	      	final NetworkSummary networkSummary = (NetworkSummary)getValueAt(row, 0);
-	      	final String toolTip = networkSummary.getDescription() == null ? null : "<html>" + networkSummary.getDescription() + "</html>";
-	      	jcomp.setToolTipText(toolTip);
-	      		
+	      	if (row < super.getRowCount() && 0 < super.getColumnCount()) {
+	      		try {
+	      			final NetworkSummary networkSummary = (NetworkSummary)getValueAt(row, 0);
+	      
+	      			final String toolTip = networkSummary.getDescription() == null ? null : "<html>" + networkSummary.getDescription() + "</html>";
+	      			jcomp.setToolTipText(toolTip);
+	      		} catch (Exception e) {
+	      			System.out.println("Ignored table renderer error while making tool tip");
+	      		}
+	      	}
 	      } 
 	     }
 	    return comp; } };
