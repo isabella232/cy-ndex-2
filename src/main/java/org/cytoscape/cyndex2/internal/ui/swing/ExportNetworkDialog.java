@@ -106,6 +106,13 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 		return "collection".equals(saveParameters.saveType);
 	}
 
+	private String getEquivalentKey(String key, Map<String, Object> map) {
+			final String upperCaseKey = key.toUpperCase();
+			final String equivalentKey = map.keySet().stream().reduce(
+					(String) null, (retVal, current) -> retVal != null ? retVal : current.toUpperCase().equals(upperCaseKey) ? current : null);
+			return equivalentKey;
+	}
+	
 	private void prepComponents() {
 		final boolean isCollection = isCollection();
 		setModal(true);
@@ -146,15 +153,26 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 			final SimpleNetworkSummary summary = isCollection ? getCurrentCollectionSummary(summaryResponse)
 					: getCurrentNetworkSummary(summaryResponse);
 
+			final String authorKey = getEquivalentKey("author", summary.props);
+			final String organismKey = getEquivalentKey("organism", summary.props);
+			final String diseaseKey = getEquivalentKey("disease", summary.props);
+			final String tissueKey = getEquivalentKey("tissue", summary.props);
+			final String rightsHolderKey = getEquivalentKey("rightsHolder", summary.props);
+			final String versionKey = getEquivalentKey("version", summary.props);
+			final String referenceKey = getEquivalentKey("reference", summary.props);
+			final String descriptionKey = getEquivalentKey("description", summary.props);
+			
+			
+			
 			nameField.setText(summary.name);
-			authorField.setText(isCollection ? "" : summary.props.get("author") != null  ? summary.props.get("author").toString() : "");
-			organismField.setText(isCollection ? "" : summary.props.get("organism") != null  ? summary.props.get("organism").toString() : "");
-			diseaseField.setText(isCollection ? "" : summary.props.get("disease") != null  ? summary.props.get("disease").toString() : "");
-			tissueField.setText(isCollection ? "" : summary.props.get("tissue") != null  ? summary.props.get("tissue").toString() : "");
-			rightsHolderField.setText(isCollection ? "" : summary.props.get("rightsHolder") != null  ? summary.props.get("rightsHolder").toString() : "");
-			versionField.setText(isCollection ? "" : summary.props.get("version") != null  ? summary.props.get("version").toString() : "");
-			referenceField.setText(isCollection ? "" : summary.props.get("reference") != null  ? summary.props.get("reference").toString() : "");
-			descriptionTextArea.setText(isCollection ? "" : summary.props.get("description") != null  ? summary.props.get("description").toString() : "");
+			authorField.setText(isCollection ? "" : authorKey != null ? summary.props.get(authorKey).toString() : "");
+			organismField.setText(isCollection ? "" : organismKey != null  ? summary.props.get(organismKey).toString() : "");
+			diseaseField.setText(isCollection ? "" : diseaseKey != null  ? summary.props.get(diseaseKey).toString() : "");
+			tissueField.setText(isCollection ? "" : tissueKey != null  ? summary.props.get(tissueKey).toString() : "");
+			rightsHolderField.setText(isCollection ? "" : rightsHolderKey != null  ? summary.props.get(rightsHolderKey).toString() : "");
+			versionField.setText(isCollection ? "" : versionKey != null  ? summary.props.get(versionKey).toString() : "");
+			referenceField.setText(isCollection ? "" : referenceKey != null  ? summary.props.get(referenceKey).toString() : "");
+			descriptionTextArea.setText(isCollection ? "" : descriptionKey != null  ? summary.props.get(descriptionKey).toString() : "");
 			
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
