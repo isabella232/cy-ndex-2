@@ -302,7 +302,8 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
         resultsTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane1.setViewportView(resultsTable);
 
-        done.setText("Done");
+        done.setText("Close Dialog");
+        done.setToolTipText("Click to close this dialog when done downloading");
         done.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 doneActionPerformed(evt);

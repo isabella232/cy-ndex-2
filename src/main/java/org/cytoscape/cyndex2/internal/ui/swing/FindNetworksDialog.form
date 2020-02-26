@@ -163,7 +163,8 @@
             </Container>
             <Component class="javax.swing.JButton" name="done">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Done"/>
+                <Property name="text" type="java.lang.String" value="Close Dialog"/>
+                <Property name="toolTipText" type="java.lang.String" value="Click to close this dialog when done downloading"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="doneActionPerformed"/>
