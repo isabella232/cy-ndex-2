@@ -66,16 +66,6 @@ public class NDExNetworkImportTaskTests {
 		networkManager = mock(CyNetworkManager.class);
 		when(reg.getService(CyNetworkManager.class)).thenReturn(networkManager);
 		
-		/*
-		CyProperty cyProps = mock(CyProperty.class);
-		
-		Properties props = mock(Properties.class);
-		when(props.getProperty(Mockito.eq(NetworkImportTask.VIEW_THRESHOLD))).thenReturn("3000");
-		
-		when(cyProps.getProperties()).thenReturn(props);
-		when(reg.getService(Mockito.eq(CyProperty.class), Mockito.eq("(cyPropertyName=cytoscape3.props)"))).thenReturn(cyProps);
-		*/
-		
 		CyServiceModule.setServiceRegistrar(reg);
 		
 		Map<String, String> properties = new HashMap<String, String>();

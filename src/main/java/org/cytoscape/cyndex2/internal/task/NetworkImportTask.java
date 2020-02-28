@@ -28,10 +28,8 @@ package org.cytoscape.cyndex2.internal.task;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Properties;
 import java.util.UUID;
 
-import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import org.cytoscape.cyndex2.internal.CxTaskFactoryManager;
@@ -42,7 +40,6 @@ import org.cytoscape.io.read.AbstractCyNetworkReader;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
-import org.cytoscape.property.CyProperty;
 import org.cytoscape.model.subnetwork.CySubNetwork;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ObservableTask;
