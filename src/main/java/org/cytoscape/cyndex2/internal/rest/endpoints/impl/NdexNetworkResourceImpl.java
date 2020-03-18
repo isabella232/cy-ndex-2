@@ -32,7 +32,7 @@ import org.cytoscape.cyndex2.internal.rest.response.SummaryResponse;
 import org.cytoscape.cyndex2.internal.task.NDExExportTaskFactory;
 import org.cytoscape.cyndex2.internal.task.NDExImportTaskFactory;
 import org.cytoscape.cyndex2.internal.util.CIServiceManager;
-import org.cytoscape.cyndex2.internal.util.NetworkUUIDManager;
+import org.cytoscape.cyndex2.internal.util.NDExNetworkManager;
 import org.cytoscape.cyndex2.internal.util.UpdateUtil;
 import org.cytoscape.io.read.AbstractCyNetworkReader;
 import org.cytoscape.io.read.InputStreamTaskFactory;
@@ -299,7 +299,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		summary.name = network.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS).getRow(network.getSUID())
 				.get(CyNetwork.NAME, String.class);
 
-		UUID uuid = NetworkUUIDManager.getUUID(network);
+		UUID uuid = NDExNetworkManager.getUUID(network);
 		if (uuid != null)
 			summary.uuid = uuid.toString();
 

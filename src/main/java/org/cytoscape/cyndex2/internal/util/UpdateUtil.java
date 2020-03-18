@@ -1,6 +1,7 @@
 package org.cytoscape.cyndex2.internal.util;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,7 +31,7 @@ public class UpdateUtil {
 		final CyRootNetworkManager root_network_manager = CyServiceModule.getService(CyRootNetworkManager.class);
 		final CyNetwork network = isCollection ? getRootNetwork(suid, network_manager, root_network_manager) : network_manager.getNetwork(suid);
 		
-		UUID ndexNetworkId = NetworkUUIDManager.getUUID(network);
+		UUID ndexNetworkId = NDExNetworkManager.getUUID(network);
 		
 		if (ndexNetworkId == null) {
 			throw new Exception(
@@ -56,6 +57,11 @@ public class UpdateUtil {
 		NetworkSummary ns = null;
 		try {
 			ns = mal.getNetworkSummaryById(ndexNetworkId);
+			Timestamp serverTimestamp = ns.getModificationTime();
+			
+			Timestamp localTimestamp = NDExNetworkManager.getModificationTimeStamp(network);
+			System.out.println("network modification time: " + serverTimestamp + " = " +localTimestamp + " == " + serverTimestamp.compareTo(localTimestamp));
+		
 			if (ns.getIsReadOnly())
 				throw new Exception("The network is read only.");
 

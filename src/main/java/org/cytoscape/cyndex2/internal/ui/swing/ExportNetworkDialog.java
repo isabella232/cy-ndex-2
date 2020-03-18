@@ -588,6 +588,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 			updatePossible = UpdateUtil.updateIsPossibleHelper(saveParameters.suid, saveParameters.saveType.equals("collection"), selectedServer.getUsername(), selectedServer.getPassword(), selectedServer.getUrl()) != null;		
 		} catch (Exception e) {
 			System.out.println("Update is not possible: " + e.getMessage());
+			e.printStackTrace();
 			updatePossible = false;
 		}
 		updateCheckbox.setSelected(false);

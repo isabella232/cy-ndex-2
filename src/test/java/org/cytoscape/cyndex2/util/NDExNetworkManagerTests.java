@@ -6,7 +6,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.UUID;
 
-import org.cytoscape.cyndex2.internal.util.NetworkUUIDManager;
+import org.cytoscape.cyndex2.internal.util.NDExNetworkManager;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
@@ -14,7 +14,7 @@ import org.junit.Test;
 
 import static org.mockito.Mockito.verify;
 
-public class NetworkUUIDManagerTests {
+public class NDExNetworkManagerTests {
 	@Test
 	public void getUUIDTest() {
 		CyNetwork network = mock(CyNetwork.class);
@@ -28,7 +28,7 @@ public class NetworkUUIDManagerTests {
 		
 		when(networkTable.getRow(669l)).thenReturn(networkRow);
 		
-		UUID uuid = NetworkUUIDManager.getUUID(network);
+		UUID uuid = NDExNetworkManager.getUUID(network);
 		assertEquals(new UUID(1l,2l), uuid);
 	}
 	
@@ -47,7 +47,7 @@ public class NetworkUUIDManagerTests {
 		
 		when(networkTable.getRow(669l)).thenReturn(networkRow);
 		
-		NetworkUUIDManager.saveUUID(network, uuid);
+		NDExNetworkManager.saveUUID(network, uuid, null);
 		verify(networkTable).getColumn("NDEx UUID");
 		verify(networkTable).createColumn("NDEx UUID", String.class, false);
 		verify(networkRow).set("NDEx UUID", uuid.toString());
