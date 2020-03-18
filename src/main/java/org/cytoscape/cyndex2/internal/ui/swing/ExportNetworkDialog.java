@@ -586,13 +586,17 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 		try {
 			System.out.println("Checking if update is possible for suid: " + saveParameters.suid);
 			updatePossible = UpdateUtil.updateIsPossibleHelper(saveParameters.suid, saveParameters.saveType.equals("collection"), selectedServer.getUsername(), selectedServer.getPassword(), selectedServer.getUrl()) != null;		
+			updateCheckbox.setToolTipText(updatePossible ? "Update the existing network in NDEx" : "Update not possible, unknown error.");
 		} catch (Exception e) {
 			System.out.println("Update is not possible: " + e.getMessage());
+			updateCheckbox.setToolTipText(e.getMessage());
 			e.printStackTrace();
 			updatePossible = false;
+			
 		}
 		updateCheckbox.setSelected(false);
 		updateCheckbox.setEnabled(updatePossible);
+		
 	}
 
 	/**

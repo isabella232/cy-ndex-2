@@ -127,7 +127,7 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 				}
 				mal.updateCXNetwork(networkUUID, cxStream);
 				NetworkSummary networkSummary = mal.getNetworkSummaryById(networkUUID);
-				NDExNetworkManager.updateModificationTimeStamp(rootNetwork, networkSummary.getModificationTime());
+				NDExNetworkManager.updateModificationTimeStamp(referenceNetwork, networkSummary.getModificationTime());
 			}
 		} catch (NetworkUpdateException e) {
 			e.printStackTrace();

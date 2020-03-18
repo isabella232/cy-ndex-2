@@ -57,14 +57,18 @@ public class UpdateUtil {
 		NetworkSummary ns = null;
 		try {
 			ns = mal.getNetworkSummaryById(ndexNetworkId);
-			Timestamp serverTimestamp = ns.getModificationTime();
 			
-			Timestamp localTimestamp = NDExNetworkManager.getModificationTimeStamp(network);
-			System.out.println("network modification time: " + serverTimestamp + " = " +localTimestamp + " == " + serverTimestamp.compareTo(localTimestamp));
-		
 			if (ns.getIsReadOnly())
 				throw new Exception("The network is read only.");
-
+			
+			final Timestamp serverTimestamp = ns.getModificationTime();
+			final Timestamp localTimestamp = NDExNetworkManager.getModificationTimeStamp(network);
+			
+			final int timestampCompare = serverTimestamp.compareTo(localTimestamp);
+			
+			if (timestampCompare > 0) {
+				throw new Exception("Network was modified on remote server.");
+			}
 		} catch (IOException | NdexException e) {
 			throw new Exception(" An error occurred while checking permissions. " + e.getMessage());
 		}
