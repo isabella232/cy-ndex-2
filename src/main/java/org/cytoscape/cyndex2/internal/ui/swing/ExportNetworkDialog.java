@@ -527,7 +527,12 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 						JOptionPane.showMessageDialog(container, "Export to NDEx successful.\n\nUUID: " + uuid, "Export Complete",
 							JOptionPane.PLAIN_MESSAGE); 
 					} else {
-						JOptionPane.showMessageDialog(container, "Export to NDEx failed" , "Error",
+						final String result = EntityUtils.toString(response.getEntity());
+				
+						JsonNode jsonNode = objectMapper.readValue(result, JsonNode.class);
+						final String errorMessage = jsonNode.get("errors").get(0).get("message").asText();
+						
+						JOptionPane.showMessageDialog(container, "Export to NDEx failed with the following message:\n\n" + errorMessage , "Export Error",
 								JOptionPane.ERROR_MESSAGE); 
 					}
 					

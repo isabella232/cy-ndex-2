@@ -323,7 +323,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 			uuid = UpdateUtil.updateIsPossibleHelper(suid, network instanceof CyRootNetwork, params.username, params.password,
 					params.serverUrl);
 		} catch (Exception e) {
-			final String message = "Unable to update network in NDEx." + e.getMessage() + " Try saving as a new network.";
+			final String message = "Unable to update network in NDEx. " + e.getMessage() + " Try saving as a new network.";
 			logger.error(message);
 			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INVALID_PARAMETERS);
 
