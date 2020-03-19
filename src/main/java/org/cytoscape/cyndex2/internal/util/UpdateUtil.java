@@ -64,6 +64,10 @@ public class UpdateUtil {
 			final Timestamp serverTimestamp = ns.getModificationTime();
 			final Timestamp localTimestamp = NDExNetworkManager.getModificationTimeStamp(network);
 			
+			if (localTimestamp == null) {
+				throw new Exception("Session file is missing timestamp; cannot safely update network on NDEx.");
+			}
+			
 			final int timestampCompare = serverTimestamp.compareTo(localTimestamp);
 			
 			if (timestampCompare > 0) {
