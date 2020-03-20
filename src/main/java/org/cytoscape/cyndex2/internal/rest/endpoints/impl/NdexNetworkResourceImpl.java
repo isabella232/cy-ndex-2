@@ -49,6 +49,8 @@ import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskObserver;
 import org.cytoscape.work.swing.DialogTaskManager;
 import org.cytoscape.work.util.ListSingleSelection;
+import org.ndexbio.rest.client.NdexRestClient;
+import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -320,8 +322,11 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		// Check UUID
 		UUID uuid;
 		try {
-			uuid = UpdateUtil.updateIsPossibleHelper(suid, network instanceof CyRootNetwork, params.username, params.password,
-					params.serverUrl);
+			final NdexRestClient nc = new NdexRestClient(params.username, params.password,
+					params.serverUrl,
+					CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
+			final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
+			uuid = UpdateUtil.updateIsPossibleHelper(suid, network instanceof CyRootNetwork, nc, mal);
 		} catch (Exception e) {
 			final String message = "Unable to update network in NDEx. " + e.getMessage() + " Try saving as a new network.";
 			logger.error(message);

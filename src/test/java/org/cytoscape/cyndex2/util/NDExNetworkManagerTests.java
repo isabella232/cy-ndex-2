@@ -54,8 +54,28 @@ public class NDExNetworkManagerTests {
 		verify(networkTable).createColumn("NDEx UUID", String.class, false);
 		verify(networkRow).set("NDEx UUID", uuid.toString());
 		
+		verify(networkRow).set("NDEx Modification Timestamp", timestamp.toString());
 	}
 	
+	@Test
+	public void updateModificationTimeTest() {
+		UUID uuid = new UUID(1l,2l);
+		
+		CyNetwork network = mock(CyNetwork.class);
+		when(network.getSUID()).thenReturn(669l);
+		
+		CyRow networkRow = mock(CyRow.class);
+		when(networkRow.get("NDEx UUID", String.class)).thenReturn((new UUID(1l,2l)).toString());
+
+		CyTable networkTable = mock(CyTable.class);
+		when(network.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS)).thenReturn(networkTable);
+		when(networkTable.getRow(669l)).thenReturn(networkRow);
+		
+		Timestamp timestamp = new Timestamp(0);
+		
+		NDExNetworkManager.updateModificationTimeStamp(network, timestamp);
+		verify(networkRow).set("NDEx Modification Timestamp", timestamp.toString());
+	}
 }
 
 

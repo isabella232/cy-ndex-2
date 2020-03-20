@@ -60,6 +60,9 @@ import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
 import org.cytoscape.cyndex2.internal.util.UpdateUtil;
 import org.cytoscape.model.CyNetwork;
+import org.ndexbio.rest.client.NdexRestClient;
+import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -597,7 +600,10 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 		boolean updatePossible;
 		try {
 			System.out.println("Checking if update is possible for suid: " + saveParameters.suid);
-			updatePossible = UpdateUtil.updateIsPossibleHelper(saveParameters.suid, saveParameters.saveType.equals("collection"), selectedServer.getUsername(), selectedServer.getPassword(), selectedServer.getUrl()) != null;		
+			final NdexRestClient nc = new NdexRestClient(selectedServer.getUsername(), selectedServer.getPassword(), selectedServer.getUrl(),
+					CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
+			final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
+			updatePossible = UpdateUtil.updateIsPossibleHelper(saveParameters.suid, saveParameters.saveType.equals("collection"), nc, mal) != null;		
 			updateErrorLabel.setText(updatePossible ? "Update the existing network in NDEx" : "Update not possible, unknown error.");
 		} catch (Exception e) {
 			System.out.println("Update is not possible: " + e.getMessage());

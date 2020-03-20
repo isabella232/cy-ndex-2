@@ -25,7 +25,7 @@ public class UpdateUtil {
 		return optional.isPresent() ? optional.get() : null;
 	}
 	
-	public static UUID updateIsPossibleHelper(final Long suid, boolean isCollection, String username, String password, String url) throws Exception {
+	public static UUID updateIsPossibleHelper(final Long suid, final boolean isCollection, final NdexRestClient nc, final NdexRestClientModelAccessLayer mal) throws Exception {
 
 		final CyNetworkManager network_manager = CyServiceModule.getService(CyNetworkManager.class);
 		final CyRootNetworkManager root_network_manager = CyServiceModule.getService(CyRootNetworkManager.class);
@@ -38,9 +38,6 @@ public class UpdateUtil {
 					"NDEx network UUID not found. You can only update networks that were imported with CyNDEx2");
 		}
 
-		final NdexRestClient nc = new NdexRestClient(username, password, url,
-				CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
-		final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
 		try {
 
 			Map<String, Permissions> permissionTable = mal.getUserNetworkPermission(nc.getUserUid(), ndexNetworkId,
