@@ -10,6 +10,7 @@ import static org.mockito.Mockito.never;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -29,13 +30,16 @@ import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.work.TaskMonitor;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.internal.matchers.Any;
 import org.ndexbio.model.exceptions.NdexException;
+import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 public class NDExNetworkExportTaskTests {
 	
 	final UUID subNetworkUUID = new UUID(1,2);
 	final UUID rootNetworkUUID = new UUID(2,3);
+	
 	CyNetworkManager networkManager;
 	CyServiceRegistrar reg;
 	CyApplicationManager appManager;
@@ -101,8 +105,12 @@ public class NDExNetworkExportTaskTests {
 		NDExBasicSaveParameters params = mock(NDExBasicSaveParameters.class);
 		Map<String, String> metadata = new HashMap<String, String>();
 		params.metadata = metadata;
+		
+		NetworkSummary ns = mock(NetworkSummary.class);
+		when(ns.getModificationTime()).thenReturn(new Timestamp(0));
 		try {
 			when(mal.createCXNetwork(any(InputStream.class))).thenReturn(new UUID(1l,2l));
+			when(mal.getNetworkSummaryById(any(UUID.class))).thenReturn(ns);
 		} catch (Exception e1) {
 			e1.printStackTrace();
 			fail();
@@ -136,8 +144,12 @@ public class NDExNetworkExportTaskTests {
 		NDExBasicSaveParameters params = mock(NDExBasicSaveParameters.class);
 		Map<String, String> metadata = new HashMap<String, String>();
 		params.metadata = metadata;
+		
+		NetworkSummary ns = mock(NetworkSummary.class);
+		when(ns.getModificationTime()).thenReturn(new Timestamp(0));
 		try {
 			when(mal.createCXNetwork(any(InputStream.class))).thenReturn(new UUID(1l,2l));
+			when(mal.getNetworkSummaryById(any(UUID.class))).thenReturn(ns);
 		} catch (Exception e1) {
 			e1.printStackTrace();
 			fail();
@@ -171,8 +183,12 @@ public class NDExNetworkExportTaskTests {
 		NDExBasicSaveParameters params = mock(NDExBasicSaveParameters.class);
 		Map<String, String> metadata = new HashMap<String, String>();
 		params.metadata = metadata;
+		
+		NetworkSummary ns = mock(NetworkSummary.class);
+		when(ns.getModificationTime()).thenReturn(new Timestamp(0));
 		try {
 			when(mal.createCXNetwork(any(InputStream.class))).thenReturn(new UUID(1l,2l));
+			when(mal.getNetworkSummaryById(any(UUID.class))).thenReturn(ns);
 		} catch (Exception e1) {
 			e1.printStackTrace();
 			fail();
@@ -206,8 +222,11 @@ public class NDExNetworkExportTaskTests {
 		NDExBasicSaveParameters params = mock(NDExBasicSaveParameters.class);
 		Map<String, String> metadata = new HashMap<String, String>();
 		params.metadata = metadata;
+		NetworkSummary ns = mock(NetworkSummary.class);
+		when(ns.getModificationTime()).thenReturn(new Timestamp(0));
 		try {
 			when(mal.createCXNetwork(any(InputStream.class))).thenReturn(new UUID(1l,2l));
+			when(mal.getNetworkSummaryById(any(UUID.class))).thenReturn(ns);
 		} catch (Exception e1) {
 			e1.printStackTrace();
 			fail();

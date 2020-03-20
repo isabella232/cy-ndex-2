@@ -32,7 +32,7 @@ import org.cytoscape.cyndex2.internal.rest.response.SummaryResponse;
 import org.cytoscape.cyndex2.internal.task.NDExExportTaskFactory;
 import org.cytoscape.cyndex2.internal.task.NDExImportTaskFactory;
 import org.cytoscape.cyndex2.internal.util.CIServiceManager;
-import org.cytoscape.cyndex2.internal.util.NetworkUUIDManager;
+import org.cytoscape.cyndex2.internal.util.NDExNetworkManager;
 import org.cytoscape.cyndex2.internal.util.UpdateUtil;
 import org.cytoscape.io.read.AbstractCyNetworkReader;
 import org.cytoscape.io.read.InputStreamTaskFactory;
@@ -49,6 +49,8 @@ import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskObserver;
 import org.cytoscape.work.swing.DialogTaskManager;
 import org.cytoscape.work.util.ListSingleSelection;
+import org.ndexbio.rest.client.NdexRestClient;
+import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -299,7 +301,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		summary.name = network.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS).getRow(network.getSUID())
 				.get(CyNetwork.NAME, String.class);
 
-		UUID uuid = NetworkUUIDManager.getUUID(network);
+		UUID uuid = NDExNetworkManager.getUUID(network);
 		if (uuid != null)
 			summary.uuid = uuid.toString();
 
@@ -320,10 +322,13 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		// Check UUID
 		UUID uuid;
 		try {
-			uuid = UpdateUtil.updateIsPossibleHelper(suid, network instanceof CyRootNetwork, params.username, params.password,
-					params.serverUrl);
+			final NdexRestClient nc = new NdexRestClient(params.username, params.password,
+					params.serverUrl,
+					CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
+			final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
+			uuid = UpdateUtil.updateIsPossibleHelper(suid, network instanceof CyRootNetwork, nc, mal);
 		} catch (Exception e) {
-			final String message = "Unable to update network in NDEx." + e.getMessage() + " Try saving as a new network.";
+			final String message = "Unable to update network in NDEx. " + e.getMessage() + " Try saving as a new network.";
 			logger.error(message);
 			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INVALID_PARAMETERS);
 
