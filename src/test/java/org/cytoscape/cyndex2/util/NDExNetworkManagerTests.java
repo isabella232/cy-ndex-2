@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 
 import org.cytoscape.cyndex2.internal.util.NDExNetworkManager;
@@ -41,13 +42,14 @@ public class NDExNetworkManagerTests {
 		
 		CyRow networkRow = mock(CyRow.class);
 		when(networkRow.get("NDEx UUID", String.class)).thenReturn((new UUID(1l,2l)).toString());
-		
+
 		CyTable networkTable = mock(CyTable.class);
 		when(network.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS)).thenReturn(networkTable);
-		
 		when(networkTable.getRow(669l)).thenReturn(networkRow);
 		
-		NDExNetworkManager.saveUUID(network, uuid, null);
+		Timestamp timestamp = new Timestamp(0);
+		
+		NDExNetworkManager.saveUUID(network, uuid, timestamp);
 		verify(networkTable).getColumn("NDEx UUID");
 		verify(networkTable).createColumn("NDEx UUID", String.class, false);
 		verify(networkRow).set("NDEx UUID", uuid.toString());

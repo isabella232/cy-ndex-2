@@ -113,7 +113,6 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 			taskMonitor.setProgress(.5);
 			taskMonitor.setStatusMessage("Uploading network to NDEx");
 			
-			
 			final CyNetwork referenceNetwork = writeCollection ? rootNetwork : network;
 			if (!isUpdate) {
 				networkUUID = mal.createCXNetwork(cxStream);
