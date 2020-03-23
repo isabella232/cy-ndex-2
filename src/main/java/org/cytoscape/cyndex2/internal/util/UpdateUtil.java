@@ -35,7 +35,7 @@ public class UpdateUtil {
 		
 		if (ndexNetworkId == null) {
 			throw new Exception(
-					"NDEx network UUID not found. You can only update networks that were imported with CyNDEx2");
+					"UUID unknown. Can't find current Network in NDEx.");
 		}
 
 		try {
@@ -62,7 +62,7 @@ public class UpdateUtil {
 			final Timestamp localTimestamp = NDExNetworkManager.getModificationTimeStamp(network);
 			
 			if (localTimestamp == null) {
-				throw new Exception("Session file is missing timestamp; cannot safely update network on NDEx.");
+				throw new Exception("Session file is missing timestamp.");
 			}
 			
 			final int timestampCompare = serverTimestamp.compareTo(localTimestamp);
@@ -71,7 +71,7 @@ public class UpdateUtil {
 				throw new Exception("Network was modified on remote server.");
 			}
 		} catch (IOException | NdexException e) {
-			throw new Exception(" An error occurred while checking permissions. " + e.getMessage());
+			throw new Exception("An error occurred while checking permissions. " + e.getMessage());
 		}
 		return ndexNetworkId;
 	}
