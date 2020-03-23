@@ -35,7 +35,7 @@ import javax.swing.SwingUtilities;
 import org.cytoscape.cyndex2.internal.CxTaskFactoryManager;
 import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.util.HeadlessTaskMonitor;
-import org.cytoscape.cyndex2.internal.util.NetworkUUIDManager;
+import org.cytoscape.cyndex2.internal.util.NDExNetworkManager;
 import org.cytoscape.io.read.AbstractCyNetworkReader;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.model.CyNetwork;
@@ -134,9 +134,9 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 			suid = network.getSUID();
 			
 			if (networkSummary.getSubnetworkIds().size() > 0) {	
-				NetworkUUIDManager.saveUUID(((CySubNetwork)network).getRootNetwork(), uuid);
+				NDExNetworkManager.saveUUID(((CySubNetwork)network).getRootNetwork(), uuid, networkSummary.getModificationTime());
 			} else {
-				NetworkUUIDManager.saveUUID(network, uuid);
+				NDExNetworkManager.saveUUID(network, uuid, networkSummary.getModificationTime());
 			}
 			
 		} catch (IOException ex) {

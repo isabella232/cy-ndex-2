@@ -10,6 +10,7 @@ import static org.mockito.Mockito.never;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -98,6 +99,7 @@ public class NDExNetworkImportTaskTests {
 	public void importNetworkWithAccessKeyTest() {
 		try {
 			NetworkSummary networkSummary = mock(NetworkSummary.class);
+			when(networkSummary.getModificationTime()).thenReturn(new Timestamp(0));
 			when(networkSummary.getExternalId()).thenReturn(new UUID(1l,2l));
 			when(mal.getNetworkSummaryById(new UUID(1l,2l), "mockAccessKey")).thenReturn(networkSummary);
 				when(mal.getNetworkAsCXStream(new UUID(1l,2l), "mockAccessKey")).thenReturn(inputStream);
@@ -122,6 +124,7 @@ public class NDExNetworkImportTaskTests {
 	public void importNetworkTest() {
 		try {
 			NetworkSummary networkSummary = mock(NetworkSummary.class);
+			when(networkSummary.getModificationTime()).thenReturn(new Timestamp(0));
 			when(networkSummary.getExternalId()).thenReturn(new UUID(1l,2l));
 			when(mal.getNetworkSummaryById(new UUID(1l,2l), null)).thenReturn(networkSummary);
 				when(mal.getNetworkAsCXStream(new UUID(1l,2l))).thenReturn(inputStream);
