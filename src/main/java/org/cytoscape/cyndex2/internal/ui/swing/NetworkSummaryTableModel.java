@@ -27,14 +27,13 @@ import org.ndexbio.model.object.network.VisibilityType;
 
 public class NetworkSummaryTableModel extends AbstractTableModel {
 
-	private static final int IMPORT_COL = 0;
-	private static final int NAME_COL = 1;
-	private static final int OWNER_COL = 2;
-	private static final int VISIBILITY_COL = 3;
-	private static final int NODES_COL = 4;
-	private static final int EDGES_COL = 5;
-	private static final int CREATED_COL = 6;
-	private static final int MODIFIED_COL = 7;
+	public static final int IMPORT_COL = 0;
+	public static final int NAME_COL = 1;
+	public static final int OWNER_COL = 2;
+	public static final int VISIBILITY_COL = 3;
+	public static final int NODES_COL = 4;
+	public static final int EDGES_COL = 5;
+	public static final int MODIFIED_COL = 6;
 
 	private final List<NetworkSummary> networkSummaries;
 
@@ -147,7 +146,7 @@ public class NetworkSummaryTableModel extends AbstractTableModel {
 
 	@Override
 	public int getColumnCount() {
-		return 8;
+		return 7;
 	}
 
 	@Override
@@ -170,8 +169,6 @@ public class NetworkSummaryTableModel extends AbstractTableModel {
 			return Integer.class;
 		case EDGES_COL:
 			return Integer.class;
-		case CREATED_COL:
-			return Timestamp.class;
 		case MODIFIED_COL:
 			return Timestamp.class;
 		default:
@@ -195,8 +192,6 @@ public class NetworkSummaryTableModel extends AbstractTableModel {
 			return networkSummary.getNodeCount();
 		case EDGES_COL:
 			return networkSummary.getEdgeCount();
-		case CREATED_COL:
-			return networkSummary.getCreationTime();
 		case MODIFIED_COL:
 			return networkSummary.getModificationTime();
 		default:
@@ -219,8 +214,6 @@ public class NetworkSummaryTableModel extends AbstractTableModel {
 			return "nodes";
 		case EDGES_COL:
 			return "edges";
-		case CREATED_COL:
-			return "created";
 		case MODIFIED_COL:
 			return "modified";
 		default:

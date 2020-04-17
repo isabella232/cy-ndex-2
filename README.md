@@ -3,12 +3,16 @@
 The [NDEx](http://www.ndexbio.org/) client App for Cytoscape
 
 ## Introduction
-This is a Java Swing Based NDEx Client App for Cytoscape.  You can search, import, and save NDEx networks from Cytoscape.
+This is an [Electron](https://electron.atom.io/)-based hybrid App for Cytoscape.  You can search, import, and save NDEx networks from Cytoscape.
 
 # For Users
 
 ## How to Install
 Just like other Cytoscape apps, you can install this from the [Cytoscape App Store](http://apps.cytoscape.org/) or directly from the file.  All of the required files will be installed automatically.
+
+### Note: JXBrowser 
+
+Once you install the app from the App Store, the CyNDEx2 searchbox will be available in the query dropdown (Cytoscape 3.6+).    JXBrowser is used to open the search window, and can cause issues when the app is updated or uninstalled.  If JXBrowser fails to start, the search entry field will be disabled and a restart is required.
 
 ### Uninstall CyNDEx-2
 To uninstall CyNDEx-2 completely from your machine, you need to follow these steps:
@@ -17,6 +21,8 @@ To uninstall CyNDEx-2 completely from your machine, you need to follow these ste
 1. Open _CytoscapeConfiguration_ directory
 1. Remove the following files/directories:
     * _cyndex-2_ directory
+    * _ndex-electron-2.x.x_ directory
+    * _ndex-installed-2.x.x.txt_ file
 1.
     * Mac users - remove ~/Library/Application Support/CyNDEx-2 directory
     * Windows user - remove %AppData%/Roaming/CyNDEx-2 directory 

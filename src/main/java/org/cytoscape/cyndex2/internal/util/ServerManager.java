@@ -134,7 +134,7 @@ public class ServerManager {
 			System.out.println("Anonymous access");
 			// Anonymous access
 		} else if (username != null && password != null) {
-			System.out.println("Accessing as " + username + " with " + password);
+			System.out.println("Accessing as " + username);
 			CredentialsProvider provider = new BasicCredentialsProvider();
 			UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, password);
 

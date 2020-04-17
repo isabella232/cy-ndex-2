@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -113,11 +114,12 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 	private void load(final NetworkSummary networkSummary) {
 		ModalProgressHelper.runWorker(this, "Loading Network", () -> {
 			final Server selectedServer = ServerManager.INSTANCE.getServer();
-			final NdexRestClientModelAccessLayer mal = selectedServer.getModelAccessLayer();
+			
 			boolean success;
 			try {
+				final NdexRestClientModelAccessLayer mal = selectedServer.getModelAccessLayer();
 				success = selectedServer.check(mal);
-			} catch (IOException e1) {
+			} catch (IOException | NdexException e1) {
 				e1.printStackTrace();
 				success = false;
 			}
@@ -179,9 +181,18 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		this.getRootPane().setDefaultButton(search);
 
 		searchField.setText(searchTerm);
-		Server selectedServer = ServerManager.INSTANCE.getServer();
-		NdexRestClientModelAccessLayer mal = selectedServer.getModelAccessLayer();
-
+		final Server selectedServer = ServerManager.INSTANCE.getServer();
+		NdexRestClientModelAccessLayer mal;
+		try {
+			mal = selectedServer.getModelAccessLayer();
+		}catch (IOException | NdexException e) 
+			{
+				mal = null;
+				e.printStackTrace();
+				JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication + "\n\nError Message: " + e.getMessage(), "Error",
+						JOptionPane.ERROR_MESSAGE);
+			
+			}
 		if (selectedServer.getUsername() != null && !selectedServer.getUsername().isEmpty()) {
 			administeredByMe.setVisible(true);
 		} else {
@@ -191,10 +202,10 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 					administeredByMe.setVisible(true);
 				} catch (IOException e) {
 					e.printStackTrace();
-					JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication + ": " + e.getMessage(), "Error",
+					JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication + "\n\nError Message: " + e.getMessage(), "Error",
 							JOptionPane.ERROR_MESSAGE);
-					this.setVisible(false);
-					return;
+				
+					//return;
 				}
 			} else {
 				administeredByMe.setVisible(false);
@@ -204,25 +215,29 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		try {
 			if (selectedServer.check(mal)) {
 				try {
-					networkSummaries = mal.findNetworks(searchTerm, null, null, true, 0, 400).getNetworks();
-				} catch (IOException | NdexException ex) {
+					
+					networkSummaries = mal != null ? mal.findNetworks(searchTerm, null, null, true, 0, 400).getNetworks() : List.of();
+					
+				} catch (IOException | NdexException ex ) {
 					ex.printStackTrace();
-					JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication, "Error",
+					JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication + "\n\nError Message: " + ex.getMessage(), "Error",
 							JOptionPane.ERROR_MESSAGE);
-					this.setVisible(false);
-					return;
+					networkSummaries =  List.of();
+					//this.setVisible(false);
+					//return;
 				}
-				showSearchResults();
+				
 			} else {
 				JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication, "Error", JOptionPane.ERROR_MESSAGE);
-				this.setVisible(false);
+				networkSummaries =  List.of();
 			}
 		} catch (HeadlessException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication, "Error", JOptionPane.ERROR_MESSAGE);
-
+			JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication + "\n\nError Message: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+			networkSummaries =  List.of();
 		}
+		showSearchResults();
 	}
 
 	private JTable getResultsTable() {
@@ -233,10 +248,16 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 	    final JComponent jcomp = (JComponent)comp;
 	    if (comp == jcomp) {
 	      if (col != 0) {  
-	      	final NetworkSummary networkSummary = (NetworkSummary)getValueAt(row, 0);
-	      	final String toolTip = networkSummary.getDescription() == null ? null : "<html>" + networkSummary.getDescription() + "</html>";
-	      	jcomp.setToolTipText(toolTip);
-	      		
+	      	if (row < super.getRowCount() && 0 < super.getColumnCount()) {
+	      		try {
+	      			final NetworkSummary networkSummary = (NetworkSummary)getValueAt(row, 0);
+	      
+	      			final String toolTip = networkSummary.getDescription() == null ? null : "<html>" + networkSummary.getDescription() + "</html>";
+	      			jcomp.setToolTipText(toolTip);
+	      		} catch (Exception e) {
+	      			System.out.println("Ignored table renderer error while making tool tip");
+	      		}
+	      	}
 	      } 
 	     }
 	    return comp; } };
@@ -281,7 +302,8 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
         resultsTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane1.setViewportView(resultsTable);
 
-        done.setText("Done");
+        done.setText("Close Dialog");
+        done.setToolTipText("Click to close this dialog when done downloading");
         done.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 doneActionPerformed(evt);
@@ -396,9 +418,10 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
     }// </editor-fold>//GEN-END:initComponents
 
 	private void getMyNetworks() {
-		Server selectedServer = ServerManager.INSTANCE.getSelectedServer();
-		NdexRestClientModelAccessLayer mal = selectedServer.getModelAccessLayer();
+		final Server selectedServer = ServerManager.INSTANCE.getSelectedServer();
 		try {
+			NdexRestClientModelAccessLayer mal = selectedServer.getModelAccessLayer();
+			
 			if (selectedServer.check(mal)) {
 
 				try {
@@ -413,9 +436,9 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 			} else {
 				JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication, "ErrorY",
 						JOptionPane.ERROR_MESSAGE);
-				this.setVisible(false);
+				
 			}
-		} catch (HeadlessException | IOException e) {
+		} catch (HeadlessException | IOException | NdexException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication, "ErrorY", JOptionPane.ERROR_MESSAGE);
@@ -435,8 +458,9 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		if (searchText.isEmpty())
 			searchText = "";
 
-		NdexRestClientModelAccessLayer mal = selectedServer.getModelAccessLayer();
 		try {
+			NdexRestClientModelAccessLayer mal = selectedServer.getModelAccessLayer();
+			
 			if (selectedServer.check(mal)) {
 				try {
 					if (administeredByMe.isSelected()) {
@@ -452,9 +476,9 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 			} else {
 				JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication, "ErrorY",
 						JOptionPane.ERROR_MESSAGE);
-				this.setVisible(false);
+				
 			}
-		} catch (HeadlessException | IOException e) {
+		} catch (HeadlessException | IOException | NdexException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication, "ErrorY", JOptionPane.ERROR_MESSAGE);
@@ -491,7 +515,12 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 			displayedNetworkSummaries.add(networkSummary);
 		}
 		resultsTable.setModel(model);
-		resultsTable.getColumnModel().getColumn(0).setPreferredWidth(24);
+		resultsTable.getColumnModel().getColumn(NetworkSummaryTableModel.IMPORT_COL).setPreferredWidth(24);
+		resultsTable.getColumnModel().getColumn(NetworkSummaryTableModel.NAME_COL).setPreferredWidth(200);
+		resultsTable.getColumnModel().getColumn(NetworkSummaryTableModel.VISIBILITY_COL).setPreferredWidth(20);
+		resultsTable.getColumnModel().getColumn(NetworkSummaryTableModel.OWNER_COL).setPreferredWidth(40);
+		resultsTable.getColumnModel().getColumn(NetworkSummaryTableModel.NODES_COL).setPreferredWidth(20);
+		resultsTable.getColumnModel().getColumn(NetworkSummaryTableModel.EDGES_COL).setPreferredWidth(20);
 		resultsTable.setDefaultRenderer(NetworkSummary.class, new NetworkSummaryTableModel.ImportButtonRenderer());
 		resultsTable.setDefaultRenderer(VisibilityType.class, new NetworkSummaryTableModel.VisibilityTypeRenderer());
 		resultsTable.setDefaultRenderer(Timestamp.class, new NetworkSummaryTableModel.TimestampRenderer());

@@ -26,6 +26,7 @@
 
 package org.cytoscape.cyndex2.internal.ui.swing;
 
+import java.awt.Container;
 import java.awt.Frame;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -35,6 +36,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -52,10 +55,14 @@ import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.rest.SimpleNetworkSummary;
 import org.cytoscape.cyndex2.internal.rest.parameter.NDExSaveParameters;
 import org.cytoscape.cyndex2.internal.rest.response.SummaryResponse;
+import org.cytoscape.cyndex2.internal.util.ErrorMessage;
 import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
 import org.cytoscape.cyndex2.internal.util.UpdateUtil;
 import org.cytoscape.model.CyNetwork;
+import org.ndexbio.rest.client.NdexRestClient;
+import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -74,7 +81,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 	final SaveParameters saveParameters;
 
 	/**
-	 * Creates new form UploadNetwork
+	 * Creates new form ExportNetwork
 	 */
 	public ExportNetworkDialog(Frame parent, SaveParameters saveParameters) {
 		super(parent, true);
@@ -102,6 +109,13 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 		return "collection".equals(saveParameters.saveType);
 	}
 
+	private String getEquivalentKey(String key, Map<String, Object> map) {
+			final String upperCaseKey = key.toUpperCase();
+			final String equivalentKey = map.keySet().stream().reduce(
+					(String) null, (retVal, current) -> retVal != null ? retVal : current.toUpperCase().equals(upperCaseKey) ? current : null);
+			return equivalentKey;
+	}
+	
 	private void prepComponents() {
 		final boolean isCollection = isCollection();
 		setModal(true);
@@ -142,15 +156,26 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 			final SimpleNetworkSummary summary = isCollection ? getCurrentCollectionSummary(summaryResponse)
 					: getCurrentNetworkSummary(summaryResponse);
 
+			final String authorKey = getEquivalentKey("author", summary.props);
+			final String organismKey = getEquivalentKey("organism", summary.props);
+			final String diseaseKey = getEquivalentKey("disease", summary.props);
+			final String tissueKey = getEquivalentKey("tissue", summary.props);
+			final String rightsHolderKey = getEquivalentKey("rightsHolder", summary.props);
+			final String versionKey = getEquivalentKey("version", summary.props);
+			final String referenceKey = getEquivalentKey("reference", summary.props);
+			final String descriptionKey = getEquivalentKey("description", summary.props);
+			
+			
+			
 			nameField.setText(summary.name);
-			authorField.setText(isCollection ? "" : summary.props.get("author") != null  ? summary.props.get("author").toString() : "");
-			organismField.setText(isCollection ? "" : summary.props.get("organism") != null  ? summary.props.get("organism").toString() : "");
-			diseaseField.setText(isCollection ? "" : summary.props.get("disease") != null  ? summary.props.get("disease").toString() : "");
-			tissueField.setText(isCollection ? "" : summary.props.get("tissue") != null  ? summary.props.get("tissue").toString() : "");
-			rightsHolderField.setText(isCollection ? "" : summary.props.get("rightsHolder") != null  ? summary.props.get("rightsHolder").toString() : "");
-			versionField.setText(isCollection ? "" : summary.props.get("version") != null  ? summary.props.get("version").toString() : "");
-			referenceField.setText(isCollection ? "" : summary.props.get("reference") != null  ? summary.props.get("reference").toString() : "");
-			descriptionTextArea.setText(isCollection ? "" : summary.props.get("description") != null  ? summary.props.get("description").toString() : "");
+			authorField.setText(isCollection ? "" : authorKey != null ? summary.props.get(authorKey).toString() : "");
+			organismField.setText(isCollection ? "" : organismKey != null  ? summary.props.get(organismKey).toString() : "");
+			diseaseField.setText(isCollection ? "" : diseaseKey != null  ? summary.props.get(diseaseKey).toString() : "");
+			tissueField.setText(isCollection ? "" : tissueKey != null  ? summary.props.get(tissueKey).toString() : "");
+			rightsHolderField.setText(isCollection ? "" : rightsHolderKey != null  ? summary.props.get(rightsHolderKey).toString() : "");
+			versionField.setText(isCollection ? "" : versionKey != null  ? summary.props.get(versionKey).toString() : "");
+			referenceField.setText(isCollection ? "" : referenceKey != null  ? summary.props.get(referenceKey).toString() : "");
+			descriptionTextArea.setText(isCollection ? "" : descriptionKey != null  ? summary.props.get(descriptionKey).toString() : "");
 			
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
@@ -244,9 +269,10 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
         jLabel10 = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
         descriptionTextArea = new javax.swing.JTextArea();
+        updateErrorLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Upload Network to NDEx");
+        setTitle("Export Network to NDEx");
 
         jPanel1.setBorder(null);
 
@@ -274,6 +300,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
         jLabel11.setText("Version");
 
         updateCheckbox.setText("Update Existing Network");
+        updateCheckbox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         updateCheckbox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 updateCheckboxActionPerformed(evt);
@@ -316,6 +343,11 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
         descriptionTextArea.setRows(5);
         jScrollPane3.setViewportView(descriptionTextArea);
 
+        updateErrorLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        updateErrorLabel.setText("Unable to update network.");
+        updateErrorLabel.setEnabled(false);
+        updateErrorLabel.setFocusable(false);
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -344,7 +376,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
                             .addComponent(referenceField, javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(nameField)
                             .addComponent(authorField)
-                            .addComponent(jScrollPane3)))
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(cancel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -352,10 +384,8 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(206, 206, 206)
-                        .addComponent(updateCheckbox)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 199, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(updateCheckbox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(updateErrorLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -401,6 +431,8 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
                     .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(updateCheckbox)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(updateErrorLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cancel)
@@ -457,11 +489,10 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 	}
 
 	private void uploadActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_uploadActionPerformed
-
-		SwingWorker<Integer, Integer> worker = new SwingWorker<Integer, Integer>() {
-
-			@Override
-			protected Integer doInBackground() throws Exception {
+		Container container = this.getParent();
+		
+				
+	  ModalProgressHelper.runWorker(this, "Exporting to NDEx", () -> {
 
 				final Server selectedServer = ServerManager.INSTANCE.getSelectedServer();
 				final boolean update = updateCheckbox.isEnabled() && updateCheckbox.isSelected();
@@ -488,14 +519,33 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 
 				NDExSaveParameters saveParameters = new NDExSaveParameters(selectedServer.getUsername(),
 						selectedServer.getPassword(), selectedServer.getUrl(), metadata, false);
-				ObjectMapper objectMapper = new ObjectMapper();
+				final ObjectMapper objectMapper = new ObjectMapper();
 
 				try {
+					
 					request.setEntity(new StringEntity(objectMapper.writeValueAsString(saveParameters)));
-					HttpResponse response = httpClient.execute(request);
+					final HttpResponse response = httpClient.execute(request);
+					final int statusCode = response.getStatusLine().getStatusCode();  
+					
+					if (statusCode == 200) {
+						
+						final String result = EntityUtils.toString(response.getEntity());
 
-					System.out.println("Response: " + response.toString());
-
+						JsonNode jsonNode = objectMapper.readValue(result, JsonNode.class);
+						final String uuid = jsonNode.get("data").get("uuid").asText();
+					
+						JOptionPane.showMessageDialog(container, "Export to NDEx successful.\n\nUUID: " + uuid, "Export Complete",
+							JOptionPane.PLAIN_MESSAGE); 
+					} else {
+						final String result = EntityUtils.toString(response.getEntity());
+				
+						JsonNode jsonNode = objectMapper.readValue(result, JsonNode.class);
+						final String errorMessage = jsonNode.get("errors").get(0).get("message").asText();
+						
+						JOptionPane.showMessageDialog(container, "Export to NDEx failed with the following message:\n\n" + errorMessage , "Export Error",
+								JOptionPane.ERROR_MESSAGE); 
+					}
+					
 				} catch (UnsupportedEncodingException | JsonProcessingException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -507,9 +557,9 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 					e.printStackTrace();
 				}
 				return 1;
-			}
-		};
-		worker.execute();
+		}
+		);
+		
 		this.setVisible(false);
 
 	}// GEN-LAST:event_uploadActionPerformed
@@ -550,13 +600,23 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 		boolean updatePossible;
 		try {
 			System.out.println("Checking if update is possible for suid: " + saveParameters.suid);
-			updatePossible = UpdateUtil.updateIsPossibleHelper(saveParameters.suid, saveParameters.saveType.equals("collection"), selectedServer.getUsername(), selectedServer.getPassword(), selectedServer.getUrl()) != null;		
+			final NdexRestClient nc = new NdexRestClient(selectedServer.getUsername(), selectedServer.getPassword(), selectedServer.getUrl(),
+					CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
+			final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
+			updatePossible = UpdateUtil.updateIsPossibleHelper(saveParameters.suid, saveParameters.saveType.equals("collection"), nc, mal) != null;		
+			updateErrorLabel.setText(updatePossible ? "Update the existing network in NDEx" : "Update not possible, unknown error.");
 		} catch (Exception e) {
 			System.out.println("Update is not possible: " + e.getMessage());
+			updateErrorLabel.setText(e.getMessage());
+                        
+			e.printStackTrace();
 			updatePossible = false;
+			
 		}
 		updateCheckbox.setSelected(false);
 		updateCheckbox.setEnabled(updatePossible);
+                updateErrorLabel.setVisible(!updatePossible);
+		
 	}
 
 	/**
@@ -621,6 +681,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
     private javax.swing.JTextField rightsHolderField;
     private javax.swing.JTextField tissueField;
     private javax.swing.JCheckBox updateCheckbox;
+    private javax.swing.JLabel updateErrorLabel;
     private javax.swing.JButton upload;
     private javax.swing.JTextField versionField;
     // End of variables declaration//GEN-END:variables

@@ -8,7 +8,6 @@ import java.io.IOException;
 import javax.swing.Icon;
 import javax.swing.UIManager;
 
-import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.util.swing.TextIcon;
 
 public final class IconUtil {

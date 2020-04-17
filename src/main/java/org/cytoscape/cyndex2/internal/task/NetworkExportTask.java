@@ -31,10 +31,9 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.UUID;
 
-import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.rest.parameter.NDExBasicSaveParameters;
-import org.cytoscape.cyndex2.internal.util.NetworkUUIDManager;
+import org.cytoscape.cyndex2.internal.util.NDExNetworkManager;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
@@ -43,7 +42,7 @@ import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.TaskMonitor;
 import org.ndexbio.model.exceptions.NdexException;
-import org.ndexbio.rest.client.NdexRestClient;
+import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -114,15 +113,20 @@ public class NetworkExportTask extends AbstractTask implements ObservableTask{
 			taskMonitor.setProgress(.5);
 			taskMonitor.setStatusMessage("Uploading network to NDEx");
 			
+			final CyNetwork referenceNetwork = writeCollection ? rootNetwork : network;
 			if (!isUpdate) {
 				networkUUID = mal.createCXNetwork(cxStream);
-				NetworkUUIDManager.saveUUID(writeCollection ? rootNetwork : network, networkUUID);
+				NetworkSummary networkSummary = mal.getNetworkSummaryById(networkUUID);
+				
+				NDExNetworkManager.saveUUID(referenceNetwork, networkUUID, networkSummary.getModificationTime());
 			} else {
-				networkUUID = NetworkUUIDManager.getUUID(writeCollection ? rootNetwork : network);
+				networkUUID = NDExNetworkManager.getUUID(referenceNetwork);
 				if (networkUUID == null) {
 					throw new NetworkUpdateException("No UUID found for " + network);
 				}
 				mal.updateCXNetwork(networkUUID, cxStream);
+				NetworkSummary networkSummary = mal.getNetworkSummaryById(networkUUID);
+				NDExNetworkManager.updateModificationTimeStamp(referenceNetwork, networkSummary.getModificationTime());
 			}
 		} catch (NetworkUpdateException e) {
 			e.printStackTrace();

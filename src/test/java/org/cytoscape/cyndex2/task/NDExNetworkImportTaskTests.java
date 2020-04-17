@@ -10,8 +10,10 @@ import static org.mockito.Mockito.never;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 
 import org.cytoscape.application.CyApplicationConfiguration;
@@ -31,12 +33,14 @@ import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
 import org.cytoscape.model.subnetwork.CySubNetwork;
+import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
@@ -95,6 +99,7 @@ public class NDExNetworkImportTaskTests {
 	public void importNetworkWithAccessKeyTest() {
 		try {
 			NetworkSummary networkSummary = mock(NetworkSummary.class);
+			when(networkSummary.getModificationTime()).thenReturn(new Timestamp(0));
 			when(networkSummary.getExternalId()).thenReturn(new UUID(1l,2l));
 			when(mal.getNetworkSummaryById(new UUID(1l,2l), "mockAccessKey")).thenReturn(networkSummary);
 				when(mal.getNetworkAsCXStream(new UUID(1l,2l), "mockAccessKey")).thenReturn(inputStream);
@@ -119,6 +124,7 @@ public class NDExNetworkImportTaskTests {
 	public void importNetworkTest() {
 		try {
 			NetworkSummary networkSummary = mock(NetworkSummary.class);
+			when(networkSummary.getModificationTime()).thenReturn(new Timestamp(0));
 			when(networkSummary.getExternalId()).thenReturn(new UUID(1l,2l));
 			when(mal.getNetworkSummaryById(new UUID(1l,2l), null)).thenReturn(networkSummary);
 				when(mal.getNetworkAsCXStream(new UUID(1l,2l))).thenReturn(inputStream);
