@@ -168,8 +168,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 				logger.error(message);
 				throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 			}
-			setVisibility(params, newUUID.toString());
-
+			
 			final NdexBaseResponse response = new NdexBaseResponse(suid, newUUID.toString());
 			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
 
@@ -186,38 +185,6 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 	public CINdexBaseResponse saveCurrentNetworkToNdex(NDExSaveParameters params) {
 		final CyNetwork network = getCurrentNetwork();
 		return saveNetworkToNdex(network.getSUID(), params);
-	}
-
-	private final void setVisibility(final NDExSaveParameters params, final String uuid) {
-		int retries = 0;
-		for (; retries < 5; retries++) {
-			try {
-				client.setVisibility(params.serverUrl, uuid, params.isPublic.booleanValue(), params.username, params.password);
-				break;
-			} catch (Exception e) {
-				String message = String.format("Error updating visibility. Retrying (%d/5)...", retries);
-				logger.warn(message);
-				try {
-					Thread.sleep(2000);
-				} catch (InterruptedException e1) {
-					message = "Failed to wait. This should never happen.";
-					logger.error(message);
-					final CIError ciError = ciServiceManager.getCIErrorFactory().getCIError(Status.BAD_REQUEST.getStatusCode(),
-							"urn:cytoscape:ci:ndex:v1:errors:1", message);
-					throw ciServiceManager.getCIExceptionFactory().getCIException(Status.BAD_REQUEST.getStatusCode(),
-							new CIError[] { ciError });
-
-				}
-			}
-			if (retries >= 5) {
-				final String message = "NDEx appears to be busy.\n"
-						+ "Your network will likely be saved in your account, but will remain private. \n"
-						+ "You can use the NDEx web site to make your network public once NDEx posts it there.";
-				logger.warn(message);
-				throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
-			}
-		}
-
 	}
 
 	@CIWrapping
