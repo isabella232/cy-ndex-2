@@ -1,5 +1,6 @@
 package org.cytoscape.cyndex2.internal.ui.swing;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -71,7 +72,7 @@ public class NetworkSummaryTableModel extends AbstractTableModel {
 
 	private static TextIcon getImportIcon() {
 		final IconManager iconManager = CyServiceModule.INSTANCE.getService(IconManager.class);
-		final TextIcon importIcon = new TextIcon(iconManager.ICON_ARROW_CIRCLE_O_DOWN, iconManager.getIconFont(24), 24, 24);
+		final TextIcon importIcon = new TextIcon(iconManager.ICON_ARROW_CIRCLE_O_DOWN, iconManager.getIconFont(24), new Color(28,140,46), 24, 24);
 		return importIcon;
 	}
 	
