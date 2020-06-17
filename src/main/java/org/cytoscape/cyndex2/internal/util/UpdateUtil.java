@@ -18,34 +18,42 @@ import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 public class UpdateUtil {
-	
-	private static CyNetwork getRootNetwork(final Long suid, final CyNetworkManager networkManager, final CyRootNetworkManager rootNetworkManager) {
-		Optional<CyRootNetwork> optional = networkManager.getNetworkSet().stream().map(net -> rootNetworkManager.getRootNetwork(net))
-		.findFirst();
+
+	private static CyNetwork getRootNetwork(final Long suid, final CyNetworkManager networkManager,
+			final CyRootNetworkManager rootNetworkManager) {
+		Optional<CyRootNetwork> optional = networkManager.getNetworkSet().stream()
+				.map(net -> rootNetworkManager.getRootNetwork(net)).findFirst();
 		return optional.isPresent() ? optional.get() : null;
 	}
-	
-	public static UUID updateIsPossibleHelper(final Long suid, final boolean isCollection, final NdexRestClient nc, final NdexRestClientModelAccessLayer mal) throws Exception {
 
+	public static CyNetwork getNetworkForSUID(final Long suid, final boolean isCollection) {
 		final CyNetworkManager network_manager = CyServiceModule.getService(CyNetworkManager.class);
 		final CyRootNetworkManager root_network_manager = CyServiceModule.getService(CyRootNetworkManager.class);
-		final CyNetwork network = isCollection ? getRootNetwork(suid, network_manager, root_network_manager) : network_manager.getNetwork(suid);
-		
-		UUID ndexNetworkId = NDExNetworkManager.getUUID(network);
-		
-		if (ndexNetworkId == null) {
-			throw new Exception(
-					"UUID unknown. Can't find current Network in NDEx.");
+		return isCollection ? getRootNetwork(suid, network_manager, root_network_manager)
+				: network_manager.getNetwork(suid);
+
+	}
+
+	public static UUID updateIsPossible(CyNetwork network, UUID uuid, final NdexRestClient nc,
+			final NdexRestClientModelAccessLayer mal) throws Exception {
+		return updateIsPossible(network, uuid, nc, mal, true);
+	}
+
+	public static UUID updateIsPossible(CyNetwork network, UUID uuid, final NdexRestClient nc,
+			final NdexRestClientModelAccessLayer mal, boolean checkTimestamp) throws Exception {
+
+		if (uuid == null) {
+			throw new Exception("UUID unknown. Can't find current Network in NDEx.");
 		}
 
 		try {
 
-			Map<String, Permissions> permissionTable = mal.getUserNetworkPermission(nc.getUserUid(), ndexNetworkId,
-					false);
-			if (permissionTable == null 
-					|| permissionTable.size() == 0
-					|| permissionTable.get(ndexNetworkId.toString()) == Permissions.READ)
+			Map<String, Permissions> permissionTable = mal.getUserNetworkPermission(nc.getUserUid(), uuid, false);
+			if (permissionTable == null || permissionTable.size() == 0) {
+				throw new Exception("Cannot find network.");
+			} else if (permissionTable.get(uuid.toString()) == Permissions.READ) {
 				throw new Exception("You don't have permission to write to this network.");
+			}
 
 		} catch (IOException | NdexException e) {
 			throw new Exception("Unable to read network permissions. " + e.getMessage());
@@ -53,26 +61,40 @@ public class UpdateUtil {
 
 		NetworkSummary ns = null;
 		try {
-			ns = mal.getNetworkSummaryById(ndexNetworkId);
-			
+			ns = mal.getNetworkSummaryById(uuid);
+
 			if (ns.getIsReadOnly())
 				throw new Exception("The network is read only.");
-			
-			final Timestamp serverTimestamp = ns.getModificationTime();
-			final Timestamp localTimestamp = NDExNetworkManager.getModificationTimeStamp(network);
-			
-			if (localTimestamp == null) {
-				throw new Exception("Session file is missing timestamp.");
-			}
-			
-			final int timestampCompare = serverTimestamp.compareTo(localTimestamp);
-			
-			if (timestampCompare > 0) {
-				throw new Exception("Network was modified on remote server.");
+
+			if (checkTimestamp) {
+
+				final Timestamp serverTimestamp = ns.getModificationTime();
+				final Timestamp localTimestamp = NDExNetworkManager.getModificationTimeStamp(network);
+
+				if (localTimestamp == null) {
+					throw new Exception("Session file is missing timestamp.");
+				}
+
+				final int timestampCompare = serverTimestamp.compareTo(localTimestamp);
+
+				if (timestampCompare > 0) {
+					throw new Exception("Network was modified on remote server.");
+				}
 			}
 		} catch (IOException | NdexException e) {
 			throw new Exception("An error occurred while checking permissions. " + e.getMessage());
 		}
-		return ndexNetworkId;
+
+		return uuid;
+	}
+
+	public static UUID updateIsPossibleHelper(final Long suid, final boolean isCollection, final NdexRestClient nc,
+			final NdexRestClientModelAccessLayer mal) throws Exception {
+
+		final CyNetwork network = getNetworkForSUID(suid, isCollection);
+
+		UUID ndexNetworkId = NDExNetworkManager.getUUID(network);
+
+		return updateIsPossible(network, ndexNetworkId, nc, mal);
 	}
 }

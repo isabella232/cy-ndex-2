@@ -36,9 +36,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.swing.JOptionPane;
-import javax.swing.SwingWorker;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -58,7 +58,7 @@ import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.rest.SimpleNetworkSummary;
 import org.cytoscape.cyndex2.internal.rest.parameter.NDExSaveParameters;
 import org.cytoscape.cyndex2.internal.rest.response.SummaryResponse;
-import org.cytoscape.cyndex2.internal.util.ErrorMessage;
+import org.cytoscape.cyndex2.internal.util.NDExNetworkManager;
 import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
 import org.cytoscape.cyndex2.internal.util.UpdateUtil;
@@ -480,7 +480,22 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
     }// </editor-fold>//GEN-END:initComponents
 
     private void updateSettingsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateSettingsButtonActionPerformed
-        // TODO add your handling code here:
+    
+		CyNetwork network = UpdateUtil.getNetworkForSUID(saveParameters.suid, saveParameters.saveType.equals("collection"));
+    	
+    	UpdateSettingsDialog updateSettingsDialog = new UpdateSettingsDialog(this, network, ServerManager.INSTANCE.getSelectedServer());
+		updateSettingsDialog.setLocationRelativeTo(this);
+		updateSettingsDialog.setVisible(true);
+		
+		UUID newUUID = updateSettingsDialog.getNewUUID();
+
+		updateSettingsDialog.dispose();
+		
+		if (newUUID != null) {
+			updateUploadButton();
+			updateUpdateButton();
+		}
+		
     }//GEN-LAST:event_updateSettingsButtonActionPerformed
 
 	private void nameFieldActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_nameFieldActionPerformed
@@ -596,6 +611,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 	{// GEN-HEADEREND:event_updateCheckboxActionPerformed
 		// TODO add your handling code here:
 		System.out.println("update checked.");
+		
 	}// GEN-LAST:event_updateCheckboxActionPerformed
 
 	@Override
