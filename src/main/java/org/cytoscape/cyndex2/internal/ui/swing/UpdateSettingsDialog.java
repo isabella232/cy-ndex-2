@@ -34,8 +34,10 @@ public class UpdateSettingsDialog extends javax.swing.JDialog {
 	
 	private boolean changed = false;
 	
-	
-	
+	public boolean isChanged() {
+		return changed;
+	}
+
 	public UUID getNewUUID() {
 		return newUUID;
 	}
@@ -184,7 +186,7 @@ public class UpdateSettingsDialog extends javax.swing.JDialog {
 				CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
         	final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
       
-        	verifiedUUID = UpdateUtil.updateIsPossible(network, potentialUUID, nc, mal);
+        	verifiedUUID = UpdateUtil.updateIsPossible(network, potentialUUID, nc, mal, !changed);
         	NetworkSummary ns = mal.getNetworkSummaryById(verifiedUUID);
       		serverTimestamp = ns.getModificationTime();
         	

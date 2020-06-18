@@ -58,7 +58,6 @@ import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.rest.SimpleNetworkSummary;
 import org.cytoscape.cyndex2.internal.rest.parameter.NDExSaveParameters;
 import org.cytoscape.cyndex2.internal.rest.response.SummaryResponse;
-import org.cytoscape.cyndex2.internal.util.NDExNetworkManager;
 import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
 import org.cytoscape.cyndex2.internal.util.UpdateUtil;
@@ -83,6 +82,8 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 
 	final SaveParameters saveParameters;
 
+	private boolean isUUIDChanged = false;
+	
 	/**
 	 * Creates new form ExportNetwork
 	 */
@@ -123,8 +124,8 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 		final boolean isCollection = isCollection();
 		setModal(true);
 
-		updateUploadButton();
-		rootPane.setDefaultButton(upload);
+		updateExportButton();
+		rootPane.setDefaultButton(exportButton);
 
 		String REST_URI = "http://localhost:" + CyActivator.getCyRESTPort() +"/cyndex2/v1/networks/" + saveParameters.suid;
 		HttpClient httpClient = HttpClients.createDefault();
@@ -255,12 +256,12 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
         nameField = new javax.swing.JTextField();
         rightsHolderField = new javax.swing.JTextField();
         jLabel7 = new javax.swing.JLabel();
-        upload = new javax.swing.JButton();
+        exportButton = new javax.swing.JButton();
         jLabel11 = new javax.swing.JLabel();
         tissueField = new javax.swing.JTextField();
         updateCheckbox = new javax.swing.JCheckBox();
-        cancel = new javax.swing.JButton();
-        jButton2 = SignInButtonHelper.createSignInButton(this);
+        cancelButton = new javax.swing.JButton();
+        profileButton = SignInButtonHelper.createSignInButton(this);
         jLabel9 = new javax.swing.JLabel();
         referenceField = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
@@ -292,10 +293,10 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 
         jLabel7.setText("Organism");
 
-        upload.setText("Export " + (isCollection() ? "Collection" : "Network") +  " to NDEx");
-        upload.addActionListener(new java.awt.event.ActionListener() {
+        exportButton.setText("Export " + (isCollection() ? "Collection" : "Network") +  " to NDEx");
+        exportButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                uploadActionPerformed(evt);
+                exportButtonActionPerformed(evt);
             }
         });
 
@@ -309,16 +310,16 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
             }
         });
 
-        cancel.setText("Cancel");
-        cancel.addActionListener(new java.awt.event.ActionListener() {
+        cancelButton.setText("Cancel");
+        cancelButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cancelActionPerformed(evt);
+                cancelButtonActionPerformed(evt);
             }
         });
 
-        jButton2.setText(SignInButtonHelper.getSignInText());
-        jButton2.setMaximumSize(new java.awt.Dimension(200, 30));
-        jButton2.setMinimumSize(new java.awt.Dimension(48, 30));
+        profileButton.setText(SignInButtonHelper.getSignInText());
+        profileButton.setMaximumSize(new java.awt.Dimension(200, 30));
+        profileButton.setMinimumSize(new java.awt.Dimension(48, 30));
 
         jLabel9.setText("Tissue");
 
@@ -390,13 +391,13 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
                             .addComponent(authorField)
                             .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)))
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(cancel)
+                        .addComponent(cancelButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(upload))
+                        .addComponent(exportButton))
                     .addComponent(updateErrorLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(profileButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(180, 180, 180)
@@ -409,7 +410,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(profileButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
@@ -454,8 +455,8 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
                 .addComponent(updateErrorLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cancel)
-                    .addComponent(upload))
+                    .addComponent(cancelButton)
+                    .addComponent(exportButton))
                 .addContainerGap())
         );
 
@@ -488,13 +489,14 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 		updateSettingsDialog.setVisible(true);
 		
 		UUID newUUID = updateSettingsDialog.getNewUUID();
-
+		isUUIDChanged |= updateSettingsDialog.isChanged();
 		updateSettingsDialog.dispose();
 		
 		if (newUUID != null) {
-			updateUploadButton();
+			updateExportButton();
 			updateUpdateButton();
 		}
+		
 		
     }//GEN-LAST:event_updateSettingsButtonActionPerformed
 
@@ -526,7 +528,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 		 */
 	}
 
-	private void uploadActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_uploadActionPerformed
+	private void exportButtonActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_uploadActionPerformed
 		Container container = this.getParent();
 		
 				
@@ -602,7 +604,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 
 	}// GEN-LAST:event_uploadActionPerformed
 
-	private void cancelActionPerformed(java.awt.event.ActionEvent evt)// GEN-FIRST:event_cancelActionPerformed
+	private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt)// GEN-FIRST:event_cancelActionPerformed
 	{// GEN-HEADEREND:event_cancelActionPerformed
 		this.setVisible(false);
 	}// GEN-LAST:event_cancelActionPerformed
@@ -617,20 +619,20 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 	@Override
 	public void propertyChange(PropertyChangeEvent arg0) {
 		if (isVisible()) {
-		jButton2.setText(SignInButtonHelper.getSignInText());
-		updateUploadButton();
+		profileButton.setText(SignInButtonHelper.getSignInText());
+		updateExportButton();
 		updateUpdateButton(); 
 		}
 	}
 
-	private void updateUploadButton() {
+	private void updateExportButton() {
 		final Server selectedServer = ServerManager.INSTANCE.getServer();
 		if (selectedServer.getUsername() == null) {
-			upload.setEnabled(false);
-			upload.setToolTipText("Please sign in an NDEx profile to upload networks.");
+			exportButton.setEnabled(false);
+			exportButton.setToolTipText("Please sign in an NDEx profile to upload networks.");
 		} else {
-			upload.setEnabled(true);
-			upload.setToolTipText(null);
+			exportButton.setEnabled(true);
+			exportButton.setToolTipText(null);
 		}
 	}
 	
@@ -642,7 +644,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 			final NdexRestClient nc = new NdexRestClient(selectedServer.getUsername(), selectedServer.getPassword(), selectedServer.getUrl(),
 					CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
 			final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
-			updatePossible = UpdateUtil.updateIsPossibleHelper(saveParameters.suid, saveParameters.saveType.equals("collection"), nc, mal) != null;		
+			updatePossible = UpdateUtil.updateIsPossibleHelper(saveParameters.suid, saveParameters.saveType.equals("collection"), nc, mal, !isUUIDChanged) != null;		
 			updateErrorLabel.setText(updatePossible ? "Update the existing network in NDEx" : "Update not possible, unknown error.");
 		} catch (Exception e) {
 			System.out.println("Update is not possible: " + e.getMessage());
@@ -698,11 +700,11 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField authorField;
-    private javax.swing.JButton cancel;
+    private javax.swing.JButton cancelButton;
     private javax.swing.JTextArea descriptionTextArea;
     private javax.swing.JTextField diseaseField;
+    private javax.swing.JButton exportButton;
     private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
@@ -716,13 +718,13 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTextField nameField;
     private javax.swing.JTextField organismField;
+    private javax.swing.JButton profileButton;
     private javax.swing.JTextField referenceField;
     private javax.swing.JTextField rightsHolderField;
     private javax.swing.JTextField tissueField;
     private javax.swing.JCheckBox updateCheckbox;
     private javax.swing.JLabel updateErrorLabel;
     private javax.swing.JButton updateSettingsButton;
-    private javax.swing.JButton upload;
     private javax.swing.JTextField versionField;
     // End of variables declaration//GEN-END:variables
 

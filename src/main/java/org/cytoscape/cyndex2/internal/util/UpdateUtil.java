@@ -40,7 +40,7 @@ public class UpdateUtil {
 	}
 
 	public static UUID updateIsPossible(CyNetwork network, UUID uuid, final NdexRestClient nc,
-			final NdexRestClientModelAccessLayer mal, boolean checkTimestamp) throws Exception {
+			final NdexRestClientModelAccessLayer mal, final boolean checkTimestamp) throws Exception {
 
 		if (uuid == null) {
 			throw new Exception("UUID unknown. Can't find current Network in NDEx.");
@@ -90,11 +90,16 @@ public class UpdateUtil {
 
 	public static UUID updateIsPossibleHelper(final Long suid, final boolean isCollection, final NdexRestClient nc,
 			final NdexRestClientModelAccessLayer mal) throws Exception {
+		return updateIsPossibleHelper(suid, isCollection, nc, mal, true);
+	}
+	
+	public static UUID updateIsPossibleHelper(final Long suid, final boolean isCollection, final NdexRestClient nc,
+			final NdexRestClientModelAccessLayer mal, final boolean checkTimestamp) throws Exception {
 
 		final CyNetwork network = getNetworkForSUID(suid, isCollection);
 
 		UUID ndexNetworkId = NDExNetworkManager.getUUID(network);
 
-		return updateIsPossible(network, ndexNetworkId, nc, mal);
+		return updateIsPossible(network, ndexNetworkId, nc, mal, checkTimestamp);
 	}
 }
