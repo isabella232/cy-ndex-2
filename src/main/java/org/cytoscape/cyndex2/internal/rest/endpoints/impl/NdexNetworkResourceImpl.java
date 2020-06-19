@@ -325,7 +325,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 
 		NDExExportTaskFactory exportFactory = getNDExExportTaskFactory(params, true);
 		TaskIterator iter = exportFactory.createTaskIterator(network);
-		CyActivator.taskManager.execute(iter);
+		execute(iter);
 		return true;
 	}
 

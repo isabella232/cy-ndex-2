@@ -161,7 +161,7 @@ public class UpdateSettingsDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_uuidTextFieldActionPerformed
 
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
-        applySetings();
+    	applySettings();
     }//GEN-LAST:event_okButtonActionPerformed
 
     private void cancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelActionPerformed
@@ -169,7 +169,7 @@ public class UpdateSettingsDialog extends javax.swing.JDialog {
     	setVisible(false);
     }//GEN-LAST:event_cancelActionPerformed
     
-    private void applySetings() {
+    private void applySettings() {
         if (!changed) {
         	System.out.println("Nothing changed. Leaving old UUID");
         	setVisible(false);
@@ -186,7 +186,7 @@ public class UpdateSettingsDialog extends javax.swing.JDialog {
 				CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
         	final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
       
-        	verifiedUUID = UpdateUtil.updateIsPossible(network, potentialUUID, nc, mal, !changed);
+        	verifiedUUID = UpdateUtil.updateIsPossible(network, potentialUUID, nc, mal, false);
         	NetworkSummary ns = mal.getNetworkSummaryById(verifiedUUID);
       		serverTimestamp = ns.getModificationTime();
         	
