@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -70,7 +71,8 @@ public class UpdateSettingsDialog extends javax.swing.JDialog {
     private void initComponents() {
 
         jLabel2 = new javax.swing.JLabel();
-        uuidTextField = new javax.swing.JTextField();
+        uuidTextField = initializeUUIDField()
+        ;
         jLabel4 = new javax.swing.JLabel();
         okButton = new javax.swing.JButton();
         cancel = new javax.swing.JButton();
@@ -81,7 +83,6 @@ public class UpdateSettingsDialog extends javax.swing.JDialog {
         jLabel2.setFont(new java.awt.Font("Lucida Grande", 1, 13)); // NOI18N
         jLabel2.setText("Update Network Settings");
 
-        uuidTextField.setText(getExistingUUID());
         uuidTextField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 uuidTextFieldActionPerformed(evt);
@@ -119,16 +120,15 @@ public class UpdateSettingsDialog extends javax.swing.JDialog {
                         .addComponent(cancel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(okButton))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(jLabel4)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(uuidTextField))
-                        .addGroup(layout.createSequentialGroup()
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 359, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel2))
-                            .addGap(0, 0, Short.MAX_VALUE))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(uuidTextField))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 359, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel2))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -152,6 +152,22 @@ public class UpdateSettingsDialog extends javax.swing.JDialog {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private JTextField initializeUUIDField() {
+    	JTextField uuidTextField = new javax.swing.JTextField();
+    	uuidTextField.setText(getExistingUUID());
+    	uuidTextField.getDocument().addDocumentListener(new DocumentListener() {
+    	    public void changedUpdate(DocumentEvent e) {
+    	        changed = true;
+    	    }
+    	    public void removeUpdate(DocumentEvent e) {
+    	        changed = true;
+    	    }
+    	    public void insertUpdate(DocumentEvent e) {
+    	        changed = true;
+    	    }});
+    	return uuidTextField;
+    }
+    
     private void uuidTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uuidTextFieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_uuidTextFieldActionPerformed
