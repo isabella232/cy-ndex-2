@@ -491,7 +491,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
     
 		CyNetwork network = UpdateUtil.getNetworkForSUID(saveParameters.suid, saveParameters.saveType.equals("collection"));
     	
-    	UpdateSettingsDialog updateSettingsDialog = new UpdateSettingsDialog(this, network, ServerManager.INSTANCE.getSelectedServer());
+    	UpdateSettingsDialog updateSettingsDialog = new UpdateSettingsDialog(this, network, ServerManager.INSTANCE.getSelectedServer(), !updateCheckbox.isEnabled());
 		updateSettingsDialog.setLocationRelativeTo(this);
 		updateSettingsDialog.setVisible(true);
 		
@@ -502,6 +502,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 		if (newUUID != null) {
 			updateExportButton();
 			updateUpdateButton();
+			updateCheckbox.setSelected(true);
 		}
 		
 		
