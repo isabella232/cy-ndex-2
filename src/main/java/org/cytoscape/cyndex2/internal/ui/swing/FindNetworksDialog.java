@@ -31,13 +31,14 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.HeadlessException;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -88,7 +89,6 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 	static final int ICON_SIZE = 32;
 	static final Icon NDEX_ICON = new TextIcon(IconUtil.ICON_NDEX_LOGO, font, IconUtil.ICON_COLOR_1, 32, 32);
 
-	
 	/**
 	 * Creates new form SimpleSearch
 	 */
@@ -104,17 +104,11 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		final TextIcon searchIcon = new TextIcon(iconManager.ICON_SEARCH, iconManager.getIconFont(24), 24, 24);
 		return searchIcon;
 	}
-	
-	private TextIcon getImportIcon() {
-		final IconManager iconManager = CyServiceModule.INSTANCE.getService(IconManager.class);
-		final TextIcon importIcon = new TextIcon(iconManager.ICON_SEARCH, iconManager.getIconFont(24), 24, 24);
-		return importIcon;
-	}
-	
+
 	private void load(final NetworkSummary networkSummary) {
 		ModalProgressHelper.runWorker(this, "Loading Network", () -> {
 			final Server selectedServer = ServerManager.INSTANCE.getServer();
-			
+
 			boolean success;
 			try {
 				final NdexRestClientModelAccessLayer mal = selectedServer.getModelAccessLayer();
@@ -131,14 +125,15 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 				try {
 					// ProvenanceEntity provenance = mal.getNetworkProvenance(id.toString());
 
-					String REST_URI = "http://localhost:" + CyActivator.getCyRESTPort() +"/cyndex2/v1/networks";
+					String REST_URI = "http://localhost:" + CyActivator.getCyRESTPort() + "/cyndex2/v1/networks";
 					HttpClient httpClient = HttpClients.createDefault();
 					final URI uri = URI.create(REST_URI);
 					final HttpPost post = new HttpPost(uri.toString());
 					post.setHeader("Content-type", "application/json");
 
 					NDExImportParameters importParameters = new NDExImportParameters(uuid.toString(),
-							selectedServer.getUsername(), selectedServer.getPassword(), selectedServer.getUrl(), null, null);
+							selectedServer.getUsername(), selectedServer.getPassword(), selectedServer.getUrl(), null,
+							null);
 					ObjectMapper objectMapper = new ObjectMapper();
 
 					post.setEntity(new StringEntity(objectMapper.writeValueAsString(importParameters)));
@@ -153,8 +148,9 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 				 * -1; }
 				 */
 				catch (RuntimeException ex2) {
-					JOptionPane.showMessageDialog(null, "This network can't be imported to cytoscape. Cause: " + ex2.getMessage(),
-							"Error", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(null,
+							"This network can't be imported to cytoscape. Cause: " + ex2.getMessage(), "Error",
+							JOptionPane.ERROR_MESSAGE);
 					ex2.printStackTrace();
 					return -1;
 				} catch (ClientProtocolException e) {
@@ -165,7 +161,8 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 					e.printStackTrace();
 				}
 			} else {
-				JOptionPane.showMessageDialog(null, ErrorMessage.failedServerCommunication, "Error", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(null, ErrorMessage.failedServerCommunication, "Error",
+						JOptionPane.ERROR_MESSAGE);
 				return -1;
 			}
 			return 1;
@@ -185,14 +182,14 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		NdexRestClientModelAccessLayer mal;
 		try {
 			mal = selectedServer.getModelAccessLayer();
-		}catch (IOException | NdexException e) 
-			{
-				mal = null;
-				e.printStackTrace();
-				JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication + "\n\nError Message: " + e.getMessage(), "Error",
-						JOptionPane.ERROR_MESSAGE);
-			
-			}
+		} catch (IOException | NdexException e) {
+			mal = null;
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(this,
+					ErrorMessage.failedServerCommunication + "\n\nError Message: " + e.getMessage(), "Error",
+					JOptionPane.ERROR_MESSAGE);
+
+		}
 		if (selectedServer.getUsername() != null && !selectedServer.getUsername().isEmpty()) {
 			administeredByMe.setVisible(true);
 		} else {
@@ -202,10 +199,11 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 					administeredByMe.setVisible(true);
 				} catch (IOException e) {
 					e.printStackTrace();
-					JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication + "\n\nError Message: " + e.getMessage(), "Error",
+					JOptionPane.showMessageDialog(this,
+							ErrorMessage.failedServerCommunication + "\n\nError Message: " + e.getMessage(), "Error",
 							JOptionPane.ERROR_MESSAGE);
-				
-					//return;
+
+					// return;
 				}
 			} else {
 				administeredByMe.setVisible(false);
@@ -215,54 +213,63 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		try {
 			if (selectedServer.check(mal)) {
 				try {
-					
-					networkSummaries = mal != null ? mal.findNetworks(searchTerm, null, null, true, 0, 400).getNetworks() : List.of();
-					
-				} catch (IOException | NdexException ex ) {
+
+					networkSummaries = mal != null
+							? mal.findNetworks(searchTerm, null, null, true, 0, 400).getNetworks()
+							: List.of();
+
+				} catch (IOException | NdexException ex) {
 					ex.printStackTrace();
-					JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication + "\n\nError Message: " + ex.getMessage(), "Error",
+					JOptionPane.showMessageDialog(this,
+							ErrorMessage.failedServerCommunication + "\n\nError Message: " + ex.getMessage(), "Error",
 							JOptionPane.ERROR_MESSAGE);
-					networkSummaries =  List.of();
-					//this.setVisible(false);
-					//return;
+					networkSummaries = List.of();
+					// this.setVisible(false);
+					// return;
 				}
-				
+
 			} else {
-				JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication, "Error", JOptionPane.ERROR_MESSAGE);
-				networkSummaries =  List.of();
+				JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication, "Error",
+						JOptionPane.ERROR_MESSAGE);
+				networkSummaries = List.of();
 			}
 		} catch (HeadlessException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication + "\n\nError Message: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-			networkSummaries =  List.of();
+			JOptionPane.showMessageDialog(this,
+					ErrorMessage.failedServerCommunication + "\n\nError Message: " + e.getMessage(), "Error",
+					JOptionPane.ERROR_MESSAGE);
+			networkSummaries = List.of();
 		}
 		showSearchResults();
 	}
 
 	private JTable getResultsTable() {
 		return new JTable() {
-		
-		public Component prepareRenderer(TableCellRenderer renderer,int row, int col) {
-	    final Component comp = super.prepareRenderer(renderer, row, col);
-	    final JComponent jcomp = (JComponent)comp;
-	    if (comp == jcomp) {
-	      if (col != 0) {  
-	      	if (row < super.getRowCount() && 0 < super.getColumnCount()) {
-	      		try {
-	      			final NetworkSummary networkSummary = (NetworkSummary)getValueAt(row, 0);
-	      
-	      			final String toolTip = networkSummary.getDescription() == null ? null : "<html>" + networkSummary.getDescription() + "</html>";
-	      			jcomp.setToolTipText(toolTip);
-	      		} catch (Exception e) {
-	      			System.out.println("Ignored table renderer error while making tool tip");
-	      		}
-	      	}
-	      } 
-	     }
-	    return comp; } };
+
+			public Component prepareRenderer(TableCellRenderer renderer, int row, int col) {
+				final Component comp = super.prepareRenderer(renderer, row, col);
+				final JComponent jcomp = (JComponent) comp;
+				if (comp == jcomp) {
+					if (col != 0) {
+						if (row < super.getRowCount() && 0 < super.getColumnCount()) {
+							try {
+								final NetworkSummary networkSummary = (NetworkSummary) getValueAt(row, 0);
+
+								final String toolTip = networkSummary.getDescription() == null ? null
+										: "<html>" + networkSummary.getDescription() + "</html>";
+								jcomp.setToolTipText(toolTip);
+							} catch (Exception e) {
+								System.out.println("Ignored table renderer error while making tool tip");
+							}
+						}
+					}
+				}
+				return comp;
+			}
+		};
 	}
-	
+
 	/**
 	 * This method is called from within the constructor to initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is always
@@ -272,156 +279,147 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 	// <editor-fold defaultstate="collapsed" desc="Generated
 	// <editor-fold defaultstate="collapsed" desc="Generated
 	// <editor-fold defaultstate="collapsed" desc="Generated
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+	// <editor-fold defaultstate="collapsed" desc="Generated
+	// Code">//GEN-BEGIN:initComponents
+	private void initComponents() {
 
-        jScrollPane2 = new javax.swing.JScrollPane();
-        jPanel1 = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        resultsTable = getResultsTable();
-        done = new javax.swing.JButton();
-        search = new javax.swing.JButton(getSearchIcon());
-        searchField = new javax.swing.JTextField();
-        administeredByMe = new javax.swing.JCheckBox();
-        jSeparator1 = new javax.swing.JSeparator();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        jButton1 = SignInButtonHelper.createSignInButton(this);
-        ndexLogo = new javax.swing.JLabel("NDEx", NDEX_ICON, SwingConstants.LEFT);
+		jScrollPane2 = new javax.swing.JScrollPane();
+		jPanel1 = new javax.swing.JPanel();
+		jScrollPane1 = new javax.swing.JScrollPane();
+		resultsTable = getResultsTable();
+		done = new javax.swing.JButton();
+		search = new javax.swing.JButton(getSearchIcon());
+		searchField = new javax.swing.JTextField();
+		administeredByMe = new javax.swing.JCheckBox();
+		jSeparator1 = new javax.swing.JSeparator();
+		jLabel1 = new javax.swing.JLabel();
+		jLabel4 = new javax.swing.JLabel();
+		jButton1 = SignInButtonHelper.createSignInButton(this);
+		ndexLogo = new javax.swing.JLabel("NDEx", NDEX_ICON, SwingConstants.LEFT);
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Find Networks");
+		setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+		setTitle("Find Networks");
 
-        jScrollPane2.setBorder(null);
+		jScrollPane2.setBorder(null);
 
-        jPanel1.setBorder(null);
+		jPanel1.setBorder(null);
 
-        resultsTable.setAutoCreateRowSorter(true);
-        resultsTable.setIntercellSpacing(new java.awt.Dimension(6, 2));
-        resultsTable.setRowHeight(24);
-        resultsTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        jScrollPane1.setViewportView(resultsTable);
+		resultsTable.setAutoCreateRowSorter(true);
+		resultsTable.setIntercellSpacing(new java.awt.Dimension(6, 2));
+		resultsTable.setRowHeight(24);
+		resultsTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+		jScrollPane1.setViewportView(resultsTable);
 
-        done.setText("Close Dialog");
-        done.setToolTipText("Click to close this dialog when done downloading");
-        done.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                doneActionPerformed(evt);
-            }
-        });
+		done.setText("Close Dialog");
+		done.setToolTipText("Click to close this dialog when done downloading");
+		done.addActionListener(new java.awt.event.ActionListener() {
+			public void actionPerformed(java.awt.event.ActionEvent evt) {
+				doneActionPerformed(evt);
+			}
+		});
 
-        search.setMargin(new java.awt.Insets(2, 2, 2, 2));
-        search.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                searchActionPerformed(evt);
-            }
-        });
+		search.setMargin(new java.awt.Insets(2, 2, 2, 2));
+		search.addActionListener(new java.awt.event.ActionListener() {
+			public void actionPerformed(java.awt.event.ActionEvent evt) {
+				searchActionPerformed(evt);
+			}
+		});
 
-        administeredByMe.setText("My Networks");
-        administeredByMe.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                administeredByMeActionPerformed(evt);
-            }
-        });
+		administeredByMe.setText("My Networks");
+		administeredByMe.addActionListener(new java.awt.event.ActionListener() {
+			public void actionPerformed(java.awt.event.ActionEvent evt) {
+				administeredByMeActionPerformed(evt);
+			}
+		});
 
-        jLabel1.setText("Results");
+		jLabel1.setText("Results");
 
-        jLabel4.setText("WARNING: In some cases, not all network information stored in NDEx will be available within Cytoscape after loading.");
+		jLabel4.setText(
+				"WARNING: In some cases, not all network information stored in NDEx will be available within Cytoscape after loading.");
 
-        jButton1.setText(SignInButtonHelper.getSignInText());
-        jButton1.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jButton1.setMaximumSize(new java.awt.Dimension(200, 30));
-        jButton1.setMinimumSize(new java.awt.Dimension(48, 30));
+		jButton1.setText(SignInButtonHelper.getSignInText());
+		jButton1.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+		jButton1.setMaximumSize(new java.awt.Dimension(200, 30));
+		jButton1.setMinimumSize(new java.awt.Dimension(48, 30));
 
-        ndexLogo.setFont(new java.awt.Font("Ubuntu", 0, 24)); // NOI18N
-        ndexLogo.setText("NDEx");
+		ndexLogo.setFont(new java.awt.Font("Ubuntu", 0, 24)); // NOI18N
+		ndexLogo.setText("NDEx");
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
-                    .addComponent(jSeparator1)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGap(86, 86, 86)
-                                .addComponent(jLabel4)))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(searchField)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(search, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(done, javax.swing.GroupLayout.PREFERRED_SIZE, 183, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(ndexLogo, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap())
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(administeredByMe)
-                .addGap(396, 396, 396))
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(ndexLogo))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(search, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(searchField))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(administeredByMe)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 275, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel4)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(done)
-                .addContainerGap())
-        );
+		javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+		jPanel1.setLayout(jPanel1Layout);
+		jPanel1Layout.setHorizontalGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(jPanel1Layout.createSequentialGroup().addContainerGap().addGroup(jPanel1Layout
+						.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addComponent(jScrollPane1)
+						.addComponent(jSeparator1)
+						.addGroup(jPanel1Layout.createSequentialGroup()
+								.addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+										.addComponent(jLabel1)
+										.addGroup(jPanel1Layout.createSequentialGroup().addGap(86, 86, 86)
+												.addComponent(jLabel4)))
+								.addGap(0, 0, Short.MAX_VALUE))
+						.addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
+								jPanel1Layout.createSequentialGroup().addComponent(searchField)
+										.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+										.addComponent(search, javax.swing.GroupLayout.PREFERRED_SIZE, 40,
+												javax.swing.GroupLayout.PREFERRED_SIZE))
+						.addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
+								jPanel1Layout.createSequentialGroup().addGap(0, 0, Short.MAX_VALUE).addComponent(done,
+										javax.swing.GroupLayout.PREFERRED_SIZE, 183,
+										javax.swing.GroupLayout.PREFERRED_SIZE))
+						.addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+								.addComponent(ndexLogo, javax.swing.GroupLayout.PREFERRED_SIZE, 170,
+										javax.swing.GroupLayout.PREFERRED_SIZE)
+								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED,
+										javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE,
+										javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+						.addContainerGap())
+				.addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
+						jPanel1Layout.createSequentialGroup()
+								.addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(administeredByMe).addGap(396, 396, 396)));
+		jPanel1Layout.setVerticalGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(jPanel1Layout.createSequentialGroup().addContainerGap()
+						.addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+								.addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE,
+										javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+								.addComponent(ndexLogo))
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						.addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+								.addComponent(search, javax.swing.GroupLayout.DEFAULT_SIZE,
+										javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(searchField))
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						.addComponent(administeredByMe)
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						.addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10,
+								javax.swing.GroupLayout.PREFERRED_SIZE)
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED).addComponent(jLabel1)
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						.addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 275, Short.MAX_VALUE)
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED).addComponent(jLabel4)
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED).addComponent(done)
+						.addContainerGap()));
 
-        jScrollPane2.setViewportView(jPanel1);
+		jScrollPane2.setViewportView(jPanel1);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 909, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane2)
-                .addContainerGap())
-        );
+		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+		getContentPane().setLayout(layout);
+		layout.setHorizontalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(layout.createSequentialGroup().addContainerGap()
+						.addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 909, Short.MAX_VALUE)
+						.addContainerGap()));
+		layout.setVerticalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGroup(
+				layout.createSequentialGroup().addContainerGap().addComponent(jScrollPane2).addContainerGap()));
 
-        pack();
-    }// </editor-fold>//GEN-END:initComponents
+		pack();
+	}// </editor-fold>//GEN-END:initComponents
 
 	private void getMyNetworks() {
 		final Server selectedServer = ServerManager.INSTANCE.getSelectedServer();
 		try {
 			NdexRestClientModelAccessLayer mal = selectedServer.getModelAccessLayer();
-			
+
 			if (selectedServer.check(mal)) {
 
 				try {
@@ -436,12 +434,13 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 			} else {
 				JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication, "ErrorY",
 						JOptionPane.ERROR_MESSAGE);
-				
+
 			}
 		} catch (HeadlessException | IOException | NdexException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication, "ErrorY", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication, "ErrorY",
+					JOptionPane.ERROR_MESSAGE);
 
 		}
 	}
@@ -460,7 +459,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 
 		try {
 			NdexRestClientModelAccessLayer mal = selectedServer.getModelAccessLayer();
-			
+
 			if (selectedServer.check(mal)) {
 				try {
 					if (administeredByMe.isSelected()) {
@@ -476,12 +475,13 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 			} else {
 				JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication, "ErrorY",
 						JOptionPane.ERROR_MESSAGE);
-				
+
 			}
 		} catch (HeadlessException | IOException | NdexException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication, "ErrorY", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(this, ErrorMessage.failedServerCommunication, "ErrorY",
+					JOptionPane.ERROR_MESSAGE);
 
 		}
 	}
@@ -526,6 +526,15 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		resultsTable.setDefaultRenderer(Timestamp.class, new NetworkSummaryTableModel.TimestampRenderer());
 		resultsTable.setDefaultEditor(NetworkSummary.class, model.new ImportButtonEditor(new JCheckBox()));
 		resultsTable.getSelectionModel().setSelectionInterval(0, 0);
+
+		resultsTable.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				if (e.getClickCount() == 2) {
+					load(networkSummaries.get(resultsTable.getSelectedRow()));
+				}
+			}
+		});
+
 		resultsTable.getTableHeader().setPreferredSize(new Dimension(resultsTable.getPreferredSize().width, 24));
 	}
 
@@ -549,17 +558,17 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 				}
 			}
 		} catch (ClassNotFoundException ex) {
-			java.util.logging.Logger.getLogger(FindNetworksDialog.class.getName()).log(java.util.logging.Level.SEVERE, null,
-					ex);
+			java.util.logging.Logger.getLogger(FindNetworksDialog.class.getName()).log(java.util.logging.Level.SEVERE,
+					null, ex);
 		} catch (InstantiationException ex) {
-			java.util.logging.Logger.getLogger(FindNetworksDialog.class.getName()).log(java.util.logging.Level.SEVERE, null,
-					ex);
+			java.util.logging.Logger.getLogger(FindNetworksDialog.class.getName()).log(java.util.logging.Level.SEVERE,
+					null, ex);
 		} catch (IllegalAccessException ex) {
-			java.util.logging.Logger.getLogger(FindNetworksDialog.class.getName()).log(java.util.logging.Level.SEVERE, null,
-					ex);
+			java.util.logging.Logger.getLogger(FindNetworksDialog.class.getName()).log(java.util.logging.Level.SEVERE,
+					null, ex);
 		} catch (javax.swing.UnsupportedLookAndFeelException ex) {
-			java.util.logging.Logger.getLogger(FindNetworksDialog.class.getName()).log(java.util.logging.Level.SEVERE, null,
-					ex);
+			java.util.logging.Logger.getLogger(FindNetworksDialog.class.getName()).log(java.util.logging.Level.SEVERE,
+					null, ex);
 		}
 		// </editor-fold>
 
@@ -579,21 +588,21 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		});
 	}
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JCheckBox administeredByMe;
-    private javax.swing.JButton done;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JLabel ndexLogo;
-    private javax.swing.JTable resultsTable;
-    private javax.swing.JButton search;
-    private javax.swing.JTextField searchField;
-    // End of variables declaration//GEN-END:variables
+	// Variables declaration - do not modify//GEN-BEGIN:variables
+	private javax.swing.JCheckBox administeredByMe;
+	private javax.swing.JButton done;
+	private javax.swing.JButton jButton1;
+	private javax.swing.JLabel jLabel1;
+	private javax.swing.JLabel jLabel4;
+	private javax.swing.JPanel jPanel1;
+	private javax.swing.JScrollPane jScrollPane1;
+	private javax.swing.JScrollPane jScrollPane2;
+	private javax.swing.JSeparator jSeparator1;
+	private javax.swing.JLabel ndexLogo;
+	private javax.swing.JTable resultsTable;
+	private javax.swing.JButton search;
+	private javax.swing.JTextField searchField;
+	// End of variables declaration//GEN-END:variables
 
 	@Override
 	public void propertyChange(PropertyChangeEvent arg0) {
@@ -602,9 +611,11 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 				jButton1.setText(SignInButtonHelper.getSignInText());
 				Server selectedServer = ServerManager.INSTANCE.getServer();
 				if (administeredByMe.isSelected()) {
-					administeredByMe.setSelected(selectedServer.getUsername() != null && !selectedServer.getUsername().isEmpty());
+					administeredByMe.setSelected(
+							selectedServer.getUsername() != null && !selectedServer.getUsername().isEmpty());
 				}
-				administeredByMe.setVisible(selectedServer.getUsername() != null && !selectedServer.getUsername().isEmpty());
+				administeredByMe
+						.setVisible(selectedServer.getUsername() != null && !selectedServer.getUsername().isEmpty());
 				search();
 				return 1;
 			});
