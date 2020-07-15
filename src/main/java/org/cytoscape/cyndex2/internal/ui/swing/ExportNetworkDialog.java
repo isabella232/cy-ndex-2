@@ -644,6 +644,10 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 		}
 	}
 	
+	private static String htmlWrap(String input) {
+		return "<html><body><center>"+input+"</center></body></html>";
+	}
+	
 	private void updateUpdateButton () {
 		final Server selectedServer = ServerManager.INSTANCE.getServer();
 		boolean updatePossible;
@@ -656,7 +660,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 			updateErrorLabel.setText(updatePossible ? "Update the existing network in NDEx" : "Update not possible, unknown error.");
 		} catch (Exception e) {
 			System.out.println("Update is not possible: " + e.getMessage());
-			updateErrorLabel.setText(e.getMessage());
+			updateErrorLabel.setText(htmlWrap(e.getMessage()));
                         
 			e.printStackTrace();
 			updatePossible = false;
