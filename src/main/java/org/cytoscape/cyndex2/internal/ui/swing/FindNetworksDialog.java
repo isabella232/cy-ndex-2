@@ -70,6 +70,8 @@ import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.object.network.VisibilityType;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
+import org.cytoscape.cyndex2.internal.util.PreferencesUtil;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -105,68 +107,87 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		return searchIcon;
 	}
 
+	private boolean getImportNetwork(final NetworkSummary networkSummary) {
+		final long networkSize = networkSummary.getNodeCount() + networkSummary.getEdgeCount();
+		final long viewThreshold = PreferencesUtil.getIntegerProperty(PreferencesUtil.VIEW_THRESHOLD, 1000);
+
+		if (networkSize > viewThreshold) {
+			ViewCreationDialog viewCreationDialog = new ViewCreationDialog(null, true);
+			viewCreationDialog.setVisible(true);
+			final boolean importNetwork = viewCreationDialog.getImportNetwork();
+			return importNetwork;
+
+		} else {
+			return true;
+		}
+	}
+
 	private void load(final NetworkSummary networkSummary) {
-		ModalProgressHelper.runWorker(this, "Loading Network", () -> {
-			final Server selectedServer = ServerManager.INSTANCE.getServer();
+		final boolean importNetwork = getImportNetwork(networkSummary);
 
-			boolean success;
-			try {
-				final NdexRestClientModelAccessLayer mal = selectedServer.getModelAccessLayer();
-				success = selectedServer.check(mal);
-			} catch (IOException | NdexException e1) {
-				e1.printStackTrace();
-				success = false;
-			}
-			if (success) {
-				// The network to copy from.
-//                        NetworkSummary networkSummary = NetworkManager.INSTANCE.getSelectedNetworkSummary();
-				UUID uuid = networkSummary.getExternalId();
-				System.out.println("NetworkSummary external ID: " + (uuid == null ? null : uuid.toString()));
+		if (importNetwork) {
+			ModalProgressHelper.runWorker(this, "Loading Network", () -> {
+				final Server selectedServer = ServerManager.INSTANCE.getServer();
+
+				boolean success;
 				try {
-					// ProvenanceEntity provenance = mal.getNetworkProvenance(id.toString());
-
-					String REST_URI = "http://localhost:" + CyActivator.getCyRESTPort() + "/cyndex2/v1/networks";
-					HttpClient httpClient = HttpClients.createDefault();
-					final URI uri = URI.create(REST_URI);
-					final HttpPost post = new HttpPost(uri.toString());
-					post.setHeader("Content-type", "application/json");
-
-					NDExImportParameters importParameters = new NDExImportParameters(uuid.toString(),
-							selectedServer.getUsername(), selectedServer.getPassword(), selectedServer.getUrl(), null,
-							null);
-					ObjectMapper objectMapper = new ObjectMapper();
-
-					post.setEntity(new StringEntity(objectMapper.writeValueAsString(importParameters)));
-
-					httpClient.execute(post);
-
+					final NdexRestClientModelAccessLayer mal = selectedServer.getModelAccessLayer();
+					success = selectedServer.check(mal);
+				} catch (IOException | NdexException e1) {
+					e1.printStackTrace();
+					success = false;
 				}
+				if (success) {
+					// The network to copy from.
+//                        NetworkSummary networkSummary = NetworkManager.INSTANCE.getSelectedNetworkSummary();
+					UUID uuid = networkSummary.getExternalId();
+					System.out.println("NetworkSummary external ID: " + (uuid == null ? null : uuid.toString()));
+					try {
+						// ProvenanceEntity provenance = mal.getNetworkProvenance(id.toString());
 
-				/*
-				 * catch (IOException ex) { JOptionPane.showMessageDialog(me,
-				 * ErrorMessage.failedToParseJson, "Error", JOptionPane.ERROR_MESSAGE); return
-				 * -1; }
-				 */
-				catch (RuntimeException ex2) {
-					JOptionPane.showMessageDialog(null,
-							"This network can't be imported to cytoscape. Cause: " + ex2.getMessage(), "Error",
+						String REST_URI = "http://localhost:" + CyActivator.getCyRESTPort() + "/cyndex2/v1/networks";
+						HttpClient httpClient = HttpClients.createDefault();
+						final URI uri = URI.create(REST_URI);
+						final HttpPost post = new HttpPost(uri.toString());
+						post.setHeader("Content-type", "application/json");
+
+						NDExImportParameters importParameters = new NDExImportParameters(uuid.toString(),
+								selectedServer.getUsername(), selectedServer.getPassword(), selectedServer.getUrl(),
+								null, null);
+						ObjectMapper objectMapper = new ObjectMapper();
+
+						post.setEntity(new StringEntity(objectMapper.writeValueAsString(importParameters)));
+
+						httpClient.execute(post);
+
+					}
+
+					/*
+					 * catch (IOException ex) { JOptionPane.showMessageDialog(me,
+					 * ErrorMessage.failedToParseJson, "Error", JOptionPane.ERROR_MESSAGE); return
+					 * -1; }
+					 */
+					catch (RuntimeException ex2) {
+						JOptionPane.showMessageDialog(null,
+								"This network can't be imported to cytoscape. Cause: " + ex2.getMessage(), "Error",
+								JOptionPane.ERROR_MESSAGE);
+						ex2.printStackTrace();
+						return -1;
+					} catch (ClientProtocolException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				} else {
+					JOptionPane.showMessageDialog(null, ErrorMessage.failedServerCommunication, "Error",
 							JOptionPane.ERROR_MESSAGE);
-					ex2.printStackTrace();
 					return -1;
-				} catch (ClientProtocolException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
-			} else {
-				JOptionPane.showMessageDialog(null, ErrorMessage.failedServerCommunication, "Error",
-						JOptionPane.ERROR_MESSAGE);
-				return -1;
-			}
-			return 1;
-		});
+				return 1;
+			});
+		}
 	}
 
 	public void setFocusOnDone() {
