@@ -59,6 +59,7 @@ import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
 import org.cytoscape.cyndex2.internal.rest.parameter.NDExImportParameters;
+import org.cytoscape.cyndex2.internal.util.CxPreferences;
 import org.cytoscape.cyndex2.internal.util.ErrorMessage;
 import org.cytoscape.cyndex2.internal.util.IconUtil;
 import org.cytoscape.cyndex2.internal.util.Server;
@@ -69,8 +70,6 @@ import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.object.network.VisibilityType;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
-
-import org.cytoscape.cyndex2.internal.util.PreferencesUtil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -109,10 +108,10 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 
 	private boolean getImportNetwork(final NetworkSummary networkSummary) {
 		final long networkSize = networkSummary.getNodeCount() + networkSummary.getEdgeCount();
-		final long viewThreshold = PreferencesUtil.getIntegerProperty(PreferencesUtil.VIEW_THRESHOLD, 1000);
+		final long viewThreshold = CxPreferences.getViewThreshold();
 
 		if (networkSize > viewThreshold) {
-			ViewCreationDialog viewCreationDialog = new ViewCreationDialog(null, true);
+			ViewCreationDialog viewCreationDialog = new ViewCreationDialog(null, true, networkSummary);
 			viewCreationDialog.setVisible(true);
 			final boolean importNetwork = viewCreationDialog.getImportNetwork();
 			return importNetwork;

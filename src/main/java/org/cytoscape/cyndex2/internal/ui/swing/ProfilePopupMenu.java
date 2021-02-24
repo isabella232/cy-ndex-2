@@ -22,8 +22,6 @@ import org.cytoscape.util.swing.TextIcon;
 
 public class ProfilePopupMenu extends JPopupMenu {
 
-	
-	
 	static final Font font = IconUtil.getAppFont(23f);
 	static int iconSize = 24;
 	

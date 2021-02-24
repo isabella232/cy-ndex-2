@@ -5,27 +5,21 @@
  */
 package org.cytoscape.cyndex2.internal.ui.swing;
 
-import org.ndexbio.model.object.network.NetworkSummary;
-
 /**
  *
  * @author wilderkrieger
  */
-public class ViewCreationDialog extends javax.swing.JDialog {
+public class PreferencesDialog extends javax.swing.JDialog {
 
-	
-    /**
-     * Creates new form ViewCreationDialog
+
+	/**
+     * Creates new form PreferencesDialog
      */
-    public ViewCreationDialog(java.awt.Frame parent, boolean modal, NetworkSummary networkSummary) {
+    public PreferencesDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
     }
 
-    private void updateHeadingAndMessage() {
-    	
-    }
-    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -35,22 +29,11 @@ public class ViewCreationDialog extends javax.swing.JDialog {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
-        cancelButton = new javax.swing.JButton();
+        preferencesPanel1 = new org.cytoscape.cyndex2.internal.ui.swing.PreferencesPanel();
         okButton = new javax.swing.JButton();
-        settingsButton = new javax.swing.JButton();
+        cancelButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Import Network");
-
-        jLabel1.setText(getNetworkSizeText());
-
-        cancelButton.setText("Cancel");
-        cancelButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cancelButtonActionPerformed(evt);
-            }
-        });
 
         okButton.setText("OK");
         okButton.addActionListener(new java.awt.event.ActionListener() {
@@ -59,10 +42,10 @@ public class ViewCreationDialog extends javax.swing.JDialog {
             }
         });
 
-        settingsButton.setText("Settings...");
-        settingsButton.addActionListener(new java.awt.event.ActionListener() {
+        cancelButton.setText("Cancel");
+        cancelButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                settingsButtonActionPerformed(evt);
+                cancelButtonActionPerformed(evt);
             }
         });
 
@@ -70,29 +53,24 @@ public class ViewCreationDialog extends javax.swing.JDialog {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(settingsButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(okButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(cancelButton)
-                .addContainerGap())
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 319, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(71, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(preferencesPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 397, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(okButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(cancelButton)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 13, Short.MAX_VALUE)
+                .addComponent(preferencesPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 127, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 10, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cancelButton)
                     .addComponent(okButton)
-                    .addComponent(settingsButton))
+                    .addComponent(cancelButton))
                 .addContainerGap())
         );
 
@@ -100,21 +78,13 @@ public class ViewCreationDialog extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
-        // TODO add your handling code here:
-        setImportNetwork(true);
-    	setVisible(false);
+    	preferencesPanel1.applyChanges();
+        setVisible(false);
     }//GEN-LAST:event_okButtonActionPerformed
 
-    private void settingsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsButtonActionPerformed
-       PreferencesDialog preferencesDialog = new PreferencesDialog(null, true);
-       preferencesDialog.setVisible(true);
-    }//GEN-LAST:event_settingsButtonActionPerformed
-
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
-
         // TODO add your handling code here:
-        setImportNetwork(false);
-    	setVisible(false);
+        setVisible(false);
     }//GEN-LAST:event_cancelButtonActionPerformed
 
     /**
@@ -134,24 +104,20 @@ public class ViewCreationDialog extends javax.swing.JDialog {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(ViewCreationDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(PreferencesDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(ViewCreationDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(PreferencesDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(ViewCreationDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(PreferencesDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(ViewCreationDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(PreferencesDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                NetworkSummary networkSummary = new NetworkSummary();
-                networkSummary.setNodeCount(1000000);
-                networkSummary.setEdgeCount(1000000);
-            	
-            	ViewCreationDialog dialog = new ViewCreationDialog(new javax.swing.JFrame(), true, networkSummary);
+                PreferencesDialog dialog = new PreferencesDialog(new javax.swing.JFrame(), true);
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {
@@ -165,22 +131,7 @@ public class ViewCreationDialog extends javax.swing.JDialog {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancelButton;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JButton okButton;
-    private javax.swing.JButton settingsButton;
+    private org.cytoscape.cyndex2.internal.ui.swing.PreferencesPanel preferencesPanel1;
     // End of variables declaration//GEN-END:variables
-
-    private String getNetworkSizeText() {
-        return "Siiiize.";
-    }
-    
-    private boolean importNetwork = false;
-    
-    private void setImportNetwork(final boolean importNetwork) {
-    	this.importNetwork = importNetwork;
-    }
-    
-    public boolean getImportNetwork() {
-    	return importNetwork;
-    }
 }

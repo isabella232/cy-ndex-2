@@ -96,7 +96,7 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 									getFindNetworksDialog(loadParameters);
 									break;
 								case "save" :
-									final JFrame parentFrame = CyServiceModule.INSTANCE.getSwingApplcation().getJFrame();
+									final JFrame parentFrame = CyServiceModule.INSTANCE.getSwingApplication().getJFrame();
 									final SaveParameters saveParameters = objectMapper.treeToValue(jsonNode.get("data").get("parameters"), SaveParameters.class);
 									final ExportNetworkDialog saveDialog = new ExportNetworkDialog(parentFrame, saveParameters);
 									saveDialog.setVisible(true);
