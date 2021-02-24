@@ -47,6 +47,7 @@ public class LargeNetworkDialog extends javax.swing.JDialog {
         setTitle("Network Import Confirmation");
 
         jLabel1.setText(getNetworkSizeText());
+        jLabel1.setMaximumSize(new java.awt.Dimension(62, 63));
 
         cancelButton.setText("Cancel");
         cancelButton.addActionListener(new java.awt.event.ActionListener() {
@@ -63,6 +64,7 @@ public class LargeNetworkDialog extends javax.swing.JDialog {
         });
 
         settingsButton.setText("Settings...");
+        settingsButton.setToolTipText("Network Import Settings");
         settingsButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 settingsButtonActionPerformed(evt);
@@ -82,14 +84,15 @@ public class LargeNetworkDialog extends javax.swing.JDialog {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addContainerGap())
-                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 319, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(108, 108, 108)
-                        .addComponent(settingsButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(okButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cancelButton))))
+                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 319, javax.swing.GroupLayout.PREFERRED_SIZE)))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(121, 121, 121)
+                .addComponent(settingsButton)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(okButton)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(cancelButton)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -97,13 +100,13 @@ public class LargeNetworkDialog extends javax.swing.JDialog {
                 .addContainerGap()
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel1)
-                .addGap(18, 18, 18)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 83, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(settingsButton)
-                    .addComponent(okButton)
-                    .addComponent(cancelButton))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(cancelButton)
+                    .addComponent(okButton))
+                .addContainerGap())
         );
 
         pack();
@@ -188,9 +191,9 @@ public class LargeNetworkDialog extends javax.swing.JDialog {
 		final long viewThreshold = CxPreferences.getViewThreshold();
 		final CxPreferences.CreateViewEnum createViewPreference = CxPreferences.getCreateView();
 		if (createViewPreference.equals(CxPreferences.CreateViewEnum.ALWAYS) || networkSize < viewThreshold) {
-			return "<html>A View WILL be created for this network.<br><br>View creation requires large amounts of memory and could cause problems on less powerful computers. If you do not want to add views for networks of this size, set <i>Never</i> or <i>Auto</i> create view in the Network Import Settings.<html>";
+			return "<html>A View WILL be created for this network.<br><br>View creation requires large amounts of memory and could cause problems on less powerful computers. If you do not want to add views for networks of this size, set View Creation to <i>Never</i> or <i>Auto</i> in the Network Import Settings.<html>";
 		} else {
-			return "<html>A View WILL NOT be created for this network.<br><br>View creation requires large amounts of memory and could cause problems on less powerful computers. If you want to add views for networks of this size, set <i>Always</i> create view in the Network Import Settings.<html>";
+			return "<html>A View WILL NOT be created for this network.<br><br>View creation requires large amounts of memory and could cause problems on less powerful computers. If you want to add views for networks of this size, set View Creation to <i>Always</i> in the Network Import Settings.<html>";
 		}
 		// A view will be created for this network. 
     }
