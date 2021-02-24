@@ -111,7 +111,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		final long viewThreshold = CxPreferences.getViewThreshold();
 
 		if (networkSize > viewThreshold) {
-			ViewCreationDialog viewCreationDialog = new ViewCreationDialog(null, true, networkSummary);
+			LargeNetworkDialog viewCreationDialog = new LargeNetworkDialog(null, true, networkSummary);
 			viewCreationDialog.setVisible(true);
 			final boolean importNetwork = viewCreationDialog.getImportNetwork();
 			return importNetwork;

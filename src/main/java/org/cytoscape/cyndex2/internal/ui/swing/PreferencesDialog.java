@@ -29,6 +29,8 @@ public class PreferencesDialog extends javax.swing.JDialog {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+    	setTitle("Network Import Preferences");
+    	
         preferencesPanel1 = new org.cytoscape.cyndex2.internal.ui.swing.PreferencesPanel();
         okButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();

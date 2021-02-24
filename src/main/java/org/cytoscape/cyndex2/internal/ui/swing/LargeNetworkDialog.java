@@ -5,25 +5,27 @@
  */
 package org.cytoscape.cyndex2.internal.ui.swing;
 
+import org.cytoscape.cyndex2.internal.util.CxPreferences;
 import org.ndexbio.model.object.network.NetworkSummary;
 
 /**
  *
  * @author wilderkrieger
  */
-public class ViewCreationDialog extends javax.swing.JDialog {
+public class LargeNetworkDialog extends javax.swing.JDialog {
 
-	
+	private final NetworkSummary networkSummary;
     /**
      * Creates new form ViewCreationDialog
      */
-    public ViewCreationDialog(java.awt.Frame parent, boolean modal, NetworkSummary networkSummary) {
+    public LargeNetworkDialog(java.awt.Frame parent, boolean modal, final NetworkSummary networkSummary) {
         super(parent, modal);
+        this.networkSummary = networkSummary;
         initComponents();
     }
 
     private void updateHeadingAndMessage() {
-    	
+    	  jLabel1.setText(getNetworkSizeText());
     }
     
     /**
@@ -39,9 +41,10 @@ public class ViewCreationDialog extends javax.swing.JDialog {
         cancelButton = new javax.swing.JButton();
         okButton = new javax.swing.JButton();
         settingsButton = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Import Network");
+        setTitle("Network Import Confirmation");
 
         jLabel1.setText(getNetworkSizeText());
 
@@ -66,34 +69,41 @@ public class ViewCreationDialog extends javax.swing.JDialog {
             }
         });
 
+        jLabel2.setFont(new java.awt.Font("Tahoma", 1, 10)); // NOI18N
+        jLabel2.setText("You are about to import a large network.");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(settingsButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(okButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(cancelButton)
-                .addContainerGap())
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 319, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(71, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap())
+                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 319, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(108, 108, 108)
+                        .addComponent(settingsButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(okButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(cancelButton))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 13, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cancelButton)
+                    .addComponent(settingsButton)
                     .addComponent(okButton)
-                    .addComponent(settingsButton))
-                .addContainerGap())
+                    .addComponent(cancelButton))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -108,6 +118,7 @@ public class ViewCreationDialog extends javax.swing.JDialog {
     private void settingsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsButtonActionPerformed
        PreferencesDialog preferencesDialog = new PreferencesDialog(null, true);
        preferencesDialog.setVisible(true);
+       updateHeadingAndMessage();
     }//GEN-LAST:event_settingsButtonActionPerformed
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
@@ -134,14 +145,15 @@ public class ViewCreationDialog extends javax.swing.JDialog {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(ViewCreationDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(LargeNetworkDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(ViewCreationDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(LargeNetworkDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(ViewCreationDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(LargeNetworkDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(ViewCreationDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(LargeNetworkDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the dialog */
@@ -151,7 +163,7 @@ public class ViewCreationDialog extends javax.swing.JDialog {
                 networkSummary.setNodeCount(1000000);
                 networkSummary.setEdgeCount(1000000);
             	
-            	ViewCreationDialog dialog = new ViewCreationDialog(new javax.swing.JFrame(), true, networkSummary);
+            	LargeNetworkDialog dialog = new LargeNetworkDialog(new javax.swing.JFrame(), true, networkSummary);
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {
@@ -166,12 +178,21 @@ public class ViewCreationDialog extends javax.swing.JDialog {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancelButton;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JButton okButton;
     private javax.swing.JButton settingsButton;
     // End of variables declaration//GEN-END:variables
 
     private String getNetworkSizeText() {
-        return "Siiiize.";
+    	final long networkSize = networkSummary.getNodeCount() + networkSummary.getEdgeCount();
+		final long viewThreshold = CxPreferences.getViewThreshold();
+		final CxPreferences.CreateViewEnum createViewPreference = CxPreferences.getCreateView();
+		if (createViewPreference.equals(CxPreferences.CreateViewEnum.ALWAYS) || networkSize < viewThreshold) {
+			return "<html>A View WILL be created for this network.<br><br>View creation requires large amounts of memory and could cause problems on less powerful computers. If you do not want to add views for networks of this size, set <i>Never</i> or <i>Auto</i> create view in the Network Import Settings.<html>";
+		} else {
+			return "<html>A View WILL NOT be created for this network.<br><br>View creation requires large amounts of memory and could cause problems on less powerful computers. If you want to add views for networks of this size, set <i>Always</i> create view in the Network Import Settings.<html>";
+		}
+		// A view will be created for this network. 
     }
     
     private boolean importNetwork = false;
