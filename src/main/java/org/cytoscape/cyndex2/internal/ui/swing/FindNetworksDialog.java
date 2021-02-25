@@ -124,6 +124,8 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 	private void load(final NetworkSummary networkSummary) {
 		final boolean importNetwork = getImportNetwork(networkSummary);
 
+		final Boolean createView = null;
+		
 		if (importNetwork) {
 			ModalProgressHelper.runWorker(this, "Loading Network", () -> {
 				final Server selectedServer = ServerManager.INSTANCE.getServer();
@@ -152,7 +154,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 
 						NDExImportParameters importParameters = new NDExImportParameters(uuid.toString(),
 								selectedServer.getUsername(), selectedServer.getPassword(), selectedServer.getUrl(),
-								null, null);
+								null, null, createView);
 						ObjectMapper objectMapper = new ObjectMapper();
 
 						post.setEntity(new StringEntity(objectMapper.writeValueAsString(importParameters)));

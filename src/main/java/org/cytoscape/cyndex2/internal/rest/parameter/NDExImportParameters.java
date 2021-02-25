@@ -25,13 +25,16 @@ public class NDExImportParameters {
 	@ApiModelProperty(value="NDEx user's OAuth ID token", example="", required=false)
 	public String idToken;
 	
+	@ApiModelProperty(value="Explicitly create or don't create a view. Leave undefined to fall back on default behaviour.", example="", required=false)
+	public Boolean createView;
 	
-	public NDExImportParameters(String uuid, String username, String password, String serverUrl, String accessKey,String IDToken) {
+	public NDExImportParameters(String uuid, String username, String password, String serverUrl, String accessKey, String IDToken, Boolean createView) {
 		this.uuid = uuid;
 		this.serverUrl = serverUrl;
 		this.password = password;
 		this.username = username;
 	    this.accessKey = accessKey;
 	    this.idToken = IDToken;
+	    this.createView = createView;
 	}
 }

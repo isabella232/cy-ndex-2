@@ -28,6 +28,7 @@ package org.cytoscape.cyndex2.internal.task;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.util.UUID;
 
 import javax.swing.SwingUtilities;
@@ -38,6 +39,7 @@ import org.cytoscape.cyndex2.internal.util.HeadlessTaskMonitor;
 import org.cytoscape.cyndex2.internal.util.NDExNetworkManager;
 import org.cytoscape.io.read.AbstractCyNetworkReader;
 import org.cytoscape.io.read.InputStreamTaskFactory;
+import org.cytoscape.io.write.CyWriter;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.subnetwork.CySubNetwork;
@@ -51,8 +53,6 @@ import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 public class NetworkImportTask extends AbstractTask implements ObservableTask {
 
-	
-	
 	final NdexRestClientModelAccessLayer mal;
 	final NetworkSummary networkSummary;
 	private UUID uuid = null;
@@ -105,6 +105,14 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 				@Override
 				public void run() {
 					try {
+						final Class<? extends AbstractCyNetworkReader> cxReader = task.getClass();
+						
+						try {
+							Method setCreateViewMethod = cxReader.getMethod("setCreateView", Boolean.class);
+							setCreateViewMethod.invoke(task, Boolean.TRUE);
+						} catch(java.lang.NoSuchMethodException e) {
+							System.err.println("Unable to explicitly set view creation. Make sure a current version of the CX Support app is installed.");
+						}
 						task.run(new HeadlessTaskMonitor());
 					} catch (Exception e) {
 						e.printStackTrace();

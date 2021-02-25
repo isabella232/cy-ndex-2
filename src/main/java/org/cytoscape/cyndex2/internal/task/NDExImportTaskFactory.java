@@ -25,6 +25,7 @@ public class NDExImportTaskFactory extends AbstractTaskFactory {
 
 	public NDExImportTaskFactory(NDExImportParameters params) {
 		super();
+		System.out.println("NDEx Import View Create Param: " + params.createView);
 		this.params = params;
 		this.errorBuilder = CyServiceModule.INSTANCE.getErrorBuilder();
 	}
