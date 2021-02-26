@@ -103,7 +103,7 @@ public class NDExNetworkImportTaskTests {
 			when(networkSummary.getExternalId()).thenReturn(new UUID(1l,2l));
 			when(mal.getNetworkSummaryById(new UUID(1l,2l), "mockAccessKey")).thenReturn(networkSummary);
 				when(mal.getNetworkAsCXStream(new UUID(1l,2l), "mockAccessKey")).thenReturn(inputStream);
-			NetworkImportTask task = new NetworkImportTask(mal, new UUID(1l,2l), "mockAccessKey");
+			NetworkImportTask task = new NetworkImportTask(mal, new UUID(1l,2l), "mockAccessKey",null);
 			TaskMonitor taskMonitor = mock(TaskMonitor.class);
 			task.run(taskMonitor);
 		} catch (NetworkExportException | NetworkImportException | IOException | NdexException e) {
@@ -128,7 +128,7 @@ public class NDExNetworkImportTaskTests {
 			when(networkSummary.getExternalId()).thenReturn(new UUID(1l,2l));
 			when(mal.getNetworkSummaryById(new UUID(1l,2l), null)).thenReturn(networkSummary);
 				when(mal.getNetworkAsCXStream(new UUID(1l,2l))).thenReturn(inputStream);
-			NetworkImportTask task = new NetworkImportTask(mal, new UUID(1l,2l), null);
+			NetworkImportTask task = new NetworkImportTask(mal, new UUID(1l,2l), null, null);
 			TaskMonitor taskMonitor = mock(TaskMonitor.class);
 			task.run(taskMonitor);
 		} catch (NetworkExportException | NetworkImportException | IOException | NdexException e) {

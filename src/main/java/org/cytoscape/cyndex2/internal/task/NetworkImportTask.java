@@ -59,8 +59,9 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 	private Long suid = null;
 	private String accessKey = null;
 	protected InputStream cxStream;
+	private Boolean createView = null;
 
-	public NetworkImportTask(final NdexRestClientModelAccessLayer mal, UUID uuid, String accessKey)
+	public NetworkImportTask(final NdexRestClientModelAccessLayer mal, UUID uuid, String accessKey, final Boolean createView)
 			throws IOException, NdexException {
 		super();
 		this.uuid = uuid;
@@ -71,6 +72,7 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 		networkSummary = mal.getNetworkSummaryById(uuid, accessKey);
 		this.accessKey = accessKey;
 		cxStream = null;
+		this.createView = createView;
 	}
 
 	@Override
@@ -109,7 +111,7 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 						
 						try {
 							Method setCreateViewMethod = cxReader.getMethod("setCreateView", Boolean.class);
-							setCreateViewMethod.invoke(task, Boolean.TRUE);
+							setCreateViewMethod.invoke(task, createView);
 						} catch(java.lang.NoSuchMethodException e) {
 							System.err.println("Unable to explicitly set view creation. Make sure a current version of the CX Support app is installed.");
 						}
