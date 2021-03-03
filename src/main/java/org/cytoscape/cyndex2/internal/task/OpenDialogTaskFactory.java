@@ -31,30 +31,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class OpenDialogTaskFactory extends AbstractTaskFactory {
 	
 	protected final String appName;
-	private static JDialog dialog;
 
-	private static FindNetworksDialog loadDialog = null;
+	
 	
 	public OpenDialogTaskFactory(final String appName) {
 		super();
 		this.appName = appName;
 
-	}
-
-	private static JDialog getDialog() {
-		if (CyActivator.useDefaultBrowser()) {
-			return null;
-		}
-		
-		if (dialog == null) {
-			dialog = new JDialog((Frame)null, "CyNDEx2 Browser", false);
-			//dialog.setAlwaysOnTop(true);
-			if (!dialog.isVisible()) {
-				dialog.setSize(1000, 700);
-				dialog.setLocationRelativeTo(null);
-			}
-		}
-		return dialog;
 	}
 
 	@Override
@@ -93,7 +76,7 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 							switch(widget) {
 								case "choose": 
 									final LoadParameters loadParameters = objectMapper.treeToValue(jsonNode.get("data").get("parameters"), LoadParameters.class);
-									getFindNetworksDialog(loadParameters);
+									FindNetworksDialog.getFindNetworksDialog(loadParameters);
 									break;
 								case "save" :
 									final JFrame parentFrame = CyServiceModule.INSTANCE.getSwingApplication().getJFrame();
@@ -116,13 +99,7 @@ public class OpenDialogTaskFactory extends AbstractTaskFactory {
 		return ti;
 	}
 	
-	private void getFindNetworksDialog(LoadParameters loadParameters) {
-		if (loadDialog != null && loadDialog.isVisible()) {
-			loadDialog.setVisible(false);
-		}
-		loadDialog = new FindNetworksDialog(null, loadParameters);
-		loadDialog.setVisible(true);
-	}
+	
 	
 	@Override
 	public boolean isReady() {
