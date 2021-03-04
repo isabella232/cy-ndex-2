@@ -45,6 +45,7 @@ import java.util.UUID;
 import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
@@ -109,6 +110,8 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 			loadDialog.setVisible(false);
 		}
 		loadDialog = new FindNetworksDialog(null, loadParameters);
+		final JFrame parentFrame = CyServiceModule.INSTANCE.getSwingApplication().getJFrame();
+		loadDialog.setLocationRelativeTo(parentFrame);
 		loadDialog.setVisible(true);
 	}
 	
@@ -127,6 +130,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		
 		if (networkSize > viewThreshold) {
 			LargeNetworkDialog viewCreationDialog = new LargeNetworkDialog(null, true, networkSummary);
+			viewCreationDialog.setLocationRelativeTo(this);
 			viewCreationDialog.setVisible(true);
 			importNetwork = viewCreationDialog.getImportNetwork();
 			createView = viewCreationDialog.getCreateView();

@@ -150,6 +150,7 @@ public class LargeNetworkDialog extends javax.swing.JDialog {
 
 	private void preferencesButtonActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_settingsButtonActionPerformed
 		PreferencesDialog preferencesDialog = new PreferencesDialog(null, true);
+		preferencesDialog.setLocationRelativeTo(this);
 		preferencesDialog.setVisible(true);
 		updateHeadingAndMessage();
 	}// GEN-LAST:event_settingsButtonActionPerformed
