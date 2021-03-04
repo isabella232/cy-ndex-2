@@ -56,8 +56,7 @@ public class CyActivator extends AbstractCyActivator {
 
 	// Logger for this activator
 	private static final Logger logger = LoggerFactory.getLogger(CyActivator.class);
-	public static final String WEB_APP_VERSION = "0.1.3";
-
+	
 	private static CyProperty<Properties> cyProps;
 
 	private static String appVersion;

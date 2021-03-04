@@ -10,7 +10,7 @@ import javax.swing.DefaultComboBoxModel;
 import org.cytoscape.cyndex2.internal.util.CxPreferences;
 /**
  *
- * @author wilderkrieger
+ * @author David Otasek
  */
 public class PreferencesPanel extends javax.swing.JPanel {
 

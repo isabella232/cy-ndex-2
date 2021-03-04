@@ -7,7 +7,7 @@ package org.cytoscape.cyndex2.internal.ui.swing;
 
 /**
  *
- * @author wilderkrieger
+ * @author David Otasek
  */
 public class PreferencesDialog extends javax.swing.JDialog {
 
