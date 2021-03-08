@@ -129,9 +129,11 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		final boolean createView;
 		
 		if (networkSize > viewThreshold) {
-			LargeNetworkDialog viewCreationDialog = new LargeNetworkDialog(null, true, networkSummary);
+			LargeNetworkDialog viewCreationDialog = new LargeNetworkDialog(this, true, networkSummary);
+			
 			viewCreationDialog.setLocationRelativeTo(this);
 			viewCreationDialog.setVisible(true);
+		
 			importNetwork = viewCreationDialog.getImportNetwork();
 			createView = viewCreationDialog.getCreateView();
 		} else {
@@ -571,6 +573,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		resultsTable.setDefaultRenderer(NetworkSummary.class, new NetworkSummaryTableModel.ImportButtonRenderer());
 		resultsTable.setDefaultRenderer(VisibilityType.class, new NetworkSummaryTableModel.VisibilityTypeRenderer());
 		resultsTable.setDefaultRenderer(Timestamp.class, new NetworkSummaryTableModel.TimestampRenderer());
+		resultsTable.setShowGrid(false);
 		resultsTable.setDefaultEditor(NetworkSummary.class, model.new ImportButtonEditor(new JCheckBox()));
 		resultsTable.getSelectionModel().setSelectionInterval(0, 0);
 
