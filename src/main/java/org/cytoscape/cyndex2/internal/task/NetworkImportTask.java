@@ -28,6 +28,7 @@ package org.cytoscape.cyndex2.internal.task;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.util.UUID;
 
 import javax.swing.SwingUtilities;
@@ -38,6 +39,7 @@ import org.cytoscape.cyndex2.internal.util.HeadlessTaskMonitor;
 import org.cytoscape.cyndex2.internal.util.NDExNetworkManager;
 import org.cytoscape.io.read.AbstractCyNetworkReader;
 import org.cytoscape.io.read.InputStreamTaskFactory;
+import org.cytoscape.io.write.CyWriter;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.subnetwork.CySubNetwork;
@@ -51,16 +53,15 @@ import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 public class NetworkImportTask extends AbstractTask implements ObservableTask {
 
-	
-	
 	final NdexRestClientModelAccessLayer mal;
 	final NetworkSummary networkSummary;
 	private UUID uuid = null;
 	private Long suid = null;
 	private String accessKey = null;
 	protected InputStream cxStream;
+	private Boolean createView = null;
 
-	public NetworkImportTask(final NdexRestClientModelAccessLayer mal, UUID uuid, String accessKey)
+	public NetworkImportTask(final NdexRestClientModelAccessLayer mal, UUID uuid, String accessKey, final Boolean createView)
 			throws IOException, NdexException {
 		super();
 		this.uuid = uuid;
@@ -71,6 +72,7 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 		networkSummary = mal.getNetworkSummaryById(uuid, accessKey);
 		this.accessKey = accessKey;
 		cxStream = null;
+		this.createView = createView;
 	}
 
 	@Override
@@ -105,6 +107,14 @@ public class NetworkImportTask extends AbstractTask implements ObservableTask {
 				@Override
 				public void run() {
 					try {
+						final Class<? extends AbstractCyNetworkReader> cxReader = task.getClass();
+						
+						try {
+							Method setCreateViewMethod = cxReader.getMethod("setCreateView", Boolean.class);
+							setCreateViewMethod.invoke(task, createView);
+						} catch(java.lang.NoSuchMethodException e) {
+							System.err.println("Unable to explicitly set view creation. Make sure a current version of the CX Support app is installed.");
+						}
 						task.run(new HeadlessTaskMonitor());
 					} catch (Exception e) {
 						e.printStackTrace();

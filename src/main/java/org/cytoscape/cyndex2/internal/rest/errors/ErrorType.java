@@ -1,7 +1,6 @@
 package org.cytoscape.cyndex2.internal.rest.errors;
 
 public enum ErrorType {
-	
 	AUTH_FAILED("Login to NDEx failed."),
 	NDEX_API("Failed to call NDEx API."),
 	INVALID_PARAMETERS("Invalid parameters are given."),
@@ -24,8 +23,4 @@ public enum ErrorType {
 	public String getDescription() {
 		return description;
 	}
-	
-	
-	
-	
 }

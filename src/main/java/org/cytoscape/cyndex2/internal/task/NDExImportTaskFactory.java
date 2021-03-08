@@ -25,6 +25,7 @@ public class NDExImportTaskFactory extends AbstractTaskFactory {
 
 	public NDExImportTaskFactory(NDExImportParameters params) {
 		super();
+		
 		this.params = params;
 		this.errorBuilder = CyServiceModule.INSTANCE.getErrorBuilder();
 	}
@@ -38,7 +39,7 @@ public class NDExImportTaskFactory extends AbstractTaskFactory {
 			final NdexRestClient client = new NdexRestClient(params.username, params.password, serverUrl,
 					CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
 			final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(client);
-			return new NetworkImportTask(mal, uuid, params.accessKey);
+			return new NetworkImportTask(mal, uuid, params.accessKey, params.createView);
 		} else {
 			final NdexRestClient client = new NdexRestClient(null, null, params.serverUrl,
 					CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
@@ -47,7 +48,7 @@ public class NDExImportTaskFactory extends AbstractTaskFactory {
 
 			final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(client);
 
-			return new NetworkImportTask(mal, uuid, params.accessKey);
+			return new NetworkImportTask(mal, uuid, params.accessKey, params.createView);
 		}
 	}
 

@@ -39,7 +39,7 @@ public class CyServiceModule {
 		INSTANCE.swingApplication = swingApplication;
 	}
 	
-	public CySwingApplication getSwingApplcation() {
+	public CySwingApplication getSwingApplication() {
 		return swingApplication;
 	}
 	

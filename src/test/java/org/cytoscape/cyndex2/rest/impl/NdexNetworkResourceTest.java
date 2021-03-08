@@ -339,7 +339,8 @@ public class NdexNetworkResourceTest {
 				"mockPassword", 
 				"mockServerUrl", 
 				"mockAccessKey", 
-				"mockIdToken");
+				"mockIdToken",
+				null);
 		
 		Mockito.doReturn(mockedImportTaskFactory).when(implSpy)
 		.getNDExImportTaskFactory(params);
