@@ -38,22 +38,18 @@
                       <Component id="cancelButton" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Component id="jLabel1" alignment="1" pref="0" max="32767" attributes="0"/>
-                  <Component id="jLabel2" alignment="0" max="32767" attributes="0"/>
                   <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="10" pref="10" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                          <Group type="102" alignment="0" attributes="0">
-                              <Component id="createViewRadioButton" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                              <Component id="createViewInfo" min="-2" pref="19" max="-2" attributes="0"/>
-                          </Group>
-                          <Group type="102" alignment="0" attributes="0">
-                              <Component id="dontCreateViewRadioButton" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="32767" attributes="0"/>
-                              <Component id="dontCreateViewInfo" min="-2" pref="19" max="-2" attributes="0"/>
-                          </Group>
+                      <EmptySpace min="-2" pref="16" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="createViewRadioButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="dontCreateViewRadioButton" alignment="0" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="dontCreateViewInfo" min="-2" pref="19" max="-2" attributes="0"/>
+                          <Component id="createViewInfo" min="-2" pref="19" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace min="0" pref="25" max="32767" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
@@ -64,10 +60,8 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
               <Component id="jLabel1" min="-2" pref="47" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="createViewRadioButton" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="createViewInfo" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -77,7 +71,7 @@
                   <Component id="dontCreateViewRadioButton" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="dontCreateViewInfo" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace min="-2" pref="15" max="-2" attributes="0"/>
+              <EmptySpace pref="20" max="32767" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="cancelButton" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="okButton" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -90,7 +84,7 @@
   <SubComponents>
     <Component class="javax.swing.JLabel" name="jLabel1">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&lt;html&gt;View creation for a network of this size requires large amounts of memory and could cause problems on less powerful computers. Please choose one of the following options.&lt;/html&gt;"/>
+        <Property name="text" type="java.lang.String" value="&lt;html&gt;You are about to import a large network. Creating a view for a network of this size requires large amounts of memory and could cause problems on less powerful computers. Please choose one of the following options.&lt;/html&gt;"/>
         <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
           <Dimension value="[62, 63]"/>
         </Property>
@@ -113,21 +107,12 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="okButtonActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JLabel" name="jLabel2">
-      <Properties>
-        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-          <Font name="Tahoma" size="10" style="1"/>
-        </Property>
-        <Property name="horizontalAlignment" type="int" value="0"/>
-        <Property name="text" type="java.lang.String" value="You are about to import a large network."/>
-      </Properties>
-    </Component>
     <Component class="javax.swing.JRadioButton" name="createViewRadioButton">
       <Properties>
         <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
           <ComponentRef name="viewButtonGroup"/>
         </Property>
-        <Property name="text" type="java.lang.String" value="Create View (Resource Intensive, layout and visual properties will be preserved)"/>
+        <Property name="text" type="java.lang.String" value="&lt;html&gt;&lt;b&gt;Create View&lt;/b&gt; (Resource Intensive, layout and visual properties are preserved)&lt;/html&gt;"/>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
           <Connection code="CREATE_VIEW_TIP" type="code"/>
         </Property>
@@ -141,13 +126,14 @@
         <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
           <ComponentRef name="viewButtonGroup"/>
         </Property>
-        <Property name="text" type="java.lang.String" value="Don&apos;t Create View (Faster, layout and visual properties will be discarded)"/>
+        <Property name="text" type="java.lang.String" value="&lt;html&gt;&lt;b&gt;Don&apos;t Create View&lt;/b&gt; (Faster, layout and visual properties are discarded) &lt;/html&gt;"/>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
           <Connection code="DONT_CREATE_VIEW_TIP" type="code"/>
         </Property>
       </Properties>
       <Events>
         <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="dontCreateViewRadioButtonStateChanged"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dontCreateViewRadioButtonActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="createViewInfo">
