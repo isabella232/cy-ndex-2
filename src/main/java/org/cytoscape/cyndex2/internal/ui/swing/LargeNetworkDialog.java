@@ -35,17 +35,17 @@ public class LargeNetworkDialog extends javax.swing.JDialog {
 	final int ICON_FONT_SIZE = 22;
 	
 	//Text when view or label exists
-	private final String CREATE_VIEW_LABEL = "<html><b>Create View</b> (Resource Intensive, preserve layout and visual properties)</html>";
+	private final String CREATE_VIEW_LABEL = "<html><p width=\"200px\"><b>Create View</b> (Resource Intensive, preserve layout and visual properties)</p></html>";
 	private final String CREATE_VIEW_TIP = "<html><p width=\"200px\">Choose this option to import the network and display it <u>preserving existing layout and visual styling info</u>. Your computer might crash if it's older or not powerful enough.</p></html>";
 	
-	private final String DONT_CREATE_VIEW_LABEL = "<html><b>Don’t create View</b> (Faster, discard layout and visual properties)</html>";
+	private final String DONT_CREATE_VIEW_LABEL = "<html><p width=\"200px\"><b>Don’t create View</b> (Faster, discard layout and visual properties)</p></html>";
 	private final String DONT_CREATE_VIEW_TIP = "<html><p width=\"200px\">Choose this option to import the network without generating a graphic rendering. The <u>original layout and visual styling info will be lost</u>. You can decide to generate a graphic rendering later if desired.</p></html>";
 	
 	//Text when no view or label exists
-	private final String CREATE_VIEW_LABEL_NO_EXISTING = "<html><b>Create View</b> (Resource Intensive)</html>";
+	private final String CREATE_VIEW_LABEL_NO_EXISTING = "<html><p width=\"180px\"><b>Create View</b> (Resource Intensive)</p></html>";
 	private final String CREATE_VIEW_TIP_NO_EXISTING = "<html><p width=\"200px\">Choose this option to import the network and display it with Cytoscape’s default layout and visual styling info. Your computer might crash if it's older or not powerful enough.</p></html>";
 	
-	private final String DONT_CREATE_VIEW_LABEL_NO_EXISTING = "<html><b>Don’t create View</b> (Faster)</html>";
+	private final String DONT_CREATE_VIEW_LABEL_NO_EXISTING = "<html><p width=\"180px\"><b>Don’t create View</b> (Faster)</p></html>";
 	private final String DONT_CREATE_VIEW_TIP_NO_EXISTING = "<html><p width=\"200px\">Choose this option to import the network without generating a graphic view. You can decide to generate a graphic view later if desired.</p></html>";
 	
 	
@@ -128,11 +128,10 @@ public class LargeNetworkDialog extends javax.swing.JDialog {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Network Import Confirmation");
-        setPreferredSize(new java.awt.Dimension(480, 254));
         setSize(new java.awt.Dimension(480, 254));
 
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jLabel1.setText("<html><p width=\\\"400px\\\">You are about to import a large network. Creating a view for a network of this size requires large amounts of memory and could cause problems on less powerful computers. Please choose one of the following options.</p></html>");
+        jLabel1.setText("<html><p width=\"300px\">You are about to import a large network. Creating a view for a network of this size requires large amounts of memory and could cause problems on less powerful computers. Please choose one of the following options.</p></html>");
         jLabel1.setMaximumSize(new java.awt.Dimension(420, 68));
         jLabel1.setName(""); // NOI18N
         jLabel1.setPreferredSize(new java.awt.Dimension(420, 68));
@@ -219,36 +218,36 @@ public class LargeNetworkDialog extends javax.swing.JDialog {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 390, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(12, 12, 12))
+                    .addGroup(layout.createSequentialGroup()
                         .addComponent(okButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cancelButton))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(18, 18, 18)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)))
-                .addGap(18, 18, 18))
+                        .addComponent(cancelButton)
+                        .addGap(12, 12, 12))))
             .addGroup(layout.createSequentialGroup()
                 .addGap(32, 32, 32)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(0, 268, Short.MAX_VALUE))
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(14, 14, 14)
-                .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 80, Short.MAX_VALUE)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(27, 27, 27)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(cancelButton)
-                    .addComponent(okButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(okButton)
+                    .addComponent(cancelButton))
                 .addContainerGap())
         );
 
