@@ -7,15 +7,22 @@ package org.cytoscape.cyndex2.internal.ui.swing;
 
 import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.util.CxPreferences;
+import org.cytoscape.cyndex2.internal.util.Server;
+import org.cytoscape.cyndex2.internal.util.ServerManager;
 import org.cytoscape.util.swing.IconManager;
+
+import org.ndexbio.cxio.metadata.MetaDataCollection;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.network.NetworkSummary;
+import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 import static org.cytoscape.util.swing.IconManager.ICON_QUESTION_CIRCLE_O;
 
 import java.awt.Dialog;
+import java.io.IOException;
 
 import javax.swing.JOptionPane;
-
+import java.awt.FlowLayout;
 /**
  *
  * @author David Otasek
@@ -23,11 +30,24 @@ import javax.swing.JOptionPane;
 public class LargeNetworkDialog extends javax.swing.JDialog {
 
 	private final NetworkSummary networkSummary;
+	private boolean hasView;
 
 	final int ICON_FONT_SIZE = 22;
 	
-	private final String CREATE_VIEW_TIP = "<html><p width=\"200px\">Choose this option to import the network and display it <u>preserving the original layout and visual styling info</u>. Your computer might crash if it's older or not powerful enough.</p></html>";
+	//Text when view or label exists
+	private final String CREATE_VIEW_LABEL = "<html><p width=\"200px\"><b>Create View</b> (Resource Intensive, preserve layout and visual properties)</p></html>";
+	private final String CREATE_VIEW_TIP = "<html><p width=\"200px\">Choose this option to import the network and display it <u>preserving existing layout and visual styling info</u>. Your computer might crash if it's older or not powerful enough.</p></html>";
+	
+	private final String DONT_CREATE_VIEW_LABEL = "<html><p width=\"200px\"><b>Don’t Create View</b> (Faster, discard layout and visual properties)</p></html>";
 	private final String DONT_CREATE_VIEW_TIP = "<html><p width=\"200px\">Choose this option to import the network without generating a graphic rendering. The <u>original layout and visual styling info will be lost</u>. You can decide to generate a graphic rendering later if desired.</p></html>";
+	
+	//Text when no view or label exists
+	private final String CREATE_VIEW_LABEL_NO_EXISTING = "<html><p width=\"180px\"><b>Create View</b> (Resource Intensive)</p></html>";
+	private final String CREATE_VIEW_TIP_NO_EXISTING = "<html><p width=\"200px\">Choose this option to import the network and display it with Cytoscape’s default layout and visual styling info. Your computer might crash if it's older or not powerful enough.</p></html>";
+	
+	private final String DONT_CREATE_VIEW_LABEL_NO_EXISTING = "<html><p width=\"180px\"><b>Don’t Create View</b> (Faster)</p></html>";
+	private final String DONT_CREATE_VIEW_TIP_NO_EXISTING = "<html><p width=\"200px\">Choose this option to import the network without generating a graphic view. You can decide to generate a graphic view later if desired.</p></html>";
+	
 	
 	/**
 	 * Creates new form ViewCreationDialog
@@ -35,9 +55,41 @@ public class LargeNetworkDialog extends javax.swing.JDialog {
 	public LargeNetworkDialog(Dialog parent, boolean modal, final NetworkSummary networkSummary) {
 		super(parent, modal);
 		this.networkSummary = networkSummary;
+		
+		final Server selectedServer = ServerManager.INSTANCE.getServer();
+	
+			NdexRestClientModelAccessLayer mal;
+			try {
+				mal = selectedServer.getModelAccessLayer();
+				MetaDataCollection metaDataCollection = mal.getNetworkMetadata(networkSummary.getExternalId());
+				
+				hasView = metaDataCollection.getMetaDataElement("cyVisualProperties") != null;
+				
+				System.out.println("network hasView: " + hasView);
+				System.out.println("network hasLayout: " + networkSummary.getHasLayout());
+			} catch (IOException | NdexException e) {
+				e.printStackTrace();
+				hasView = true;
+			}
 		initComponents();
 	}
 
+	private String getCreateViewLabel() {
+		return hasView || networkSummary.getHasLayout() ? CREATE_VIEW_LABEL : CREATE_VIEW_LABEL_NO_EXISTING;
+	}
+	
+	private String getCreateViewTooltip() {
+		return hasView || networkSummary.getHasLayout() ? CREATE_VIEW_TIP : CREATE_VIEW_TIP_NO_EXISTING;
+	}
+	
+	private String getDontCreateViewLabel() {
+		return hasView || networkSummary.getHasLayout() ? DONT_CREATE_VIEW_LABEL : DONT_CREATE_VIEW_LABEL_NO_EXISTING;
+	}
+	
+	private String getDontCreateViewTooltip() {
+		return hasView || networkSummary.getHasLayout() ? DONT_CREATE_VIEW_TIP : DONT_CREATE_VIEW_TIP_NO_EXISTING;
+	}
+	
 	private void validateOK() {
 		okButton.setEnabled(createViewRadioButton.isSelected() || dontCreateViewRadioButton.isSelected());
 	}
@@ -65,18 +117,24 @@ public class LargeNetworkDialog extends javax.swing.JDialog {
         jLabel1 = new javax.swing.JLabel();
         cancelButton = new javax.swing.JButton();
         okButton = new javax.swing.JButton();
+        jPanel2 = new javax.swing.JPanel();
+        jPanel2.setLayout(new FlowLayout(FlowLayout.LEFT));
         createViewRadioButton = new javax.swing.JRadioButton();
-        dontCreateViewRadioButton = new javax.swing.JRadioButton();
         createViewInfo = new javax.swing.JLabel();
+        jPanel3 = new javax.swing.JPanel();
+        jPanel3.setLayout(new FlowLayout(FlowLayout.LEFT));
+        dontCreateViewRadioButton = new javax.swing.JRadioButton();
         dontCreateViewInfo = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Network Import Confirmation");
+        setSize(new java.awt.Dimension(480, 254));
 
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jLabel1.setText("<html><p width=\\\"520px\\\">You are about to import a large network. Creating a view for a network of this size requires large amounts of memory and could cause problems on less powerful computers. Please choose one of the following options.</p></html>");
-        jLabel1.setMaximumSize(new java.awt.Dimension(528, 68));
+        jLabel1.setText("<html><p width=\"300px\">You are about to import a large network. Creating a view for a network of this size requires large amounts of memory and could cause problems on less powerful computers. Please choose one of the following options.</p></html>");
+        jLabel1.setMaximumSize(new java.awt.Dimension(420, 68));
         jLabel1.setName(""); // NOI18N
+        jLabel1.setPreferredSize(new java.awt.Dimension(420, 68));
 
         cancelButton.setText("Cancel");
         cancelButton.addActionListener(new java.awt.event.ActionListener() {
@@ -94,16 +152,39 @@ public class LargeNetworkDialog extends javax.swing.JDialog {
         });
 
         viewButtonGroup.add(createViewRadioButton);
-        createViewRadioButton.setText("<html><b>Create View</b> (Resource Intensive, layout and visual properties are preserved)</html>");
+        createViewRadioButton.setText(getCreateViewLabel());
         createViewRadioButton.setToolTipText(CREATE_VIEW_TIP);
+        createViewRadioButton.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        createViewRadioButton.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
         createViewRadioButton.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 createViewRadioButtonStateChanged(evt);
             }
         });
+        createViewRadioButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                createViewRadioButtonActionPerformed(evt);
+            }
+        });
+        jPanel2.add(createViewRadioButton);
+
+        createViewInfo.setFont(CyServiceModule.getService(IconManager.class).getIconFont(ICON_FONT_SIZE * 4 / 5));
+        createViewInfo.setText(ICON_QUESTION_CIRCLE_O);
+        createViewInfo.setToolTipText(getCreateViewTooltip());
+        createViewInfo.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        createViewInfo.setMaximumSize(new java.awt.Dimension(32, 32));
+        createViewInfo.setMinimumSize(new java.awt.Dimension(24, 24));
+        createViewInfo.setPreferredSize(new java.awt.Dimension(24, 24));
+        createViewInfo.setFont(CyServiceModule.getService(IconManager.class).getIconFont(ICON_FONT_SIZE * 4 / 5));
+        createViewInfo.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                createViewInfoMouseClicked(evt);
+            }
+        });
+        jPanel2.add(createViewInfo);
 
         viewButtonGroup.add(dontCreateViewRadioButton);
-        dontCreateViewRadioButton.setText("<html><b>Don't Create View</b> (Faster, layout and visual properties are discarded) </html>");
+        dontCreateViewRadioButton.setText(getDontCreateViewLabel());
         dontCreateViewRadioButton.setToolTipText(DONT_CREATE_VIEW_TIP);
         dontCreateViewRadioButton.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
@@ -115,25 +196,12 @@ public class LargeNetworkDialog extends javax.swing.JDialog {
                 dontCreateViewRadioButtonActionPerformed(evt);
             }
         });
-
-        createViewInfo.setFont(CyServiceModule.getService(IconManager.class).getIconFont(ICON_FONT_SIZE * 4 / 5));
-        createViewInfo.setText(ICON_QUESTION_CIRCLE_O);
-        createViewInfo.setToolTipText(CREATE_VIEW_TIP);
-        createViewInfo.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
-        createViewInfo.setMaximumSize(new java.awt.Dimension(32, 32));
-        createViewInfo.setMinimumSize(new java.awt.Dimension(24, 24));
-        createViewInfo.setPreferredSize(new java.awt.Dimension(24, 24));
-        createViewInfo.setFont(CyServiceModule.getService(IconManager.class).getIconFont(ICON_FONT_SIZE * 4 / 5));
-        createViewInfo.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                createViewInfoMouseClicked(evt);
-            }
-        });
+        jPanel3.add(dontCreateViewRadioButton);
 
         dontCreateViewInfo.setFont(CyServiceModule.getService(IconManager.class).getIconFont(ICON_FONT_SIZE * 4 / 5)
         );
         dontCreateViewInfo.setText(ICON_QUESTION_CIRCLE_O);
-        dontCreateViewInfo.setToolTipText(DONT_CREATE_VIEW_TIP);
+        dontCreateViewInfo.setToolTipText(getDontCreateViewTooltip());
         dontCreateViewInfo.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         dontCreateViewInfo.setMaximumSize(new java.awt.Dimension(32, 32));
         dontCreateViewInfo.setMinimumSize(new java.awt.Dimension(24, 24));
@@ -143,77 +211,74 @@ public class LargeNetworkDialog extends javax.swing.JDialog {
                 dontCreateViewInfoMouseClicked(evt);
             }
         });
+        jPanel3.add(dontCreateViewInfo);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+            .addGroup(layout.createSequentialGroup()
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 390, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(12, 12, 12))
+                    .addGroup(layout.createSequentialGroup()
                         .addComponent(okButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cancelButton))
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addGap(26, 26, 26)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(createViewRadioButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(dontCreateViewRadioButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(dontCreateViewInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(createViewInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                        .addGap(0, 16, Short.MAX_VALUE)))
-                .addContainerGap())
+                        .addComponent(cancelButton)
+                        .addGap(12, 12, 12))))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(32, 32, 32)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(14, 14, 14)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(createViewInfo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(createViewRadioButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(dontCreateViewRadioButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(dontCreateViewInfo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cancelButton)
-                    .addComponent(okButton))
+                    .addComponent(okButton)
+                    .addComponent(cancelButton))
                 .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void dontCreateViewRadioButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dontCreateViewRadioButtonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_dontCreateViewRadioButtonActionPerformed
+
+    private void dontCreateViewRadioButtonStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_dontCreateViewRadioButtonStateChanged
+        validateOK();
+    }//GEN-LAST:event_dontCreateViewRadioButtonStateChanged
+
     private void createViewInfoMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_createViewInfoMouseClicked
         JOptionPane.showMessageDialog(this,
-        CREATE_VIEW_TIP, "Create View", JOptionPane.INFORMATION_MESSAGE);
+            getCreateViewTooltip(), "Create View", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_createViewInfoMouseClicked
-
-    private void dontCreateViewInfoMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_dontCreateViewInfoMouseClicked
-       JOptionPane.showMessageDialog(this,
-        DONT_CREATE_VIEW_TIP, "Don't Create View", JOptionPane.INFORMATION_MESSAGE);
-    }//GEN-LAST:event_dontCreateViewInfoMouseClicked
 
     private void createViewRadioButtonStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_createViewRadioButtonStateChanged
         validateOK();
     }//GEN-LAST:event_createViewRadioButtonStateChanged
 
-    private void dontCreateViewRadioButtonStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_dontCreateViewRadioButtonStateChanged
-         validateOK();
-    }//GEN-LAST:event_dontCreateViewRadioButtonStateChanged
+    private void dontCreateViewInfoMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_dontCreateViewInfoMouseClicked
+        JOptionPane.showMessageDialog(this,
+            getDontCreateViewTooltip(), "Don't Create View", JOptionPane.INFORMATION_MESSAGE);
+    }//GEN-LAST:event_dontCreateViewInfoMouseClicked
 
-    private void dontCreateViewRadioButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dontCreateViewRadioButtonActionPerformed
+    private void createViewRadioButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createViewRadioButtonActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_dontCreateViewRadioButtonActionPerformed
+    }//GEN-LAST:event_createViewRadioButtonActionPerformed
 
 	private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_okButtonActionPerformed
 		// TODO add your handling code here:
@@ -296,6 +361,8 @@ public class LargeNetworkDialog extends javax.swing.JDialog {
     private javax.swing.JLabel dontCreateViewInfo;
     private javax.swing.JRadioButton dontCreateViewRadioButton;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JButton okButton;
     private javax.swing.ButtonGroup viewButtonGroup;
     // End of variables declaration//GEN-END:variables
