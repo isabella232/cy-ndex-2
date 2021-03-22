@@ -38,14 +38,14 @@ public class LargeNetworkDialog extends javax.swing.JDialog {
 	private final String CREATE_VIEW_LABEL = "<html><p width=\"200px\"><b>Create View</b> (Resource Intensive, preserve layout and visual properties)</p></html>";
 	private final String CREATE_VIEW_TIP = "<html><p width=\"200px\">Choose this option to import the network and display it <u>preserving existing layout and visual styling info</u>. Your computer might crash if it's older or not powerful enough.</p></html>";
 	
-	private final String DONT_CREATE_VIEW_LABEL = "<html><p width=\"200px\"><b>Don’t create View</b> (Faster, discard layout and visual properties)</p></html>";
+	private final String DONT_CREATE_VIEW_LABEL = "<html><p width=\"200px\"><b>Don’t Create View</b> (Faster, discard layout and visual properties)</p></html>";
 	private final String DONT_CREATE_VIEW_TIP = "<html><p width=\"200px\">Choose this option to import the network without generating a graphic rendering. The <u>original layout and visual styling info will be lost</u>. You can decide to generate a graphic rendering later if desired.</p></html>";
 	
 	//Text when no view or label exists
 	private final String CREATE_VIEW_LABEL_NO_EXISTING = "<html><p width=\"180px\"><b>Create View</b> (Resource Intensive)</p></html>";
 	private final String CREATE_VIEW_TIP_NO_EXISTING = "<html><p width=\"200px\">Choose this option to import the network and display it with Cytoscape’s default layout and visual styling info. Your computer might crash if it's older or not powerful enough.</p></html>";
 	
-	private final String DONT_CREATE_VIEW_LABEL_NO_EXISTING = "<html><p width=\"180px\"><b>Don’t create View</b> (Faster)</p></html>";
+	private final String DONT_CREATE_VIEW_LABEL_NO_EXISTING = "<html><p width=\"180px\"><b>Don’t Create View</b> (Faster)</p></html>";
 	private final String DONT_CREATE_VIEW_TIP_NO_EXISTING = "<html><p width=\"200px\">Choose this option to import the network without generating a graphic view. You can decide to generate a graphic view later if desired.</p></html>";
 	
 	
