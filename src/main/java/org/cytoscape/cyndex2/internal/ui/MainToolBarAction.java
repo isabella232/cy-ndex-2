@@ -15,6 +15,7 @@ import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.ui.swing.SignInDialog;
 import org.cytoscape.cyndex2.internal.util.IconUtil;
+import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
 import org.cytoscape.cyndex2.internal.util.StringResources;
 import org.cytoscape.service.util.CyServiceRegistrar;
@@ -67,6 +68,8 @@ public class MainToolBarAction extends AbstractCyAction {
 	}
 	
 	private JMenuItem getSignInMenuItem(final Font font, final int iconSize) {
+		DialogTaskManager taskManager = serviceRegistrar.getService(DialogTaskManager.class);
+		
 		final Icon icon = new TextIcon(IconUtil.ICON_NDEX_ACCOUNT, font, iconSize, iconSize);
 		final JMenuItem mi = new JMenuItem(new AbstractAction("Get on NDEx", icon) {
 			public void actionPerformed(ActionEvent e) {
@@ -75,6 +78,12 @@ public class MainToolBarAction extends AbstractCyAction {
 				SignInDialog signInDialog = new SignInDialog(null);
 				signInDialog.setLocationRelativeTo(parent);
 				signInDialog.setVisible(true);
+				
+				final Server selectedServer = ServerManager.INSTANCE.getServer();
+				if (selectedServer.getUsername() != null && !selectedServer.getUsername().isEmpty()) {
+					taskManager.execute(importUserNetworkTaskFactory.createTaskIterator());
+				}
+				signInDialog.dispose();
 			}
 		});
 		return mi;
