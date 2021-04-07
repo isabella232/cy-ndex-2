@@ -13,6 +13,7 @@ public class ImportNetworkFromNDExTaskFactory extends OpenDialogTaskFactory{
 	@Override
 	public TaskIterator createTaskIterator() {
 		LoadParameters.INSTANCE.searchTerm = "";
+		LoadParameters.INSTANCE.userNetworksOnly = false;
 		return super.createTaskIterator();
 	}
 

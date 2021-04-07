@@ -122,6 +122,16 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 		return searchIcon;
 	}
 
+	private void setSearchEnabled(final boolean enabled) {
+		final String tooltip = enabled ? "Search NDEx for networks by text" : "To enable searching, make sure the 'My Networks' checkbox is unselected.";
+		
+		searchField.setEnabled(enabled);
+		searchField.setToolTipText(tooltip);
+		
+		search.setEnabled(enabled);
+		search.setToolTipText(tooltip);
+	}
+	
 	private void load(final NetworkSummary networkSummary) {
 		final long networkSize = networkSummary.getNodeCount() + networkSummary.getEdgeCount();
 		final long viewThreshold = CxPreferences.getViewThreshold();
@@ -214,8 +224,10 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 
 	private void prepComponents() {
 		this.getRootPane().setDefaultButton(search);
-
+		
 		searchField.setText(loadParameters.searchTerm);
+		setSearchEnabled(!loadParameters.userNetworksOnly);
+		
 		final Server selectedServer = ServerManager.INSTANCE.getServer();
 		NdexRestClientModelAccessLayer mal;
 		try {
@@ -357,14 +369,18 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
         });
 
         search.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        search.setEnabled(!loadParameters.userNetworksOnly);
         search.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 searchActionPerformed(evt);
             }
         });
 
+        searchField.setEnabled(!loadParameters.userNetworksOnly);
+
         administeredByMe.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         administeredByMe.setText("My Networks");
+        administeredByMe.setToolTipText("Enable this to view the networks in your account");
         administeredByMe.setSelected(loadParameters.userNetworksOnly);
         administeredByMe.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -391,11 +407,15 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addContainerGap(866, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(jLabel4)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel1)
+                                .addGap(0, 856, Short.MAX_VALUE))
                             .addComponent(jScrollPane1)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                                 .addComponent(searchField)
@@ -408,11 +428,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                                 .addGap(0, 0, Short.MAX_VALUE)
                                 .addComponent(done, javax.swing.GroupLayout.PREFERRED_SIZE, 183, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addContainerGap())
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jLabel4)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addContainerGap())))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(administeredByMe)
@@ -431,10 +447,10 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
                     .addComponent(searchField))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(administeredByMe)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 283, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 287, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -551,6 +567,8 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 			} else {
 				search();
 			}
+			
+			setSearchEnabled(!administeredByMe.isSelected());
 			return 1;
 		});
 	}// GEN-LAST:event_administeredByMeActionPerformed
@@ -665,6 +683,7 @@ public class FindNetworksDialog extends javax.swing.JDialog implements PropertyC
 				}
 				administeredByMe
 						.setVisible(selectedServer.getUsername() != null && !selectedServer.getUsername().isEmpty());
+				this.setSearchEnabled(!administeredByMe.isVisible() || !administeredByMe.isSelected());
 				search();
 				return 1;
 			});
