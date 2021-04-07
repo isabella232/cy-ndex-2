@@ -12,10 +12,15 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 
+import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
+import org.cytoscape.util.swing.IconManager;
+
+import static org.cytoscape.util.swing.IconManager.ICON_COG;
 
 /**
  *
@@ -23,6 +28,10 @@ import org.cytoscape.cyndex2.internal.util.ServerManager;
  */
 public class SignInDialog extends javax.swing.JDialog {
 
+	final int ICON_FONT_SIZE = 22;
+	
+	private String serverURL = "public.ndexbio.org";
+	
 	/**
 	 * Creates new form NewJDialog
 	 */
@@ -38,127 +47,159 @@ public class SignInDialog extends javax.swing.JDialog {
 	 */
 	@SuppressWarnings("unchecked")
 	// <editor-fold defaultstate="collapsed" desc="Generated
-	// Code">//GEN-BEGIN:initComponents
-	private void initComponents() {
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
 
-		jLabel2 = new javax.swing.JLabel();
-		url1 = new javax.swing.JTextField();
-		username = new javax.swing.JTextField();
-		jLabel4 = new javax.swing.JLabel();
-		jLabel5 = new javax.swing.JLabel();
-		jLabel6 = new javax.swing.JLabel();
-		save = new javax.swing.JButton();
-		cancel = new javax.swing.JButton();
-		password = new javax.swing.JPasswordField();
-		forgotPasswordLabel = new javax.swing.JLabel();
-		needAccountLabel = new javax.swing.JLabel();
-		signUpLabel = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        username = new javax.swing.JTextField();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        save = new javax.swing.JButton();
+        cancel = new javax.swing.JButton();
+        password = new javax.swing.JPasswordField();
+        forgotPasswordLabel = new javax.swing.JLabel();
+        needAccountLabel = new javax.swing.JLabel();
+        signUpLabel = new javax.swing.JLabel();
+        updateSettingsButton = new JButton(ICON_COG);
 
-		setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-		jLabel2.setFont(new java.awt.Font("Lucida Grande", 1, 13)); // NOI18N
-		jLabel2.setText("NDEx Sign in");
+        jLabel2.setFont(new java.awt.Font("Lucida Grande", 1, 13)); // NOI18N
+        jLabel2.setText("NDEx Sign in");
 
-		url1.setText("public.ndexbio.org");
-		url1.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				url1ActionPerformed(evt);
-			}
-		});
+        jLabel5.setText("Username:");
 
-		jLabel4.setText("NDEx Server:");
+        jLabel6.setText("Password:");
 
-		jLabel5.setText("Username:");
+        save.setText("Sign in");
+        save.setMaximumSize(new java.awt.Dimension(63, 24));
+        save.setMinimumSize(new java.awt.Dimension(63, 24));
+        save.setPreferredSize(new java.awt.Dimension(63, 24));
+        save.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveActionPerformed(evt);
+            }
+        });
 
-		jLabel6.setText("Password:");
+        cancel.setText("Cancel");
+        cancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cancelActionPerformed(evt);
+            }
+        });
 
-		save.setText("Sign in");
-		save.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				saveActionPerformed(evt);
-			}
-		});
+        forgotPasswordLabel.setForeground(new java.awt.Color(51, 122, 183));
+        forgotPasswordLabel.setText("Forgot your password?");
+        forgotPasswordLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        forgotPasswordLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                forgotPasswordLabelMouseClicked(evt);
+            }
+        });
 
-		cancel.setText("Cancel");
-		cancel.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				cancelActionPerformed(evt);
-			}
-		});
+        needAccountLabel.setText("Need an account?");
 
-		forgotPasswordLabel.setForeground(new java.awt.Color(51, 122, 183));
-		forgotPasswordLabel.setText("Forgot your password?");
-		forgotPasswordLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-		forgotPasswordLabel.addMouseListener(new java.awt.event.MouseAdapter() {
-			public void mouseClicked(java.awt.event.MouseEvent evt) {
-				forgotPasswordLabelMouseClicked(evt);
-			}
-		});
+        signUpLabel.setForeground(new java.awt.Color(51, 122, 183));
+        signUpLabel.setText("Click here to Sign Up!");
+        signUpLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        signUpLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                signUpLabelMouseClicked(evt);
+            }
+        });
 
-		needAccountLabel.setText("Need an account?");
+        updateSettingsButton.setFont(CyServiceModule.getService(IconManager.class).getIconFont(ICON_FONT_SIZE * 4/5));
+        updateSettingsButton.setToolTipText("Additional sign-in options");
+        updateSettingsButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        updateSettingsButton.setBorderPainted(false);
+        updateSettingsButton.setContentAreaFilled(false);
+        updateSettingsButton.setFocusPainted(false);
+        updateSettingsButton.setMaximumSize(new java.awt.Dimension(32, 32));
+        updateSettingsButton.setMinimumSize(new java.awt.Dimension(24, 24));
+        updateSettingsButton.setPreferredSize(new java.awt.Dimension(24, 24));
+        updateSettingsButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                updateSettingsButtonActionPerformed(evt);
+            }
+        });
 
-		signUpLabel.setForeground(new java.awt.Color(51, 122, 183));
-		signUpLabel.setText("Click here to Sign Up!");
-		signUpLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-		signUpLabel.addMouseListener(new java.awt.event.MouseAdapter() {
-			public void mouseClicked(java.awt.event.MouseEvent evt) {
-				signUpLabelMouseClicked(evt);
-			}
-		});
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel5)
+                            .addComponent(jLabel6))
+                        .addGap(29, 29, 29)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(username)
+                            .addComponent(password)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel2)
+                            .addComponent(forgotPasswordLabel)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(needAccountLabel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(signUpLabel)))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(0, 137, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(cancel, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(save, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(updateSettingsButton, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(39, 39, 39)))))
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(username, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel5))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel6)
+                    .addComponent(password, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(save, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(updateSettingsButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(forgotPasswordLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(needAccountLabel)
+                    .addComponent(signUpLabel))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cancel, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
 
-		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-		getContentPane().setLayout(layout);
-		layout.setHorizontalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGroup(layout
-				.createSequentialGroup().addContainerGap()
-				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addGroup(layout.createSequentialGroup()
-								.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-										.addComponent(jLabel5).addComponent(jLabel6).addComponent(jLabel4))
-								.addGap(18, 18, 18)
-								.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-										.addComponent(url1, javax.swing.GroupLayout.DEFAULT_SIZE, 190, Short.MAX_VALUE)
-										.addComponent(username).addComponent(password)))
-						.addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-								.addGap(0, 0, Short.MAX_VALUE)
-								.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-										.addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
-												layout.createSequentialGroup().addComponent(save).addGap(69, 69, 69))
-										.addComponent(cancel, javax.swing.GroupLayout.Alignment.TRAILING)))
-						.addGroup(layout.createSequentialGroup()
-								.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-										.addComponent(jLabel2).addComponent(forgotPasswordLabel)
-										.addGroup(layout.createSequentialGroup().addComponent(needAccountLabel)
-												.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-												.addComponent(signUpLabel)))
-								.addGap(0, 0, Short.MAX_VALUE)))
-				.addContainerGap()));
-		layout.setVerticalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup().addContainerGap().addComponent(jLabel2)
-						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-						.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-								.addComponent(url1, javax.swing.GroupLayout.PREFERRED_SIZE,
-										javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-								.addComponent(jLabel4))
-						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-						.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-								.addComponent(username, javax.swing.GroupLayout.PREFERRED_SIZE,
-										javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-								.addComponent(jLabel5))
-						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-						.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-								.addComponent(jLabel6).addComponent(password, javax.swing.GroupLayout.PREFERRED_SIZE,
-										javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED).addComponent(save)
-						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED,
-								javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(forgotPasswordLabel)
-						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-						.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-								.addComponent(needAccountLabel).addComponent(signUpLabel))
-						.addGap(7, 7, 7).addComponent(cancel).addContainerGap()));
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
 
-		pack();
-	}// </editor-fold>//GEN-END:initComponents
+    private void updateSettingsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateSettingsButtonActionPerformed
+        	SignInAdvancedDialog advancedSettingsDialog = new SignInAdvancedDialog(this, serverURL);
+		advancedSettingsDialog.setLocationRelativeTo(this);
+		advancedSettingsDialog.setVisible(true);
+
+		if (advancedSettingsDialog.isChanged())
+		{
+			serverURL = advancedSettingsDialog.getNewServerURL();
+		}
+		advancedSettingsDialog.dispose();
+    }//GEN-LAST:event_updateSettingsButtonActionPerformed
 
 	private void url1ActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_url1ActionPerformed
 		// TODO add your handling code here:
@@ -210,7 +251,7 @@ public class SignInDialog extends javax.swing.JDialog {
 		final String username = usernameText.trim().length() > 0 ? usernameText.trim() : null;
 		final String password = passwordText.length() > 0 ? passwordText : null;
 
-		final String serverUrl = this.url1.getText().trim().length() > 0 ? this.url1.getText() : "";
+		final String serverUrl =  serverURL;
 
 		try {
 			ServerManager.INSTANCE.addServer(username, password, serverUrl);
@@ -271,18 +312,17 @@ public class SignInDialog extends javax.swing.JDialog {
 		});
 	}
 
-	// Variables declaration - do not modify//GEN-BEGIN:variables
-	private javax.swing.JButton cancel;
-	private javax.swing.JLabel forgotPasswordLabel;
-	private javax.swing.JLabel jLabel2;
-	private javax.swing.JLabel jLabel4;
-	private javax.swing.JLabel jLabel5;
-	private javax.swing.JLabel jLabel6;
-	private javax.swing.JLabel needAccountLabel;
-	private javax.swing.JPasswordField password;
-	private javax.swing.JButton save;
-	private javax.swing.JLabel signUpLabel;
-	private javax.swing.JTextField url1;
-	private javax.swing.JTextField username;
-	// End of variables declaration//GEN-END:variables
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton cancel;
+    private javax.swing.JLabel forgotPasswordLabel;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel needAccountLabel;
+    private javax.swing.JPasswordField password;
+    private javax.swing.JButton save;
+    private javax.swing.JLabel signUpLabel;
+    private javax.swing.JButton updateSettingsButton;
+    private javax.swing.JTextField username;
+    // End of variables declaration//GEN-END:variables
 }
