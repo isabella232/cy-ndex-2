@@ -29,16 +29,19 @@ public class MainToolBarAction extends AbstractCyAction {
 	private static final String TITLE = "Open or Save Networks in NDEx...";
 	private static final String DESCRIPTION = "Open or Save Networks and Collections in NDEx, the Cloud Storage for the Cytoscape Cyberinfrastructure";
 	private final ImportNetworkFromNDExTaskFactory importTaskFactory;
+	private final ImportUserNetworkFromNDExTaskFactory importUserNetworkTaskFactory;
 	private final SaveNetworkToNDExTaskFactory saveTaskFactory;
 	private final CyServiceRegistrar serviceRegistrar;
 	
 	public MainToolBarAction(
 			ImportNetworkFromNDExTaskFactory importTaskFactory,
+			ImportUserNetworkFromNDExTaskFactory importUserNetworkTaskFactory,
 			SaveNetworkToNDExTaskFactory saveTaskFactory,
 			CyServiceRegistrar serviceRegistrar
 	) {
 		super(TITLE);
 		this.importTaskFactory = importTaskFactory;
+		this.importUserNetworkTaskFactory = importUserNetworkTaskFactory;
 		this.saveTaskFactory = saveTaskFactory;
 		this.serviceRegistrar = serviceRegistrar;
 		
@@ -78,12 +81,15 @@ public class MainToolBarAction extends AbstractCyAction {
 	}
 	
 	private JMenuItem getMyNetworksMenuItem(final Font font, final int iconSize) {
+		DialogTaskManager taskManager = serviceRegistrar.getService(DialogTaskManager.class);
 		final Icon icon = new TextIcon(IconUtil.ICON_NDEX_ACCOUNT, font, iconSize, iconSize);
+		
 		final JMenuItem mi = new JMenuItem(new AbstractAction("My Networks", icon) {
-			public void actionPerformed(ActionEvent e) {
-				
+			public void actionPerformed(ActionEvent e) {	
+				taskManager.execute(importUserNetworkTaskFactory.createTaskIterator());
 			}
 		});
+		
 		return mi;
 	}
 	
