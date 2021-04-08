@@ -90,7 +90,7 @@
                           <Component id="needAccountLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="signUpLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace max="-2" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Component id="cancel" min="-2" pref="24" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" attributes="0">

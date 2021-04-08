@@ -129,7 +129,6 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 		final boolean isCollection = isCollection();
 		setModal(true);
 
-		updateExportButton();
 		rootPane.setDefaultButton(exportButton);
 
 		String REST_URI = "http://localhost:" + CyActivator.getCyRESTPort() + "/cyndex2/v1/networks/"
@@ -496,7 +495,6 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 		updateSettingsDialog.dispose();
 
 		if (newUUID != null) {
-			updateExportButton();
 			updateUpdateButton();
 			updateCheckbox.setSelected(true);
 		}
@@ -532,8 +530,22 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 	}
 
 	private void exportButtonActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_uploadActionPerformed
+		final Server server = ServerManager.INSTANCE.getServer();
+		if (server.getUsername() == null) {
+			SignInDialog signInDialog = new SignInDialog(null);
+			signInDialog.setLocationRelativeTo(this);
+			signInDialog.setVisible(true);
+			
+			final Server selectedServer = ServerManager.INSTANCE.getServer();
+			if (selectedServer.getUsername() == null || selectedServer.getUsername().isEmpty()) {
+				signInDialog.dispose();
+				return;
+			} else {
+				signInDialog.dispose();
+			}
+		}
+		
 		Container container = this.getParent();
-
 		ModalProgressHelper.runWorker(this, "Exporting to NDEx", () -> {
 
 			final Server selectedServer = ServerManager.INSTANCE.getSelectedServer();
@@ -624,19 +636,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 	public void propertyChange(PropertyChangeEvent arg0) {
 		if (isVisible()) {
 			profileButton.setText(SignInButtonHelper.getSignInText());
-			updateExportButton();
 			updateUpdateButton();
-		}
-	}
-
-	private void updateExportButton() {
-		final Server selectedServer = ServerManager.INSTANCE.getServer();
-		if (selectedServer.getUsername() == null) {
-			exportButton.setEnabled(false);
-			exportButton.setToolTipText("Please sign in an NDEx profile to upload networks.");
-		} else {
-			exportButton.setEnabled(true);
-			exportButton.setToolTipText(null);
 		}
 	}
 
