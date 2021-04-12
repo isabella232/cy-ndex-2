@@ -11,6 +11,8 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -216,33 +218,31 @@ public class SignInDialog extends javax.swing.JDialog {
 	}// GEN-LAST:event_cancelActionPerformed
 
 	private void forgotPasswordLabelMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_forgotPasswordLabelMouseClicked
-		 try {
-     		Desktop.getDesktop().browse(new URI("http://localhost:3000/viewer/signup"));
-       }  catch (IOException | URISyntaxException ex) {
-			ex.printStackTrace();
-       }
+		
+           
+            try {
+            	 AccountBrowserPrompt dialog;
+            	dialog = new AccountBrowserPrompt(null, true, "Recover Password", new URI("http://localhost:3000/viewer/recoverPassword"));
+               dialog.setLocationRelativeTo(this);
+               dialog.setVisible(true);
+            } catch (URISyntaxException ex) {
+                Logger.getLogger(SignInDialog.class.getName()).log(Level.SEVERE, null, ex);
+            }
+              
+          
+      
 	}// GEN-LAST:event_forgotPasswordLabelMouseClicked
 
 	private void signUpLabelMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_signUpLabelMouseClicked
 		
-			javax.swing.Timer t = new javax.swing.Timer(3000, new ActionListener() {
-		          public void actionPerformed(ActionEvent e) {
-		              try {
-		            		Desktop.getDesktop().browse(new URI("http://localhost:3000/viewer/signup"));
-		              }  catch (IOException | URISyntaxException ex) {
-		      			ex.printStackTrace();
-		      		}
-		          }
-		       });
-		
-			t.setRepeats(false);
-			t.start();
-			
-			Object[] options = { "Return to Sign-In" };
-			
-			int n = JOptionPane.showOptionDialog(this, "<html><p width='400px'>CyNDEx-2 will open a Sign-Up page in your web browser. Once you have finished the Sign-Up process, you can sign in here using your new username and password.</p></hmtl>",
-					"Sign Up using your web browser", JOptionPane.OK_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options,
-					options[0]);
+		 try {
+        	 AccountBrowserPrompt dialog;
+        	dialog = new AccountBrowserPrompt(null, true, "Sign-Up", new URI("http://localhost:3000/viewer/signup"));
+           dialog.setLocationRelativeTo(this);
+           dialog.setVisible(true);
+        } catch (URISyntaxException ex) {
+            Logger.getLogger(SignInDialog.class.getName()).log(Level.SEVERE, null, ex);
+        }
 		
 	}// GEN-LAST:event_signUpLabelMouseClicked
 
