@@ -45,7 +45,7 @@ public class AccountBrowserPrompt extends javax.swing.JDialog {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Open " + this.title + " in Web Browser");
 
-        jLabel1.setText("<html><body>CyNDEx-2 will need to open a web page in your web browser to complete this action. Once you have finished the Sign-In process, return to the Sign-In dialog to use your new Sign In info.</body><html>");
+        jLabel1.setText("<html><body>CyNDEx-2 will need to open a web page in your web browser to complete this action. Once you have finished the " + this.title +" process, return to the Sign-In dialog to use your new Sign In info.</body><html>");
 
         jButton1.setText("Return to Sign-In");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
