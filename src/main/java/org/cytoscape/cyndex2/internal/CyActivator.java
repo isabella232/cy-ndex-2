@@ -29,6 +29,7 @@ import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.task.OpenBrowseTaskFactory;
 import org.cytoscape.cyndex2.internal.task.OpenSaveCollectionTaskFactory;
 import org.cytoscape.cyndex2.internal.task.OpenSaveTaskFactory;
+import org.cytoscape.cyndex2.internal.ui.ImportUserNetworkFromNDExTaskFactory;
 import org.cytoscape.cyndex2.internal.ui.ImportNetworkFromNDExTaskFactory;
 import org.cytoscape.cyndex2.internal.ui.MainToolBarAction;
 import org.cytoscape.cyndex2.internal.ui.SaveNetworkToNDExTaskFactory;
@@ -164,9 +165,11 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, ndexSaveCollectionTaskFactory, TaskFactory.class, ndexSaveCollectionTaskFactoryProps);
 		
 		ImportNetworkFromNDExTaskFactory importFromNDExTaskFactory = new ImportNetworkFromNDExTaskFactory(ExternalAppManager.APP_NAME_LOAD);
+		ImportUserNetworkFromNDExTaskFactory importUserNetworkTaskFactory = new ImportUserNetworkFromNDExTaskFactory(ExternalAppManager.APP_NAME_LOAD);
+		
 		SaveNetworkToNDExTaskFactory saveToNDExTaskFactory = new SaveNetworkToNDExTaskFactory(appManager, ExternalAppManager.APP_NAME_SAVE);
 
-		MainToolBarAction action = new MainToolBarAction(importFromNDExTaskFactory, saveToNDExTaskFactory, serviceRegistrar);
+		MainToolBarAction action = new MainToolBarAction(importFromNDExTaskFactory, importUserNetworkTaskFactory, saveToNDExTaskFactory, serviceRegistrar);
 		registerService(bc, action, CyAction.class);
 		
 		// TF for NDEx Load

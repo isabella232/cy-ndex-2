@@ -171,6 +171,7 @@ public class OpenBrowseTaskFactory extends OpenDialogTaskFactory implements Netw
 	@Override
 	public TaskIterator createTaskIterator() {
 		LoadParameters.INSTANCE.searchTerm = getQuery();
+		LoadParameters.INSTANCE.userNetworksOnly = false;
 		return super.createTaskIterator();
 	}
 

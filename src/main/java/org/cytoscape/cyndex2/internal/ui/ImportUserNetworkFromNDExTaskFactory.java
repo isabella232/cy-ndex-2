@@ -4,16 +4,16 @@ import org.cytoscape.cyndex2.internal.rest.parameter.LoadParameters;
 import org.cytoscape.cyndex2.internal.task.OpenDialogTaskFactory;
 import org.cytoscape.work.TaskIterator;
 
-public class ImportNetworkFromNDExTaskFactory extends OpenDialogTaskFactory{
+public class ImportUserNetworkFromNDExTaskFactory extends OpenDialogTaskFactory{
 
-	public ImportNetworkFromNDExTaskFactory(String appName) {
+	public ImportUserNetworkFromNDExTaskFactory(String appName) {
 		super(appName);
 	}
 	
 	@Override
 	public TaskIterator createTaskIterator() {
 		LoadParameters.INSTANCE.searchTerm = "";
-		LoadParameters.INSTANCE.userNetworksOnly = false;
+		LoadParameters.INSTANCE.userNetworksOnly = true;
 		return super.createTaskIterator();
 	}
 

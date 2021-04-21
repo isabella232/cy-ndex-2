@@ -5,41 +5,27 @@
  */
 package org.cytoscape.cyndex2.internal.ui.swing;
 
-import java.sql.Timestamp;
-import java.util.UUID;
-
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import org.cytoscape.cyndex2.internal.CyActivator;
-import org.cytoscape.cyndex2.internal.CyServiceModule;
-import org.cytoscape.cyndex2.internal.util.NDExNetworkManager;
-import org.cytoscape.cyndex2.internal.util.Server;
-import org.cytoscape.cyndex2.internal.util.UpdateUtil;
-import org.cytoscape.model.CyNetwork;
-import org.cytoscape.util.swing.IconManager;
-import org.ndexbio.model.object.network.NetworkSummary;
+import org.cytoscape.cyndex2.internal.util.ServerManager;
+import org.ndexbio.model.object.NdexStatus;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
-
-import static org.cytoscape.util.swing.IconManager.ICON_WARNING;
 
 /**
  *
  * @author dotasek
  */
-public class UpdateSettingsDialog extends javax.swing.JDialog {
+public class SignInAdvancedDialog extends javax.swing.JDialog {
 
 	final int ICON_FONT_SIZE = 44;
 	
-	private final CyNetwork network;
-
-	private final boolean noInitialUUID;
-
-	private UUID newUUID = null;
+	
+	private String serverURL = null;
 
 	private boolean changed = false;
 
@@ -47,28 +33,19 @@ public class UpdateSettingsDialog extends javax.swing.JDialog {
 		return changed;
 	}
 
-	public UUID getNewUUID() {
-		return newUUID;
+	public String getNewServerURL() {
+		return serverURL;
 	}
 
-	private Server selectedServer;
+	
 
 	/**
 	 * Creates new form NewJDialog
 	 */
-	public UpdateSettingsDialog(JDialog parent, final CyNetwork network, Server selectedServer,
-			final boolean noInitialUUID) {
+	public SignInAdvancedDialog(JDialog parent, final String serverURL) {
 		super(parent, true);
-		this.network = network;
-		this.selectedServer = selectedServer;
-		this.noInitialUUID = noInitialUUID;
+		this.serverURL = serverURL;
 		initComponents();
-	}
-
-	private String getExistingUUID() {
-		final UUID uuid = network == null ? null : NDExNetworkManager.getUUID(network);
-		final String uuidString = uuid == null ? "" : uuid.toString();
-		return uuidString;
 	}
 
 	/**
@@ -81,25 +58,24 @@ public class UpdateSettingsDialog extends javax.swing.JDialog {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        uuidTextField = initializeUUIDField()
-        ;
-        jLabel4 = new javax.swing.JLabel();
+        serverURLTextField = createServerURLField();
+        serverURLLabel = new javax.swing.JLabel();
         okButton = new javax.swing.JButton();
         cancel = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
+        instructionText = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Update Network Settings");
         setIconImage(null);
 
-        uuidTextField.addActionListener(new java.awt.event.ActionListener() {
+        serverURLTextField.setText(serverURL);
+        serverURLTextField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                uuidTextFieldActionPerformed(evt);
+                serverURLTextFieldActionPerformed(evt);
             }
         });
 
-        jLabel4.setText("Network UUID");
+        serverURLLabel.setText("Server URL:");
 
         okButton.setText("OK");
         okButton.addActionListener(new java.awt.event.ActionListener() {
@@ -115,48 +91,42 @@ public class UpdateSettingsDialog extends javax.swing.JDialog {
             }
         });
 
-        jLabel1.setFont(new java.awt.Font("Dialog", 2, 12)); // NOI18N
-        jLabel1.setText("<html><body>You are about to update the remote network specified by the UUID below. This process is not reversible.</body></html>");
-
-        jLabel3.setFont(CyServiceModule.getService(IconManager.class).getIconFont(ICON_FONT_SIZE * 4/5));
-        jLabel3.setText(ICON_WARNING);
+        instructionText.setFont(new java.awt.Font("Dialog", 2, 12)); // NOI18N
+        instructionText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        instructionText.setText("<html><body>Enter a valid NDEx server URL.</body></html>");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addContainerGap(230, Short.MAX_VALUE)
+                        .addGap(0, 231, Short.MAX_VALUE)
                         .addComponent(cancel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(okButton))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(43, 43, 43)
-                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(serverURLLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 259, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addComponent(serverURLTextField))
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jLabel4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(uuidTextField)))
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(instructionText, javax.swing.GroupLayout.PREFERRED_SIZE, 259, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                .addGap(12, 12, 12)
+                .addComponent(instructionText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel4)
-                    .addComponent(uuidTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(serverURLLabel)
+                    .addComponent(serverURLTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(okButton)
                     .addComponent(cancel))
@@ -166,10 +136,10 @@ public class UpdateSettingsDialog extends javax.swing.JDialog {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-	private JTextField initializeUUIDField() {
-		JTextField uuidTextField = new javax.swing.JTextField();
-		uuidTextField.setText(noInitialUUID ? "" : getExistingUUID());
-		uuidTextField.getDocument().addDocumentListener(new DocumentListener() {
+	private JTextField createServerURLField() {
+		JTextField serverURLTextField = new javax.swing.JTextField();
+		serverURLTextField.setText(serverURL);
+		serverURLTextField.getDocument().addDocumentListener(new DocumentListener() {
 			public void changedUpdate(DocumentEvent e) {
 				changed = true;
 			}
@@ -182,10 +152,10 @@ public class UpdateSettingsDialog extends javax.swing.JDialog {
 				changed = true;
 			}
 		});
-		return uuidTextField;
+		return serverURLTextField;
 	}
 
-	private void uuidTextFieldActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_uuidTextFieldActionPerformed
+	private void serverURLTextFieldActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_uuidTextFieldActionPerformed
 		// TODO add your handling code here:
 	}// GEN-LAST:event_uuidTextFieldActionPerformed
 
@@ -199,39 +169,38 @@ public class UpdateSettingsDialog extends javax.swing.JDialog {
 	}// GEN-LAST:event_cancelActionPerformed
 
 	private void applySettings() {
-		if (!changed || this.noInitialUUID && uuidTextField.getText().trim().length() == 0) {
-			System.out.println("Nothing changed. Leaving old UUID");
+		if (!changed || serverURLTextField.getText().trim().length() == 0) {
+			System.out.println("Nothing changed. Leaving old server URL");
 			setVisible(false);
 			return;
 		}
 
-		System.out.println("UUID changed. Verifying.");
-		Timestamp serverTimestamp;
-		UUID verifiedUUID;
+		System.out.println("Server URL changed. Verifying.");
+		
+		String verifiedURL;
 		try {
-			final String uuidString = this.uuidTextField.getText().trim();
-			final UUID potentialUUID = UUID.fromString(uuidString);
-
-			final NdexRestClient nc = new NdexRestClient(selectedServer.getUsername(), selectedServer.getPassword(),
-					selectedServer.getUrl(), CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
+			final String trimmedURL = serverURLTextField.getText().trim();
+			final String baseRoute = ServerManager.getBaseRoute(trimmedURL);
+			
+			final NdexRestClient nc = new NdexRestClient(
+					baseRoute);
+			//nc.setAdditionalUserAgent(additionalUserAgent);
 			final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
-
-			verifiedUUID = UpdateUtil.updateIsPossible(network, potentialUUID, nc, mal, false);
-			NetworkSummary ns = mal.getNetworkSummaryById(verifiedUUID);
-			serverTimestamp = ns.getModificationTime();
-
+			
+			final NdexStatus status = mal.getServerStatus();
+			verifiedURL = status.getProperties().size() > 0 ? trimmedURL : null;
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			JOptionPane.showMessageDialog(this,
-					"<html><body>Error validating UUID: <br>" + e.getMessage() + "</html></body>", "Invalid UUID",
+					"<html><body>Error validating NDEx Server URL: <br>" + e.getMessage() + "</html></body>", "Invalid URL",
 					JOptionPane.WARNING_MESSAGE);
-			verifiedUUID = null;
-			serverTimestamp = null;
+			verifiedURL = null;
 		}
 
-		if (verifiedUUID != null && serverTimestamp != null) {
-			NDExNetworkManager.saveUUID(network, verifiedUUID, serverTimestamp);
-			newUUID = verifiedUUID;
+		if (verifiedURL != null) {
+			
+			serverURL = verifiedURL;
 			setVisible(false);
 		}
 	}
@@ -256,18 +225,22 @@ public class UpdateSettingsDialog extends javax.swing.JDialog {
 				}
 			}
 		} catch (ClassNotFoundException ex) {
-			java.util.logging.Logger.getLogger(UpdateSettingsDialog.class.getName()).log(java.util.logging.Level.SEVERE,
+			java.util.logging.Logger.getLogger(SignInAdvancedDialog.class.getName()).log(java.util.logging.Level.SEVERE,
 					null, ex);
 		} catch (InstantiationException ex) {
-			java.util.logging.Logger.getLogger(UpdateSettingsDialog.class.getName()).log(java.util.logging.Level.SEVERE,
+			java.util.logging.Logger.getLogger(SignInAdvancedDialog.class.getName()).log(java.util.logging.Level.SEVERE,
 					null, ex);
 		} catch (IllegalAccessException ex) {
-			java.util.logging.Logger.getLogger(UpdateSettingsDialog.class.getName()).log(java.util.logging.Level.SEVERE,
+			java.util.logging.Logger.getLogger(SignInAdvancedDialog.class.getName()).log(java.util.logging.Level.SEVERE,
 					null, ex);
 		} catch (javax.swing.UnsupportedLookAndFeelException ex) {
-			java.util.logging.Logger.getLogger(UpdateSettingsDialog.class.getName()).log(java.util.logging.Level.SEVERE,
+			java.util.logging.Logger.getLogger(SignInAdvancedDialog.class.getName()).log(java.util.logging.Level.SEVERE,
 					null, ex);
 		}
+		// </editor-fold>
+		// </editor-fold>
+		// </editor-fold>
+		// </editor-fold>
 		// </editor-fold>
 		// </editor-fold>
 		// </editor-fold>
@@ -278,7 +251,7 @@ public class UpdateSettingsDialog extends javax.swing.JDialog {
 
 			public void run() {
 
-				UpdateSettingsDialog dialog = new UpdateSettingsDialog(new javax.swing.JDialog(), null, null, true);
+				SignInAdvancedDialog dialog = new SignInAdvancedDialog(new javax.swing.JDialog(), "public.ndexbio.org");
 				dialog.addWindowListener(new java.awt.event.WindowAdapter() {
 					@Override
 					public void windowClosing(java.awt.event.WindowEvent e) {
@@ -292,10 +265,9 @@ public class UpdateSettingsDialog extends javax.swing.JDialog {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancel;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel instructionText;
     private javax.swing.JButton okButton;
-    private javax.swing.JTextField uuidTextField;
+    private javax.swing.JLabel serverURLLabel;
+    private javax.swing.JTextField serverURLTextField;
     // End of variables declaration//GEN-END:variables
 }

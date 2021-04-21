@@ -105,13 +105,20 @@ public class ServerManager {
 		return selectedServer != null ? availableServers.getServer(selectedServer) : Server.DEFAULT_SERVER;
 	}
 
-	private String getBaseRoute(String url) {
-		final String baseroute;
-		if (url.toLowerCase().startsWith("http://") || url.toLowerCase().startsWith("https://"))
-			baseroute = url;
-		else
-			baseroute = "http://" + url + "/v2";
-		return baseroute;
+	public static String addHttpProtocol(String url) {
+		return url.toLowerCase().startsWith("http://") || url.toLowerCase().startsWith("https://") 
+				? url
+				: "http://" + url;
+	}
+	
+	public static String addHttpsProtocol(String url) {
+		return url.toLowerCase().startsWith("http://") || url.toLowerCase().startsWith("https://") 
+				? url
+				: "https://" + url;
+	}
+	
+	public static String getBaseRoute(String url) {
+		return addHttpProtocol(url) + "/v2";
 	}
 
 	/**
@@ -122,7 +129,7 @@ public class ServerManager {
 	 */
 	public void addServer(final String username, final String password, final String serverUrl) throws Exception {
 
-		final String baseroute = this.getBaseRoute(serverUrl);
+		final String baseroute = getBaseRoute(serverUrl);
 
 		final String url = baseroute.concat("/user?valid=true");
 
