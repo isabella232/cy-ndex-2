@@ -1,7 +1,11 @@
 package org.cytoscape.cyndex2.internal.ui;
 
+import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
@@ -71,7 +75,7 @@ public class MainToolBarAction extends AbstractCyAction {
 		DialogTaskManager taskManager = serviceRegistrar.getService(DialogTaskManager.class);
 		
 		final Icon icon = new TextIcon(IconUtil.ICON_NDEX_ACCOUNT, font, iconSize, iconSize);
-		final JMenuItem mi = new JMenuItem(new AbstractAction("Get on NDEx", icon) {
+		final JMenuItem mi = new JMenuItem(new AbstractAction("Sign On/Sign Up", icon) {
 			public void actionPerformed(ActionEvent e) {
 				JFrame parent = serviceRegistrar.getService(CySwingApplication.class).getJFrame();
 				
@@ -139,6 +143,25 @@ public class MainToolBarAction extends AbstractCyAction {
 			popupMenu.add(mi);
 		}
 		
+        popupMenu.addSeparator();
+		
+		{
+			final Icon icon = new TextIcon(IconUtil.ICON_NDEX_LOGO, font, iconSize, iconSize);
+			JMenuItem mi = new JMenuItem(new AbstractAction("NDEx Webpage", icon){
+				public void actionPerformed(ActionEvent e) {	
+					 try {
+						Desktop.getDesktop().browse(new URI("https://ndexbio.org"));
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					} catch (URISyntaxException e1) {
+						e1.printStackTrace();
+					}
+				}
+			});
+			
+			popupMenu.add(mi);
+		}
+                
 		LookAndFeelUtil.makeSmall(popupMenu);
 		
 		popupMenu.show(comp, 0, comp.getSize().height);
