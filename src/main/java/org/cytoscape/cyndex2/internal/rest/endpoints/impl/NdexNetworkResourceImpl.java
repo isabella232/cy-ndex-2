@@ -34,6 +34,7 @@ import org.cytoscape.cyndex2.internal.task.NDExImportTaskFactory;
 import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 import org.cytoscape.cyndex2.internal.util.NDExNetworkManager;
 import org.cytoscape.cyndex2.internal.util.UpdateUtil;
+import org.cytoscape.cyndex2.internal.util.UserAgentUtil;
 import org.cytoscape.io.read.AbstractCyNetworkReader;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.model.CyColumn;
@@ -291,7 +292,8 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		try {
 			final NdexRestClient nc = new NdexRestClient(params.username, params.password,
 					params.serverUrl,
-					CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
+					 UserAgentUtil.getCyNDExUserAgent());
+			nc.setAdditionalUserAgent(UserAgentUtil.getCytoscapeUserAgent());
 			final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
 			uuid = UpdateUtil.updateIsPossibleHelper(suid, network instanceof CyRootNetwork, nc, mal);
 		} catch (Exception e) {

@@ -10,6 +10,7 @@ import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorBuilder;
 import org.cytoscape.cyndex2.internal.rest.errors.ErrorType;
 import org.cytoscape.cyndex2.internal.rest.parameter.NDExImportParameters;
+import org.cytoscape.cyndex2.internal.util.UserAgentUtil;
 import org.cytoscape.work.AbstractTaskFactory;
 import org.cytoscape.work.TaskIterator;
 import org.ndexbio.model.exceptions.NdexException;
@@ -37,12 +38,14 @@ public class NDExImportTaskFactory extends AbstractTaskFactory {
 			final String serverUrl = params.serverUrl == null ? "http://ndexbio.org/v2/" : params.serverUrl;
 
 			final NdexRestClient client = new NdexRestClient(params.username, params.password, serverUrl,
-					CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
+					 UserAgentUtil.getCyNDExUserAgent());
+			client.setAdditionalUserAgent(UserAgentUtil.getCytoscapeUserAgent());
 			final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(client);
 			return new NetworkImportTask(mal, uuid, params.accessKey, params.createView);
 		} else {
 			final NdexRestClient client = new NdexRestClient(null, null, params.serverUrl,
 					CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
+			client.setAdditionalUserAgent("Cytoscape/" + CyActivator.getCytoscapeVersion());
 			if (params.idToken != null)
 				client.signIn(params.idToken);
 

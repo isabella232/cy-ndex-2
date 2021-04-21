@@ -63,6 +63,7 @@ import org.cytoscape.cyndex2.internal.rest.response.SummaryResponse;
 import org.cytoscape.cyndex2.internal.util.Server;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
 import org.cytoscape.cyndex2.internal.util.UpdateUtil;
+import org.cytoscape.cyndex2.internal.util.UserAgentUtil;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.util.swing.IconManager;
 import org.ndexbio.rest.client.NdexRestClient;
@@ -654,7 +655,8 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 			try {
 				System.out.println("Checking if update is possible for suid: " + saveParameters.suid);
 				final NdexRestClient nc = new NdexRestClient(selectedServer.getUsername(), selectedServer.getPassword(),
-						selectedServer.getUrl(), CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
+						selectedServer.getUrl(),  UserAgentUtil.getCyNDExUserAgent());
+				nc.setAdditionalUserAgent(UserAgentUtil.getCytoscapeUserAgent());
 				final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
 				updatePossible = UpdateUtil.updateIsPossibleHelper(saveParameters.suid,
 						saveParameters.saveType.equals("collection"), nc, mal, !isUUIDChanged) != null;
