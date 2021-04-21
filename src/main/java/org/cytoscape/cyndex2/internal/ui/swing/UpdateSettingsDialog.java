@@ -29,7 +29,7 @@ import static org.cytoscape.util.swing.IconManager.ICON_WARNING;
 
 /**
  *
- * @author cytoscape
+ * @author dotasek
  */
 public class UpdateSettingsDialog extends javax.swing.JDialog {
 

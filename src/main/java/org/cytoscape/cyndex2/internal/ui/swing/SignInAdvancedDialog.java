@@ -5,32 +5,20 @@
  */
 package org.cytoscape.cyndex2.internal.ui.swing;
 
-import java.sql.Timestamp;
-import java.util.UUID;
-
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import org.cytoscape.cyndex2.internal.CyActivator;
-import org.cytoscape.cyndex2.internal.CyServiceModule;
-import org.cytoscape.cyndex2.internal.util.NDExNetworkManager;
-import org.cytoscape.cyndex2.internal.util.Server;
-import org.cytoscape.cyndex2.internal.util.UpdateUtil;
-import org.cytoscape.model.CyNetwork;
-import org.cytoscape.util.swing.IconManager;
+import org.cytoscape.cyndex2.internal.util.ServerManager;
 import org.ndexbio.model.object.NdexStatus;
-import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
-import static org.cytoscape.util.swing.IconManager.ICON_WARNING;
-
 /**
  *
- * @author cytoscape
+ * @author dotasek
  */
 public class SignInAdvancedDialog extends javax.swing.JDialog {
 
@@ -191,17 +179,17 @@ public class SignInAdvancedDialog extends javax.swing.JDialog {
 		
 		String verifiedURL;
 		try {
-			final String serverURLString = this.serverURLTextField.getText().trim();
+			final String trimmedURL = serverURLTextField.getText().trim();
+			final String baseRoute = ServerManager.getBaseRoute(trimmedURL);
 			
 			final NdexRestClient nc = new NdexRestClient(
-					serverURLString);
+					baseRoute);
+			//nc.setAdditionalUserAgent(additionalUserAgent);
 			final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
-
-			NdexStatus status = mal.getServerStatus();
-		
-			verifiedURL = serverURLString;
 			
-		
+			final NdexStatus status = mal.getServerStatus();
+			verifiedURL = status.getProperties().size() > 0 ? trimmedURL : null;
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			JOptionPane.showMessageDialog(this,

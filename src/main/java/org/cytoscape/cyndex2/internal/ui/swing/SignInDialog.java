@@ -22,7 +22,7 @@ import static org.cytoscape.util.swing.IconManager.ICON_COG;
 
 /**
  *
- * @author cytoscape
+ * @author dotasek
  */
 public class SignInDialog extends javax.swing.JDialog {
 
@@ -207,12 +207,13 @@ public class SignInDialog extends javax.swing.JDialog {
 		setVisible(false);
 	}// GEN-LAST:event_cancelActionPerformed
 
+
 	private void forgotPasswordLabelMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_forgotPasswordLabelMouseClicked
 
 		try {
 			AccountBrowserPrompt dialog;
-			dialog = new AccountBrowserPrompt(null, true, "Recover Password",
-					new URI("http://localhost:3000/viewer/recoverPassword"));
+			dialog = new AccountBrowserPrompt(null, true, "Password Recovery",
+					new URI(ServerManager.addHttpsProtocol(serverURL) + "/viewer/recoverPassword"));
 			dialog.setLocationRelativeTo(this);
 			dialog.setVisible(true);
 		} catch (URISyntaxException ex) {
@@ -225,7 +226,7 @@ public class SignInDialog extends javax.swing.JDialog {
 
 		try {
 			AccountBrowserPrompt dialog;
-			dialog = new AccountBrowserPrompt(null, true, "Sign-Up", new URI("http://localhost:3000/viewer/signup"));
+			dialog = new AccountBrowserPrompt(null, true, "Sign-Up", new URI(ServerManager.addHttpsProtocol(serverURL) + "/viewer/signup"));
 			dialog.setLocationRelativeTo(this);
 			dialog.setVisible(true);
 		} catch (URISyntaxException ex) {
