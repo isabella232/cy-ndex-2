@@ -10,4 +10,8 @@ public class UserAgentUtil {
 	public static String getCytoscapeUserAgent() {
 		return "Cytoscape/" + CyActivator.getCytoscapeVersion();
 	}
+	
+	public static String getUserAgent() {
+		return getCytoscapeUserAgent() + " " + getCyNDExUserAgent();
+	}
 }

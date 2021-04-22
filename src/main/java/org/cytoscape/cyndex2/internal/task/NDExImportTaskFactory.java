@@ -38,14 +38,12 @@ public class NDExImportTaskFactory extends AbstractTaskFactory {
 			final String serverUrl = params.serverUrl == null ? "http://ndexbio.org/v2/" : params.serverUrl;
 
 			final NdexRestClient client = new NdexRestClient(params.username, params.password, serverUrl,
-					 UserAgentUtil.getCyNDExUserAgent());
-			client.setAdditionalUserAgent(UserAgentUtil.getCytoscapeUserAgent());
+					UserAgentUtil.getUserAgent());
 			final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(client);
 			return new NetworkImportTask(mal, uuid, params.accessKey, params.createView);
 		} else {
 			final NdexRestClient client = new NdexRestClient(null, null, params.serverUrl,
-					CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
-			client.setAdditionalUserAgent("Cytoscape/" + CyActivator.getCytoscapeVersion());
+					UserAgentUtil.getUserAgent());
 			if (params.idToken != null)
 				client.signIn(params.idToken);
 

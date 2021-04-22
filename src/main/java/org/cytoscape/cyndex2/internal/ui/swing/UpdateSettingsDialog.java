@@ -214,8 +214,7 @@ public class UpdateSettingsDialog extends javax.swing.JDialog {
 			final UUID potentialUUID = UUID.fromString(uuidString);
 
 			final NdexRestClient nc = new NdexRestClient(selectedServer.getUsername(), selectedServer.getPassword(),
-					selectedServer.getUrl(), UserAgentUtil.getCyNDExUserAgent());
-			nc.setAdditionalUserAgent(UserAgentUtil.getCytoscapeUserAgent());
+					selectedServer.getUrl(), UserAgentUtil.getUserAgent());
 			final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
 
 			verifiedUUID = UpdateUtil.updateIsPossible(network, potentialUUID, nc, mal, false);

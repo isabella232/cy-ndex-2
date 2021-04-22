@@ -110,8 +110,7 @@ public class NDExExportTaskFactory implements NetworkViewTaskFactory, NetworkTas
 				ByteArrayInputStream in = new ByteArrayInputStream(bytes);
 				
 				NdexRestClient client = new NdexRestClient(params.username, params.password, params.serverUrl,
-						 UserAgentUtil.getCyNDExUserAgent());
-				client.setAdditionalUserAgent(UserAgentUtil.getCytoscapeUserAgent());
+						 UserAgentUtil.getUserAgent());
 				NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(client);
 				
 				exporter = new NetworkExportTask(mal, network.getSUID(), in, params, writeCollection, isUpdate);
