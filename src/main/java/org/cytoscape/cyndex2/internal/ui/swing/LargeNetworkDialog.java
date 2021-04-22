@@ -62,11 +62,8 @@ public class LargeNetworkDialog extends javax.swing.JDialog {
 			try {
 				mal = selectedServer.getModelAccessLayer();
 				MetaDataCollection metaDataCollection = mal.getNetworkMetadata(networkSummary.getExternalId());
-				
 				hasView = metaDataCollection.getMetaDataElement("cyVisualProperties") != null;
 				
-				System.out.println("network hasView: " + hasView);
-				System.out.println("network hasLayout: " + networkSummary.getHasLayout());
 			} catch (IOException | NdexException e) {
 				e.printStackTrace();
 				hasView = true;
