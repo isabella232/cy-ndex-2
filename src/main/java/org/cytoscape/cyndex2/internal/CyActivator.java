@@ -86,6 +86,11 @@ public class CyActivator extends AbstractCyActivator {
 		return port;
 	}
 	
+	public static String getCytoscapeVersion() {
+		String version = cyProps.getProperties().getProperty("cytoscape.version.number");
+		return version;
+	}
+	
 	public static boolean useDefaultBrowser() {
 		String val = cyProps.getProperties().getProperty("cyndex2.defaultBrowser");
 		return Boolean.parseBoolean(val);

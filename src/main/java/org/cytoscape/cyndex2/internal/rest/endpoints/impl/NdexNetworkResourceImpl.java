@@ -34,6 +34,7 @@ import org.cytoscape.cyndex2.internal.task.NDExImportTaskFactory;
 import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 import org.cytoscape.cyndex2.internal.util.NDExNetworkManager;
 import org.cytoscape.cyndex2.internal.util.UpdateUtil;
+import org.cytoscape.cyndex2.internal.util.UserAgentUtil;
 import org.cytoscape.io.read.AbstractCyNetworkReader;
 import org.cytoscape.io.read.InputStreamTaskFactory;
 import org.cytoscape.model.CyColumn;
@@ -100,7 +101,8 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		 */
 		if (suid == null) {
 			logger.error("SUID is missing");
-			throw errorBuilder.buildException(Status.BAD_REQUEST, "SUID is not specified.", ErrorType.INVALID_PARAMETERS);
+			throw errorBuilder.buildException(Status.BAD_REQUEST, "SUID is not specified.",
+					ErrorType.INVALID_PARAMETERS);
 		}
 		CyNetwork network = networkManager.getNetwork(suid.longValue());
 
@@ -143,14 +145,14 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		}
 	}
 
-	public NDExExportTaskFactory getNDExExportTaskFactory( final NDExBasicSaveParameters params, boolean isUpdate) {
+	public NDExExportTaskFactory getNDExExportTaskFactory(final NDExBasicSaveParameters params, boolean isUpdate) {
 		return new NDExExportTaskFactory(params, isUpdate);
 	}
-	
-	public NDExImportTaskFactory getNDExImportTaskFactory( final NDExImportParameters params) {
+
+	public NDExImportTaskFactory getNDExImportTaskFactory(final NDExImportParameters params) {
 		return new NDExImportTaskFactory(params);
 	}
-	
+
 	@Override
 	@CIWrapping
 	public CINdexBaseResponse saveNetworkToNdex(final Long suid, final NDExSaveParameters params) {
@@ -168,7 +170,7 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 				logger.error(message);
 				throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
 			}
-			
+
 			final NdexBaseResponse response = new NdexBaseResponse(suid, newUUID.toString());
 			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
 
@@ -247,13 +249,14 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		final SummaryResponse summary = new SummaryResponse();
 
 		// Network local table
-		final SimpleNetworkSummary rootSummary = buildNetworkSummary(root, root.getDefaultNetworkTable(), root.getSUID());
+		final SimpleNetworkSummary rootSummary = buildNetworkSummary(root, root.getDefaultNetworkTable(),
+				root.getSUID());
 		if (network != null)
 			summary.currentNetworkSuid = network.getSUID();
 		summary.currentRootNetwork = rootSummary;
 		List<SimpleNetworkSummary> members = new ArrayList<>();
-		root.getSubNetworkList().stream()
-				.forEach(subnet -> members.add(buildNetworkSummary(subnet, subnet.getDefaultNetworkTable(), subnet.getSUID())));
+		root.getSubNetworkList().stream().forEach(
+				subnet -> members.add(buildNetworkSummary(subnet, subnet.getDefaultNetworkTable(), subnet.getSUID())));
 		summary.members = members;
 
 		return summary;
@@ -289,13 +292,13 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		// Check UUID
 		UUID uuid;
 		try {
-			final NdexRestClient nc = new NdexRestClient(params.username, params.password,
-					params.serverUrl,
-					CyActivator.getAppName() + "/" + CyActivator.getAppVersion());
+			final NdexRestClient nc = new NdexRestClient(params.username, params.password, params.serverUrl,
+					UserAgentUtil.getUserAgent());
 			final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
 			uuid = UpdateUtil.updateIsPossibleHelper(suid, network instanceof CyRootNetwork, nc, mal);
 		} catch (Exception e) {
-			final String message = "Unable to update network in NDEx. " + e.getMessage() + " Try saving as a new network.";
+			final String message = "Unable to update network in NDEx. " + e.getMessage()
+					+ " Try saving as a new network.";
 			logger.error(message);
 			throw errorBuilder.buildException(Status.BAD_REQUEST, message, ErrorType.INVALID_PARAMETERS);
 

@@ -11,7 +11,9 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.util.ServerManager;
+import org.cytoscape.cyndex2.internal.util.UserAgentUtil;
 import org.ndexbio.model.object.NdexStatus;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
@@ -184,7 +186,7 @@ public class SignInAdvancedDialog extends javax.swing.JDialog {
 			
 			final NdexRestClient nc = new NdexRestClient(
 					baseRoute);
-			//nc.setAdditionalUserAgent(additionalUserAgent);
+			nc.setAdditionalUserAgent(UserAgentUtil.getUserAgent());
 			final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
 			
 			final NdexStatus status = mal.getServerStatus();

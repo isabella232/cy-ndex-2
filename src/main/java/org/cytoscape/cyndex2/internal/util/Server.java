@@ -126,7 +126,7 @@ public class Server
     public NdexRestClientModelAccessLayer getModelAccessLayer() throws IOException, NdexException
     {
     	final String apiUrl = url;//url.concat("/v2");
-    	final NdexRestClient client = new NdexRestClient(username,password,apiUrl);
+    	final NdexRestClient client = new NdexRestClient(username,password,apiUrl, UserAgentUtil.getUserAgent());
 			return new NdexRestClientModelAccessLayer(client);
     }
    
