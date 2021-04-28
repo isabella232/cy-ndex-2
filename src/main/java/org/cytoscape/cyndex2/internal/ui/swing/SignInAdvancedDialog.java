@@ -67,7 +67,7 @@ public class SignInAdvancedDialog extends javax.swing.JDialog {
         instructionText = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Update Network Settings");
+        setTitle("NDEx Server Settings");
         setIconImage(null);
 
         serverURLTextField.setText(serverURL);
