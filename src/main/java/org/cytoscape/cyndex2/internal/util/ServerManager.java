@@ -33,7 +33,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -59,6 +58,7 @@ import com.google.gson.GsonBuilder;
 /**
  *
  * @author David Welker
+ * @author jingchen
  */
 public class ServerManager {
 	public static ServerManager INSTANCE = new ServerManager();
@@ -216,7 +216,7 @@ public class ServerManager {
 		saveSelectedServerKey(selectedServer, selectedServersFile.getAbsolutePath());
 	}
 
-	private void saveSelectedServerKey(ServerKey serverKey, String filePath) {
+	private static void saveSelectedServerKey(ServerKey serverKey, String filePath) {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		String json = gson.toJson(serverKey);
 		File serverFile = new File(filePath);
@@ -239,28 +239,22 @@ public class ServerManager {
 		mPcs.firePropertyChange(event);
 	}
 
-	private ServerKey readSelectedServer() {
+	private static ServerKey readSelectedServer() {
 		File configDir = CyServiceModule.INSTANCE.getConfigDir();
 		File selectedServerJsonFile = new File(configDir, FilePath.SELECTED_SERVER);
-		ServerKey selectedServer = readSelectedServer(selectedServerJsonFile);
-		return selectedServer;
+		return readSelectedServer(selectedServerJsonFile);
 	}
 
-	private ServerKey readSelectedServer(File jsonFile) {
-		try {
-			return readSelectedServer(new FileReader(jsonFile));
+	private static ServerKey readSelectedServer(File jsonFile) {
+		try (BufferedReader br = new BufferedReader(new FileReader(jsonFile))) {
+			Gson gson = new Gson();
+			ServerKey result = gson.fromJson(br, ServerKey.class);
+			return result;
 		} catch (IOException ex) {
 			Logger.getLogger(ServerManager.class.getName()).log(Level.SEVERE, null, ex);
 			return null;
 		}
 	}
 
-	private ServerKey readSelectedServer(Reader reader) throws IOException {
-		try (BufferedReader br = new BufferedReader(reader)) {
-			Gson gson = new Gson();
-			ServerKey result = gson.fromJson(br, ServerKey.class);
-			return result;
-		}
-	}
 
 }

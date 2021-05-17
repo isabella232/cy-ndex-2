@@ -147,8 +147,8 @@ public class CyActivator extends AbstractCyActivator {
 
 		// Create subdirectories in config dir for jxbrowser
 		final CyNetworkManager netmgr = getService(bc, CyNetworkManager.class);
-		File jxBrowserDir = new File(config.getConfigurationDirectoryLocation(), "jxbrowser");
-		jxBrowserDir.mkdir();
+		//File jxBrowserDir = new File(config.getConfigurationDirectoryLocation(), "jxbrowser");
+		//jxBrowserDir.mkdir();
 		//BrowserManager.setDataDirectory(new File(jxBrowserDir, "data"));
 		
 		// TF for NDEx Save Network
