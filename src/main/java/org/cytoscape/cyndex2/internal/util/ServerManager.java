@@ -131,11 +131,10 @@ public class ServerManager {
 
 		final String baseroute = getBaseRoute(serverUrl);
 
-		final String url = baseroute.concat("/user?valid=true");
 
-		if (availableServers.getServer(new ServerKey(username, url)) != null) {
+/*		if (availableServers.getServer(new ServerKey(username, serverUrl)) != null) {
 			throw new Exception("Server already exists.");
-		}
+		} */
 
 		if (username == null && password == null) {
 			System.out.println("Anonymous access");
@@ -148,6 +147,7 @@ public class ServerManager {
 			provider.setCredentials(AuthScope.ANY, credentials);
 
 			HttpClient httpClient = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
+			final String url = baseroute.concat("/user?valid=true");
 
 			final HttpGet get = new HttpGet(url);
 
@@ -161,7 +161,7 @@ public class ServerManager {
 
 			if (response.getStatusLine().getStatusCode() != 200) {
 				try {
-					final String message = jsonNode.get("message").asText("Error in login. No error message available.");
+					final String message = jsonNode.get("message").asText();
 					throw new Exception(message);
 				} catch (Exception e) {
 					throw new Exception(e);
@@ -175,19 +175,18 @@ public class ServerManager {
 			throw new Exception("Passwords are not used for anonymous access.");
 		}
 
-		if (availableServers.getServer(new ServerKey(username, url)) != null) {
-			throw new Exception("Server already exists.");
+		Server server = availableServers.getServer(new ServerKey(username, serverUrl));
+		if (server == null) {
+			server = new Server();
+
+			server.setUrl(serverUrl);
+
+			server.setUsername(username);
+			server.setPassword(password);
+
+			availableServers.add(server);
+			availableServers.writeServerList(getServerListFile());
 		}
-
-		Server server = new Server();
-
-		server.setUrl(serverUrl);
-
-		server.setUsername(username);
-		server.setPassword(password);
-
-		availableServers.add(server);
-		availableServers.writeServerList(getServerListFile());
 
 		setSelectedServer(new ServerKey(server));
 		saveSelectedServer();
@@ -221,7 +220,7 @@ public class ServerManager {
 		String json = gson.toJson(serverKey);
 		File serverFile = new File(filePath);
 		try {
-			Files.write(json, serverFile, Charsets.UTF_8);
+			Files.asCharSink( serverFile, Charsets.UTF_8).write(json);
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
