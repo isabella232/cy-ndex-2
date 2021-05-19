@@ -46,7 +46,29 @@ public class ProfilePopupMenu extends JPopupMenu {
 		if (selectedServer == null) {
 
 		} else {
+			if ( selectedServer.getUsername() != null) {
+				add(new JMenuItem(new AbstractAction(" Log out of Current Profile") {
+
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						ServerKey key = new ServerKey(null, selectedServer.getUrl());
+						Server anonymousConn = ServerManager.INSTANCE.getAvailableServers().getServer(key);
+						if (anonymousConn != null) {
+							ServerManager.INSTANCE.setSelectedServer(key);
+						} else {
+							try {
+								ServerManager.INSTANCE.addServer(null, null, selectedServer.getUrl());
+							} catch (Exception e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+						}
+					}
+				}));
+				addSeparator();
+			}
 			add(new JMenuItem(new AbstractAction("Remove Current Profile", REMOVE_PROFILE_ICON) {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					System.out.println("log out " + selectedServer.getUsername() + "@" + selectedServer.getUrl());
 					ServerManager.INSTANCE.removeServer(selectedServer);

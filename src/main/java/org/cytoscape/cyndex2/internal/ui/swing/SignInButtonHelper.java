@@ -42,7 +42,7 @@ public class SignInButtonHelper {
     	if (selectedServer == null) {
     		return "Sign in";
     	} else {
-    		return "<html>" + ServerUtil.getDisplayUsernameHTML(selectedServer.getUsername()) + "@" + selectedServer.getUrl() + "</html>";
+    		return "<html>" + ServerUtil.getDisplayUsernameHTML(selectedServer.getUsername()) + "@" + selectedServer.getUrl() + " &#9662;</html>";
     	}
     }
 }

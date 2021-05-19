@@ -76,6 +76,7 @@ public class MainToolBarAction extends AbstractCyAction {
 		
 		final Icon icon = new TextIcon(IconUtil.ICON_NDEX_ACCOUNT, font, iconSize, iconSize);
 		final JMenuItem mi = new JMenuItem(new AbstractAction("Sign On/Sign Up", icon) {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFrame parent = serviceRegistrar.getService(CySwingApplication.class).getJFrame();
 				
@@ -98,6 +99,7 @@ public class MainToolBarAction extends AbstractCyAction {
 		final Icon icon = new TextIcon(IconUtil.ICON_NDEX_ACCOUNT, font, iconSize, iconSize);
 		
 		final JMenuItem mi = new JMenuItem(new AbstractAction("My Networks", icon) {
+			@Override
 			public void actionPerformed(ActionEvent e) {	
 				taskManager.execute(importUserNetworkTaskFactory.createTaskIterator());
 			}
@@ -114,7 +116,8 @@ public class MainToolBarAction extends AbstractCyAction {
 		int iconSize = 24;
 		
 		{
-			JMenuItem mi = ServerManager.INSTANCE.getAvailableServers().getSize() == 0 ? getSignInMenuItem(font, iconSize) : getMyNetworksMenuItem(font, iconSize);
+			JMenuItem mi = ServerManager.INSTANCE.getAvailableServers().getSize() == 0 ? getSignInMenuItem(font, iconSize) : 
+				( ServerManager.INSTANCE.getSelectedServer().getUsername() == null ? getSignInMenuItem(font, iconSize) : getMyNetworksMenuItem(font, iconSize));
 			popupMenu.add(mi);
 		}
 		
@@ -148,9 +151,10 @@ public class MainToolBarAction extends AbstractCyAction {
 		{
 			final Icon icon = new TextIcon(IconUtil.ICON_NDEX_LOGO, font, iconSize, iconSize);
 			JMenuItem mi = new JMenuItem(new AbstractAction("NDEx Webpage", icon){
+				@Override
 				public void actionPerformed(ActionEvent e) {	
 					 try {
-						Desktop.getDesktop().browse(new URI("https://ndexbio.org"));
+						Desktop.getDesktop().browse(new URI("https://www.ndexbio.org"));
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					} catch (URISyntaxException e1) {
@@ -161,7 +165,25 @@ public class MainToolBarAction extends AbstractCyAction {
 			
 			popupMenu.add(mi);
 		}
-                
+
+		{
+			final Icon icon = new TextIcon(IconUtil.ICON_NDEX_LOGO, font, iconSize, iconSize);
+			JMenuItem mi = new JMenuItem(new AbstractAction("NDEx FAQ", icon){
+				@Override
+				public void actionPerformed(ActionEvent e) {	
+					 try {
+						Desktop.getDesktop().browse(new URI("https://home.ndexbio.org/faq/"));
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					} catch (URISyntaxException e1) {
+						e1.printStackTrace();
+					}
+				}
+			});
+			
+			popupMenu.add(mi);
+		}
+
 		LookAndFeelUtil.makeSmall(popupMenu);
 		
 		popupMenu.show(comp, 0, comp.getSize().height);
