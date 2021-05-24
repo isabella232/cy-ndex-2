@@ -75,7 +75,7 @@ public class MainToolBarAction extends AbstractCyAction {
 		DialogTaskManager taskManager = serviceRegistrar.getService(DialogTaskManager.class);
 		
 		final Icon icon = new TextIcon(IconUtil.ICON_NDEX_ACCOUNT, font, iconSize, iconSize);
-		final JMenuItem mi = new JMenuItem(new AbstractAction("Sign On/Sign Up", icon) {
+		final JMenuItem mi = new JMenuItem(new AbstractAction("Sign In/Sign Up", icon) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFrame parent = serviceRegistrar.getService(CySwingApplication.class).getJFrame();
@@ -98,7 +98,8 @@ public class MainToolBarAction extends AbstractCyAction {
 		DialogTaskManager taskManager = serviceRegistrar.getService(DialogTaskManager.class);
 		final Icon icon = new TextIcon(IconUtil.ICON_NDEX_ACCOUNT, font, iconSize, iconSize);
 		
-		final JMenuItem mi = new JMenuItem(new AbstractAction("My Networks", icon) {
+		final JMenuItem mi = new JMenuItem(new AbstractAction("My Networks (" +
+				ServerManager.INSTANCE.getSelectedServer().getUsername() + ")", icon) {
 			@Override
 			public void actionPerformed(ActionEvent e) {	
 				taskManager.execute(importUserNetworkTaskFactory.createTaskIterator());
