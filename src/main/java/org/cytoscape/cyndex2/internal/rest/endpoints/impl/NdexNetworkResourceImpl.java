@@ -2,6 +2,7 @@ package org.cytoscape.cyndex2.internal.rest.endpoints.impl;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -17,7 +18,6 @@ import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.ci.CIWrapping;
 import org.cytoscape.ci.model.CIError;
 import org.cytoscape.cyndex2.internal.CxTaskFactoryManager;
-import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.rest.NdexClient;
 import org.cytoscape.cyndex2.internal.rest.SimpleNetworkSummary;
@@ -33,6 +33,8 @@ import org.cytoscape.cyndex2.internal.task.NDExExportTaskFactory;
 import org.cytoscape.cyndex2.internal.task.NDExImportTaskFactory;
 import org.cytoscape.cyndex2.internal.util.CIServiceManager;
 import org.cytoscape.cyndex2.internal.util.NDExNetworkManager;
+import org.cytoscape.cyndex2.internal.util.Server;
+import org.cytoscape.cyndex2.internal.util.ServerManager;
 import org.cytoscape.cyndex2.internal.util.UpdateUtil;
 import org.cytoscape.cyndex2.internal.util.UserAgentUtil;
 import org.cytoscape.io.read.AbstractCyNetworkReader;
@@ -50,6 +52,7 @@ import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskObserver;
 import org.cytoscape.work.swing.DialogTaskManager;
 import org.cytoscape.work.util.ListSingleSelection;
+import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.slf4j.Logger;
@@ -356,6 +359,58 @@ public class NdexNetworkResourceImpl implements NdexNetworkResource {
 		}
 		return false;
 	}
+	
+	
+	@Override
+	@CIWrapping
+	public CINdexBaseResponse updateNdexUUIDOfNetwork( Long suid,
+			final Map<String,String> rec) {
+		
+		
+		Timestamp serverTimestamp;
+		UUID verifiedUUID = null;
+		String uuidString = rec.get("uuid");
+		
+		UUID potentialUUID = UUID.fromString(uuidString);
+		CyNetwork network = UpdateUtil.getNetworkForSUID(suid,false);
+		Server selectedServer =ServerManager.INSTANCE.getSelectedServer();
+
+		try {
+
+			final NdexRestClient nc = new NdexRestClient(selectedServer.getUsername(), selectedServer.getPassword(),
+					selectedServer.getUrl(), UserAgentUtil.getUserAgent());
+			final NdexRestClientModelAccessLayer mal = new NdexRestClientModelAccessLayer(nc);
+
+			
+			verifiedUUID = UpdateUtil.updateIsPossible(network, potentialUUID, nc, mal, false);
+			NetworkSummary ns = mal.getNetworkSummaryById(verifiedUUID);
+			serverTimestamp = ns.getModificationTime();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, "Error validating UUID: " + e.getMessage(),
+					 ErrorType.INTERNAL);
+			
+					//"<html><body>Error validating UUID: <br>" + e.getMessage() + "</html></body>", "Invalid UUID",
+					//JOptionPane.WARNING_MESSAGE);
+			//verifiedUUID = null;
+			//serverTimestamp = null;
+		}
+
+		if (verifiedUUID != null && serverTimestamp != null) {
+			NDExNetworkManager.saveUUID(network, verifiedUUID, serverTimestamp);
+		}
+		
+		final NdexBaseResponse response = new NdexBaseResponse(suid, uuidString);
+		try {
+			return ciServiceManager.getCIResponseFactory().getCIResponse(response, CINdexBaseResponse.class);
+		} catch (InstantiationException | IllegalAccessException e) {
+			final String message = "Could not create wrapped CI JSON. Error: " + e.getMessage();
+			logger.error(message);
+			throw errorBuilder.buildException(Status.INTERNAL_SERVER_ERROR, message, ErrorType.INTERNAL);
+		}
+	}
+
 
 	@Override
 	@CIWrapping

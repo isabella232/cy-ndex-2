@@ -560,7 +560,7 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 					: new HttpPost(uri.toString());
 			request.setHeader("Content-type", "application/json");
 
-			final Map<String, String> metadata = new HashMap<String, String>();
+			final Map<String, String> metadata = new HashMap<>();
 			metadata.put("name", nameField.getText());
 			metadata.put("author", authorField.getText());
 			metadata.put("organism", organismField.getText());
@@ -574,13 +574,13 @@ public class ExportNetworkDialog extends javax.swing.JDialog implements Property
 			System.out.println("REST_URI: " + REST_URI);
 			System.out.println("url " + selectedServer.getUrl());
 
-			NDExSaveParameters saveParameters = new NDExSaveParameters(selectedServer.getUsername(),
+			NDExSaveParameters saveParams = new NDExSaveParameters(selectedServer.getUsername(),
 					selectedServer.getPassword(), selectedServer.getUrl(), metadata, false);
 			final ObjectMapper objectMapper = new ObjectMapper();
 
 			try {
 
-				request.setEntity(new StringEntity(objectMapper.writeValueAsString(saveParameters)));
+				request.setEntity(new StringEntity(objectMapper.writeValueAsString(saveParams)));
 				final HttpResponse response = httpClient.execute(request);
 				final int statusCode = response.getStatusLine().getStatusCode();
 
