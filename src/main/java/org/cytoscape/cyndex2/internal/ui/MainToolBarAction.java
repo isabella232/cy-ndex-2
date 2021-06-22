@@ -151,7 +151,7 @@ public class MainToolBarAction extends AbstractCyAction {
 		
 		{
 			final Icon icon = new TextIcon(IconUtil.ICON_NDEX_LOGO, font, iconSize, iconSize);
-			JMenuItem mi = new JMenuItem(new AbstractAction("NDEx Webpage", icon){
+			JMenuItem mi = new JMenuItem(new AbstractAction("NDEx Homepage", icon){
 				@Override
 				public void actionPerformed(ActionEvent e) {	
 					 try {
