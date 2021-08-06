@@ -14,7 +14,6 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import org.cytoscape.cyndex2.internal.CyActivator;
 import org.cytoscape.cyndex2.internal.CyServiceModule;
 import org.cytoscape.cyndex2.internal.util.NDExNetworkManager;
 import org.cytoscape.cyndex2.internal.util.Server;
