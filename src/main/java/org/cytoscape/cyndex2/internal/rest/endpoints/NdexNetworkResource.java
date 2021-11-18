@@ -1,6 +1,7 @@
 package org.cytoscape.cyndex2.internal.rest.endpoints;
 
 import java.io.InputStream;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -134,6 +135,19 @@ public interface NdexNetworkResource {
 	public CINdexBaseResponse updateNetworkInNdex(
 			@ApiParam(value="Cytoscape Collection/Subnetwork SUID") @PathParam("suid") Long suid,
 			@ApiParam(value = "Properties required to update a network record in NDEx.", required = true) final NDExBasicSaveParameters params);
+
+	
+	@PUT
+	@Produces("application/json")
+	@Consumes("application/json")
+	@Path("/{suid}/NDEXUUID")
+	@ApiOperation(value = "Set the associcated NDEx UUID in the specified network", notes = "Set NDEx UUID in a network.", response = CINdexBaseResponse.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 404, message = "Network does not exist", response = CINdexBaseResponse.class), })
+	public CINdexBaseResponse updateNdexUUIDOfNetwork(
+			@ApiParam(value="Cytoscape Collection/Subnetwork SUID") @PathParam("suid") Long suid,
+			@ApiParam(value = "Properties required to update a network record in NDEx.", required = true) final Map<String,String> rec);
+	
 	
 	@PUT
 	@Produces("application/json")
